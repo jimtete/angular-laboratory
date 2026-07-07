@@ -12,11 +12,18 @@
 
 .photo-placeholder {
   width: 100%;
-  aspect-ratio: 4 / 3;
   padding: 6px;
   background-color: #6d28d9;
-  border: 4px solid #ffffff;
   border-radius: 14px;
+  box-sizing: border-box;
+}
+
+.hero-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 4px solid #ffffff;
+  border-radius: 8px;
   box-sizing: border-box;
 }
 
@@ -61,11 +68,11 @@
 }
 
 .carousel-track-swipe-next {
-  animation: carousel-swipe-next 225ms linear;
+  animation: carousel-swipe-next 225ms linear forwards;
 }
 
 .carousel-track-swipe-previous {
-  animation: carousel-swipe-previous 225ms linear;
+  animation: carousel-swipe-previous 225ms linear forwards;
 }
 
 .carousel-page {
@@ -80,6 +87,7 @@
 .carousel-button {
   position: absolute;
   top: 50%;
+  z-index: 2;
   width: 3rem;
   height: 3rem;
   display: grid;

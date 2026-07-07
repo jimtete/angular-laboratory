@@ -1,11 +1,39 @@
-<article class="carousel-card">
-  <div class="card-title">{{ title() }}</div>
+<article
+  class="carousel-card"
+  tabindex="0"
+  [style.background-image]="backgroundImageStyle()"
+>
+  <div class="card-title">
+    <span class="card-title-text">{{ formattedTitle() }}</span>
+  </div>
 
-  <div class="card-number">{{ value() }}</div>
+  <div
+    class="card-image"
+    role="img"
+    [attr.aria-label]="card().title"
+  ></div>
 
   <div class="card-icon-row" aria-label="Icon placeholders">
-    @for (label of iconLabels(); track label) {
-      <div class="card-icon-placeholder">{{ label }}</div>
+    @for (icon of card().icons; track icon.id) {
+      <div class="card-icon-placeholder">
+        @if (icon.source) {
+          <img class="card-icon" [src]="icon.source" [alt]="icon.alt ?? icon.label" />
+        } @else if (icon.lucideIcon) {
+          @switch (icon.lucideIcon) {
+            @case ('lightbulb') {
+              <svg class="card-lucide-icon" lucideLightbulb [title]="icon.label"></svg>
+            }
+            @case ('brain-circuit') {
+              <svg class="card-lucide-icon" lucideBrainCircuit [title]="icon.label"></svg>
+            }
+            @case ('theater') {
+              <svg class="card-lucide-icon" lucideTheater [title]="icon.label"></svg>
+            }
+          }
+        } @else {
+          <span class="card-icon-label">{{ icon.label }}</span>
+        }
+      </div>
     }
   </div>
 </article>

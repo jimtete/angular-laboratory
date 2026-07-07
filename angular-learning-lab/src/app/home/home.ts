@@ -1,5 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { CarouselCard } from '../shared/components/carousel-card/carousel-card';
+import { ASSET_PATHS } from '../shared/constants/asset-paths';
 import { CAROUSEL_CARDS, CarouselCardData } from '../shared/data/carousel-cards.data';
 
 @Component({
@@ -11,6 +12,7 @@ import { CAROUSEL_CARDS, CarouselCardData } from '../shared/data/carousel-cards.
 export class Home {
   private readonly carouselAnimationDurationMs = 225;
 
+  protected readonly assets = ASSET_PATHS;
   protected readonly cards = CAROUSEL_CARDS;
   protected readonly visibleCardCount = 3;
   protected readonly carouselStartIndex = signal(0);
@@ -31,12 +33,6 @@ export class Home {
       ? [targetPage, currentPage]
       : [currentPage, targetPage];
   });
-
-  protected readonly carouselTrackClass = computed(() =>
-    this.carouselAnimationDirection() === null
-      ? ''
-      : `carousel-track-swipe-${this.carouselAnimationDirection()}`,
-  );
 
   protected nextCarouselPage(): void {
     this.moveCarousel('next');

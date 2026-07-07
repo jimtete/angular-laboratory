@@ -1,5 +1,7 @@
 <section class="home-hero">
-  <div class="photo-placeholder" aria-label="Photo placeholder"></div>
+  <div class="photo-placeholder" aria-label="Photo placeholder">
+    <img class="hero-photo" [src]="assets.images.deadAsDisco" alt="Disco Elysium game cover" />
+  </div>
 
   <div class="hero-content">
     <h1>Build, test, and explore Angular ideas.</h1>
@@ -23,15 +25,15 @@
   </button>
 
   <div class="carousel-viewport">
-    <div class="carousel-track" [class]="carouselTrackClass()">
+    <div
+      class="carousel-track"
+      [class.carousel-track-swipe-next]="carouselAnimationDirection() === 'next'"
+      [class.carousel-track-swipe-previous]="carouselAnimationDirection() === 'previous'"
+    >
       @for (page of carouselPages(); track $index) {
         <div class="carousel-page">
           @for (card of page; track card.id) {
-            <app-carousel-card
-              [value]="card.value"
-              [title]="card.title"
-              [iconLabels]="card.iconLabels"
-            />
+            <app-carousel-card [card]="card" />
           }
         </div>
       }
