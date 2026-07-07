@@ -1,0 +1,11 @@
+<article class="carousel-card">
+  <div class="card-title">{{ title() }}</div>
+
+  <div class="card-number">{{ value() }}</div>
+
+  <div class="card-icon-row" aria-label="Icon placeholders">
+    @for (label of iconLabels(); track label) {
+      <div class="card-icon-placeholder">{{ label }}</div>
+    }
+  </div>
+</article>

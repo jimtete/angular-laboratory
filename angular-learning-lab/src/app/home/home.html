@@ -1,0 +1,49 @@
+<section class="home-hero">
+  <div class="photo-placeholder" aria-label="Photo placeholder"></div>
+
+  <div class="hero-content">
+    <h1>Build, test, and explore Angular ideas.</h1>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae arcu sed justo volutpat
+      dignissim. Praesent facilisis, nisl at posuere gravida, urna velit cursus lorem, vitae cursus
+      neque sem at massa.
+    </p>
+  </div>
+</section>
+
+<section class="card-carousel" aria-label="Numbered card carousel">
+  <button
+    type="button"
+    class="carousel-button carousel-button-previous"
+    aria-label="Show previous cards"
+    [disabled]="carouselAnimationDirection() !== null"
+    (click)="previousCarouselPage()"
+  >
+    <span class="arrow arrow-left" aria-hidden="true"></span>
+  </button>
+
+  <div class="carousel-viewport">
+    <div class="carousel-track" [class]="carouselTrackClass()">
+      @for (page of carouselPages(); track $index) {
+        <div class="carousel-page">
+          @for (card of page; track card.id) {
+            <app-carousel-card
+              [value]="card.value"
+              [title]="card.title"
+              [iconLabels]="card.iconLabels"
+            />
+          }
+        </div>
+      }
+    </div>
+  </div>
+  <button
+    type="button"
+    class="carousel-button carousel-button-next"
+    aria-label="Show next cards"
+    [disabled]="carouselAnimationDirection() !== null"
+    (click)="nextCarouselPage()"
+  >
+    <span class="arrow arrow-right" aria-hidden="true"></span>
+  </button>
+</section>
