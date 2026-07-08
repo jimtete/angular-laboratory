@@ -1,0 +1,31 @@
+<section
+  class="rating-row"
+  [class.rating-row-print-reversed]="isPrintReversed()"
+  [attr.aria-label]="label()"
+>
+  <div class="rating-hover-label" aria-hidden="true">
+    <span>{{ hoverText() }}</span>
+  </div>
+
+  <button type="button" class="rating-image-button" aria-label="Set value to 0" (click)="selectImage()">
+    <img [src]="imageSrc()" alt="" />
+  </button>
+
+  <div class="rating-scale" role="radiogroup" [attr.aria-label]="label() + ' value'">
+    @for (option of options; track option) {
+      <button
+        type="button"
+        class="rating-segment"
+        [class.rating-segment-selected]="selectedValue() >= option"
+        [attr.aria-label]="'Set value to ' + option"
+        [attr.aria-checked]="selectedValue() === option"
+        role="radio"
+        (click)="selectOption(option)"
+      ></button>
+    }
+  </div>
+
+  <output class="rating-value" [attr.aria-label]="label() + ' selected value'">
+    {{ valueText() }}
+  </output>
+</section>

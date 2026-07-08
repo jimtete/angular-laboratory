@@ -10,6 +10,16 @@
   box-sizing: border-box;
 }
 
+.home-loading {
+  min-height: calc(100dvh - 4rem);
+  display: grid;
+  place-items: center;
+  color: #1f1235;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  font-size: 1.5rem;
+  box-sizing: border-box;
+}
+
 .photo-placeholder {
   width: 100%;
   padding: 6px;

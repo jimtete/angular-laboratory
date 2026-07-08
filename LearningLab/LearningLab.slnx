@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LearningLab.Data/LearningLab.Data.csproj" />
+  <Project Path="LearningLab/LearningLab.csproj" />
+</Solution>

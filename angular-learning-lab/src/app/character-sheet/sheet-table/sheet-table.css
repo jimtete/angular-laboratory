@@ -1,0 +1,116 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.sheet-table {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  padding-top: 0.85rem;
+  border: 2px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #6d28d9;
+  box-sizing: border-box;
+}
+
+.sheet-table h2 {
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  margin: 0;
+  padding: 0 0.5rem;
+  background: #ffffff;
+  color: #1f1235;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: translateY(-50%);
+}
+
+.sheet-table-body {
+  height: 100%;
+  padding: 0 1rem 1rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.sheet-table-row {
+  display: block;
+  width: 100%;
+  min-height: 4rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: 0;
+  resize: vertical;
+  background: rgba(245, 243, 255, 0.45);
+  color: #1f1235;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.sheet-table-row:focus {
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.18);
+}
+
+.sheet-table-add-row {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px dashed #9ca3af;
+  border-radius: 6px;
+  background: transparent;
+  color: #6d28d9;
+  font-size: 1.5rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sheet-table-add-row:hover {
+  background: rgba(109, 40, 217, 0.08);
+}
+
+@media print {
+  :host {
+    height: auto;
+    min-height: auto;
+  }
+
+  .sheet-table {
+    height: auto;
+    min-height: 85vh;
+    padding-top: 1.4rem;
+    box-shadow: none;
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .sheet-table-body {
+    height: 82vh;
+    overflow: visible;
+  }
+
+  .sheet-table h2 {
+    top: 0.35rem;
+  }
+
+  .sheet-table-row {
+    min-height: 3rem;
+    overflow: visible;
+    resize: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .sheet-table-add-row {
+    display: none;
+  }
+}

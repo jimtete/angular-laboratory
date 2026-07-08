@@ -1,4 +1,29 @@
-<nav class="top-nav" aria-label="Primary navigation"></nav>
+<nav class="top-nav" [class.top-nav-open]="isMenuOpen()" aria-label="Primary navigation">
+  <button
+    type="button"
+    class="menu-toggle"
+    aria-label="Toggle navigation menu"
+    [attr.aria-expanded]="isMenuOpen()"
+    (click)="toggleMenu()"
+  >
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div class="nav-links" [attr.aria-hidden]="!isMenuOpen()">
+    <a
+      routerLink="/"
+      routerLinkActive="nav-link-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Home
+    </a>
+    <a routerLink="/character-sheet" routerLinkActive="nav-link-active">
+      Character Sheet
+    </a>
+  </div>
+</nav>
 
 <main class="page">
   <router-outlet />

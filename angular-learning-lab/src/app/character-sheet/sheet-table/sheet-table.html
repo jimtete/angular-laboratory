@@ -1,0 +1,17 @@
+<section class="sheet-table">
+  <h2>{{ title() }}</h2>
+
+  <div class="sheet-table-body">
+    @for (row of rows(); track row.id) {
+      <textarea
+        class="sheet-table-row"
+        [attr.aria-label]="title() + ' row'"
+        [value]="row.value"
+        (input)="updateRow(row.id, $any($event.target).value)"
+        (blur)="removeEmptyRows()"
+      ></textarea>
+    }
+
+    <button type="button" class="sheet-table-add-row" (click)="addRow()">+</button>
+  </div>
+</section>

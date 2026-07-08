@@ -1,0 +1,74 @@
+<form #characterSheetForm class="character-sheet-page">
+  <div class="character-sheet-row">
+    <div class="portrait-column">
+      <div class="portrait-placeholder">
+        <img [src]="assets.images.profilePicture" alt="Character portrait" />
+      </div>
+    </div>
+
+    <div class="details-column">
+      <section class="sheet-field sheet-field-class">
+        <h2>Class</h2>
+        <textarea class="sheet-field-control" aria-label="Class"></textarea>
+      </section>
+      <section class="sheet-field sheet-field-background">
+        <h2>Background</h2>
+        <textarea class="sheet-field-control" aria-label="Background"></textarea>
+      </section>
+      <section class="sheet-field sheet-field-information">
+        <h2>Information</h2>
+        <textarea class="sheet-field-control" aria-label="Information"></textarea>
+      </section>
+    </div>
+
+    <div class="identity-column">
+      <section class="sheet-field">
+        <h2>First Name</h2>
+        <textarea class="sheet-field-control" aria-label="First Name"></textarea>
+      </section>
+      <section class="sheet-field">
+        <h2>Last Name</h2>
+        <textarea class="sheet-field-control" aria-label="Last Name"></textarea>
+      </section>
+      <section class="sheet-field">
+        <h2>Nationality</h2>
+        <textarea class="sheet-field-control" aria-label="Nationality"></textarea>
+      </section>
+      <section class="sheet-field">
+        <h2>Height</h2>
+        <textarea class="sheet-field-control" aria-label="Height"></textarea>
+      </section>
+      <section class="sheet-field">
+        <h2>Weight</h2>
+        <textarea class="sheet-field-control" aria-label="Weight"></textarea>
+      </section>
+    </div>
+  </div>
+
+  <div class="character-sheet-tables-row">
+    <app-sheet-table title="Actions/Bonus Actions" [resetVersion]="resetVersion()" />
+    <app-sheet-table title="Traits" [resetVersion]="resetVersion()" />
+    <app-sheet-table title="Equipment" [resetVersion]="resetVersion()" />
+  </div>
+
+  <div class="character-sheet-rating-rows">
+    @for (row of ratingRows; track row.label) {
+      <app-rating-row
+        [imageSrc]="row.imageSrc"
+        [label]="row.label"
+        [hoverText]="row.hoverText"
+        [isPrintReversed]="$odd"
+        [resetVersion]="resetVersion()"
+      />
+    }
+  </div>
+
+  <div class="character-sheet-actions">
+    <button type="button" class="sheet-action-button sheet-action-clear" (click)="clearSheet()">
+      Clear
+    </button>
+    <button type="button" class="sheet-action-button sheet-action-print" (click)="printSheet()">
+      Print
+    </button>
+  </div>
+</form>

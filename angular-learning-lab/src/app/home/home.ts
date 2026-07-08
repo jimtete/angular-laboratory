@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CarouselCard } from '../shared/components/carousel-card/carousel-card';
 import { ASSET_PATHS } from '../shared/constants/asset-paths';
 import { CAROUSEL_CARDS, CarouselCardData } from '../shared/data/carousel-cards.data';
@@ -9,11 +9,12 @@ import { CAROUSEL_CARDS, CarouselCardData } from '../shared/data/carousel-cards.
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home {
+export class Home implements OnInit {
   private readonly carouselAnimationDurationMs = 225;
 
   protected readonly assets = ASSET_PATHS;
   protected readonly cards = CAROUSEL_CARDS;
+  protected readonly isHeroImageLoaded = signal(false);
   protected readonly visibleCardCount = 3;
   protected readonly carouselStartIndex = signal(0);
   protected readonly targetCarouselStartIndex = signal<number | null>(null);
@@ -40,6 +41,18 @@ export class Home {
 
   protected previousCarouselPage(): void {
     this.moveCarousel('previous');
+  }
+
+  ngOnInit(): void {
+    this.preloadHeroImage();
+  }
+
+  private preloadHeroImage(): void {
+    const heroImage = new Image();
+
+    heroImage.onload = () => this.isHeroImageLoaded.set(true);
+    heroImage.onerror = () => this.isHeroImageLoaded.set(true);
+    heroImage.src = this.assets.images.deadAsDisco;
   }
 
   private moveCarousel(direction: 'next' | 'previous'): void {

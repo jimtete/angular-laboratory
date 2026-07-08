@@ -1,4 +1,4 @@
-namespace LearningLab.Data.Models.Auth;
+namespace LearningLab.Data.Models.DTOs.Auth;
 
 public class AuthResponse
 {
