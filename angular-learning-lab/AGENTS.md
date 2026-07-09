@@ -1,6 +1,12 @@
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
+## Project Scope
+
+- Primary responsibility in this editor is the Angular front-end in `angular-learning-lab`.
+- Treat the .NET back-end in `LearningLab` as reference context for API contracts, DTOs, routes, and integration details.
+- Do not modify back-end files unless the user explicitly asks for back-end work.
+
 ## TypeScript Best Practices
 
 - Use strict type checking

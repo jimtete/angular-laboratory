@@ -1,0 +1,95 @@
+<form #registerForm class="register-page">
+  @if (isNotificationVisible()) {
+    <aside
+      class="register-error-popup"
+      [class.register-error-popup-success]="notificationType() === 'success'"
+      [class.register-error-popup-error]="notificationType() === 'error'"
+      [class.register-error-popup-dismissing]="isErrorPopupDismissing()"
+      role="alert"
+      aria-live="assertive"
+      (click)="dismissErrorPopup()"
+    >
+      @if (notificationStatusCode(); as statusCode) {
+        <strong class="register-popup-status">Status code: {{ statusCode }}</strong>
+      }
+      <ul>
+        @for (message of notificationMessages(); track message) {
+          <li>{{ message }}</li>
+        }
+      </ul>
+    </aside>
+  }
+
+  <section class="register-column register-form-column" aria-label="Register">
+    <label class="register-field">
+      <span>Username</span>
+      <input
+        class="register-field-control"
+        type="text"
+        name="username"
+        autocomplete="username"
+        [attr.aria-invalid]="validationErrors().username ? true : null"
+      />
+    </label>
+
+    <label class="register-field">
+      <span>Password</span>
+      <input
+        class="register-field-control"
+        type="password"
+        name="password"
+        autocomplete="new-password"
+        [attr.aria-invalid]="validationErrors().password ? true : null"
+      />
+    </label>
+
+    <label class="register-field">
+      <span>Repeat Password</span>
+      <input
+        class="register-field-control"
+        type="password"
+        name="repeatPassword"
+        autocomplete="new-password"
+        [attr.aria-invalid]="validationErrors().repeatPassword ? true : null"
+      />
+    </label>
+
+    <label class="register-field">
+      <span>First Name</span>
+      <input
+        class="register-field-control"
+        type="text"
+        name="firstName"
+        autocomplete="given-name"
+        [attr.aria-invalid]="validationErrors().firstName ? true : null"
+      />
+    </label>
+
+    <label class="register-field">
+      <span>Last Name</span>
+      <input
+        class="register-field-control"
+        type="text"
+        name="lastName"
+        autocomplete="family-name"
+        [attr.aria-invalid]="validationErrors().lastName ? true : null"
+      />
+    </label>
+
+    <div class="register-actions">
+      <button type="button" class="register-action-button register-action-clear" (click)="clearForm()">
+        Clear
+      </button>
+      <button
+        type="button"
+        class="register-action-button register-action-submit"
+        [disabled]="isSubmitting()"
+        (click)="register()"
+      >
+        Register
+      </button>
+    </div>
+  </section>
+
+  <section class="register-column register-empty-column" aria-label="Registration details"></section>
+</form>

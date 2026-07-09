@@ -10,3 +10,6 @@ C:\Users\admin\GItHub\angular-laboratory\LearningLab\LearningLab.Data\obj\Debug\
 C:\Users\admin\GItHub\angular-laboratory\LearningLab\LearningLab.Data\obj\Debug\net10.0\refint\LearningLab.Data.dll
 C:\Users\admin\GItHub\angular-laboratory\LearningLab\LearningLab.Data\obj\Debug\net10.0\LearningLab.Data.pdb
 C:\Users\admin\GItHub\angular-laboratory\LearningLab\LearningLab.Data\obj\Debug\net10.0\ref\LearningLab.Data.dll
+C:\Users\admin\GItHub\angular-laboratory\LearningLab\LearningLab.Data\bin\Debug\net10.0\LearningLab.Data.runtimeconfig.json
+C:\Users\admin\GItHub\angular-laboratory\LearningLab\LearningLab.Data\obj\Debug\net10.0\LearningLab.Data.csproj.AssemblyReference.cache
+C:\Users\admin\GItHub\angular-laboratory\LearningLab\LearningLab.Data\obj\Debug\net10.0\LearningLab.Data.genruntimeconfig.cache

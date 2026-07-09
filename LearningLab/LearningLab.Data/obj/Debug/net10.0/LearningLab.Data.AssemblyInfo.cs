@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LearningLab.Data")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4608214725291597e7213800196c4d148fc42c00")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b469cd8910d672ff1e40bee90499f51ecb283d51")]
 [assembly: System.Reflection.AssemblyProductAttribute("LearningLab.Data")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LearningLab.Data")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

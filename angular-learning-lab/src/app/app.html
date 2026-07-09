@@ -19,8 +19,19 @@
     >
       Home
     </a>
-    <a routerLink="/character-sheet" routerLinkActive="nav-link-active">
-      Character Sheet
+    @if (hasValidAccessToken()) {
+      <a routerLink="/character-sheet" routerLinkActive="nav-link-active">
+        Character Sheet
+      </a>
+    }
+  </div>
+
+  <div class="auth-links">
+    <a routerLink="/login" routerLinkActive="nav-link-active">
+      Login
+    </a>
+    <a routerLink="/register" routerLinkActive="nav-link-active">
+      Register
     </a>
   </div>
 </nav>
