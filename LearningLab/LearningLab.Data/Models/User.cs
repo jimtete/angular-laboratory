@@ -1,4 +1,6 @@
-﻿namespace LearningLab.Data.Models;
+using LearningLab.Data.Models.Character;
+
+namespace LearningLab.Data.Models;
 
 public class User
 {
@@ -8,4 +10,5 @@ public class User
     public string PasswordSalt { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
+    public CharacterSheet? CharacterSheet { get; set; }
 }

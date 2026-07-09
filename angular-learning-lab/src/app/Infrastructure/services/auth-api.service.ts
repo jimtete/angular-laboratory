@@ -12,14 +12,16 @@ export class AuthApiService {
   private readonly apiClient = inject(ApiClient);
   private readonly tokenStorage = inject(TokenStorageService);
 
-  register(request: RegisterUserRequest): Observable<ApiResponse<string>> {
-    return this.apiClient.post<ApiResponse<string>, RegisterUserRequest>('/api/auth/register', request);
+  register(request: RegisterUserRequest): Observable<ApiResponse<AuthResponse>> {
+    return this.apiClient
+      .post<ApiResponse<AuthResponse>, RegisterUserRequest>('/api/auth/register', request)
+      .pipe(tap((response) => this.storeAuthentication(response)));
   }
 
-  login(request: LoginRequest): Observable<AuthResponse> {
-    return this.apiClient.post<AuthResponse, LoginRequest>('/api/auth/login', request).pipe(
-      tap((response) => this.tokenStorage.setAuth(response))
-    );
+  login(request: LoginRequest): Observable<ApiResponse<AuthResponse>> {
+    return this.apiClient
+      .post<ApiResponse<AuthResponse>, LoginRequest>('/api/auth/login', request)
+      .pipe(tap((response) => this.storeAuthentication(response)));
   }
 
   helloWorld(): Observable<ApiResponse<string>> {
@@ -28,5 +30,13 @@ export class AuthApiService {
 
   logout(): void {
     this.tokenStorage.clear();
+  }
+
+  private storeAuthentication(response: ApiResponse<AuthResponse>): void {
+    if (!response.data) {
+      throw new Error('Authentication response did not contain JWT data.');
+    }
+
+    this.tokenStorage.setAuth(response.data);
   }
 }

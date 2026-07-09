@@ -1,1 +1,134 @@
-/* You can add global styles to this file, and also import other style files */
+.portrait-crop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.72);
+  box-sizing: border-box;
+}
+
+.portrait-crop-dialog {
+  width: min(92vw, 42rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1.5rem 3rem rgba(17, 24, 39, 0.35);
+  box-sizing: border-box;
+}
+
+.portrait-crop-header h2 {
+  margin: 0 0 1rem;
+  color: #1f1235;
+  font: 700 1.25rem/1.3 "Inter Tight", "Segoe UI", Arial, sans-serif;
+}
+
+.portrait-crop-stage {
+  --crop-image-aspect-ratio: 1;
+
+  height: min(58dvh, 30rem);
+  min-height: 18rem;
+  overflow: hidden;
+  border: 1px solid #9ca3af;
+  background: #d1d5db;
+}
+
+.portrait-crop-stage-landscape {
+  height: auto;
+  min-height: 0;
+  aspect-ratio: var(--crop-image-aspect-ratio);
+}
+
+.portrait-crop-stage image-cropper {
+  display: block;
+  height: 100%;
+  --cropper-color: #6d28d9;
+  --cropper-border: 2px solid #6d28d9;
+  --cropper-resize-square-bg: #6d28d9;
+  --cropper-resize-square-border: 2px solid #ffffff;
+}
+
+.portrait-crop-stage image-cropper > div {
+  height: 100%;
+}
+
+.portrait-crop-stage image-cropper .ngx-ic-source-image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.portrait-crop-zoom {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.25rem;
+  color: #1f1235;
+  font-weight: 700;
+}
+
+.portrait-crop-zoom input {
+  width: 100%;
+  accent-color: #6d28d9;
+}
+
+.portrait-crop-error {
+  margin: 1rem 0 0;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.portrait-crop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.portrait-crop-actions button {
+  min-width: 7rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portrait-crop-cancel {
+  border: 1px solid #6b7280;
+  background: #ffffff;
+  color: #111827;
+}
+
+.portrait-crop-apply {
+  border: 1px solid #5b21b6;
+  background: #6d28d9;
+  color: #ffffff;
+}
+
+.portrait-crop-apply:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+@media (max-width: 600px) {
+  .portrait-crop-stage {
+    height: 52dvh;
+    min-height: 14rem;
+  }
+
+  .portrait-crop-actions {
+    flex-direction: column-reverse;
+  }
+
+  .portrait-crop-actions button {
+    width: 100%;
+  }
+}

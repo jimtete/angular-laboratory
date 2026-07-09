@@ -1,1 +1,46 @@
+<form #loginForm class="login-page" (submit)="login($event)">
+  @if (errorMessages().length > 0) {
+    <aside
+      class="login-error-popup"
+      role="alert"
+      aria-live="assertive"
+      (click)="dismissErrorPopup()"
+    >
+      <ul>
+        @for (message of errorMessages(); track message) {
+          <li>{{ message }}</li>
+        }
+      </ul>
+    </aside>
+  }
 
+  <section class="login-column login-empty-column" aria-hidden="true"></section>
+
+  <section class="login-column login-form-column" aria-label="Login">
+    <label class="login-field">
+      <span>Username</span>
+      <input
+        class="login-field-control"
+        type="text"
+        name="username"
+        autocomplete="username"
+        [attr.aria-invalid]="validationErrors().username ? true : null"
+      />
+    </label>
+
+    <label class="login-field">
+      <span>Password</span>
+      <input
+        class="login-field-control"
+        type="password"
+        name="password"
+        autocomplete="current-password"
+        [attr.aria-invalid]="validationErrors().password ? true : null"
+      />
+    </label>
+
+    <button type="submit" class="login-button" [disabled]="isSubmitting()">
+      Login
+    </button>
+  </section>
+</form>

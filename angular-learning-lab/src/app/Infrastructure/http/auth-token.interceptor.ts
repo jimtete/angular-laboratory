@@ -4,7 +4,10 @@ import { inject } from '@angular/core';
 import { TokenStorageService } from '../services/token-storage.service';
 
 export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
-  const token = inject(TokenStorageService).getAccessToken();
+  const tokenStorage = inject(TokenStorageService);
+  const token = tokenStorage.hasValidAccessToken()
+    ? tokenStorage.getAccessToken()
+    : null;
 
   if (!token) {
     return next(request);
@@ -18,4 +21,3 @@ export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(authenticatedRequest);
 };
-

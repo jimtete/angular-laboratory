@@ -27,12 +27,16 @@
   </div>
 
   <div class="auth-links">
-    <a routerLink="/login" routerLinkActive="nav-link-active">
-      Login
-    </a>
-    <a routerLink="/register" routerLinkActive="nav-link-active">
-      Register
-    </a>
+    @if (hasValidAccessToken()) {
+      <button type="button" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="nav-link-active">
+        Login
+      </a>
+      <a routerLink="/register" routerLinkActive="nav-link-active">
+        Register
+      </a>
+    }
   </div>
 </nav>
 

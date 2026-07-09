@@ -1,9 +1,22 @@
 <form #characterSheetForm class="character-sheet-page">
   <div class="character-sheet-row">
     <div class="portrait-column">
-      <div class="portrait-placeholder">
-        <img [src]="assets.images.profilePicture" alt="Character portrait" />
-      </div>
+      <label class="portrait-placeholder">
+        <input
+          #portraitFileInput
+          type="file"
+          accept="image/*"
+          hidden
+          (change)="selectPortrait($event)"
+        />
+
+        @if (portraitPreviewUrl(); as previewUrl) {
+          <img [src]="previewUrl" alt="Selected character portrait" />
+        } @else {
+          <span class="portrait-upload-plus" aria-hidden="true">+</span>
+          <span class="portrait-upload-label">Click to upload a character profile picture</span>
+        }
+      </label>
     </div>
 
     <div class="details-column">
@@ -67,8 +80,87 @@
     <button type="button" class="sheet-action-button sheet-action-clear" (click)="clearSheet()">
       Clear
     </button>
+    <button
+      type="button"
+      class="sheet-action-button sheet-action-publish"
+      (click)="publishChanges()"
+    >
+      Publish Changes
+    </button>
     <button type="button" class="sheet-action-button sheet-action-print" (click)="printSheet()">
       Print
     </button>
   </div>
 </form>
+
+@if (cropImageEvent()) {
+  <div class="portrait-crop-backdrop" (click)="cancelPortraitCrop()">
+    <section
+      class="portrait-crop-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="portrait-crop-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="portrait-crop-header">
+        <h2 id="portrait-crop-title">Crop character portrait</h2>
+      </header>
+
+      <div
+        class="portrait-crop-stage"
+        [class.portrait-crop-stage-landscape]="cropImageAspectRatio() >= 1"
+        [style.--crop-image-aspect-ratio]="cropImageAspectRatio()"
+      >
+        <image-cropper
+          [imageChangedEvent]="cropImageEvent()"
+          [maintainAspectRatio]="true"
+          [aspectRatio]="1"
+          [resizeToWidth]="512"
+          [resizeToHeight]="512"
+          [imageQuality]="90"
+          [allowMoveImage]="false"
+          [hideResizeSquares]="false"
+          [transform]="cropTransform()"
+          alignImage="center"
+          format="webp"
+          output="base64"
+          imageAltText="Character portrait being cropped"
+          cropperFrameAriaLabel="Square character portrait crop area"
+          (imageCropped)="updatePortraitCrop($event)"
+          (imageLoaded)="setCropImageDimensions($event)"
+          (loadImageFailed)="handlePortraitLoadFailure()"
+        />
+      </div>
+
+      <label class="portrait-crop-zoom">
+        <span>Zoom</span>
+        <input
+          type="range"
+          min="1"
+          max="3"
+          step="0.05"
+          [value]="cropZoom()"
+          (input)="setCropZoom($event)"
+        />
+      </label>
+
+      @if (cropError(); as error) {
+        <p class="portrait-crop-error" role="alert">{{ error }}</p>
+      }
+
+      <div class="portrait-crop-actions">
+        <button type="button" class="portrait-crop-cancel" (click)="cancelPortraitCrop()">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="portrait-crop-apply"
+          [disabled]="!pendingPortraitUrl()"
+          (click)="applyPortraitCrop()"
+        >
+          Apply
+        </button>
+      </div>
+    </section>
+  </div>
+}

@@ -1,0 +1,29 @@
+# .NET build output
+**/[Bb]in/
+**/[Oo]bj/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Test and coverage output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# NuGet packages and artifacts
+**/[Pp]ackages/
+*.nupkg
+*.snupkg
+
+# Local runtime files
+*.log
+*.pid

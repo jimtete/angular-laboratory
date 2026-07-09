@@ -10,6 +10,7 @@ export const ASSET_FOLDERS = {
 
 export const ASSET_PATHS = {
   images: {
+    thoughtCabinet: `${ASSET_FOLDERS.images}/background.webp`,
     deadAsDisco: `${ASSET_FOLDERS.images}/disco_elysium_low_res.png`,
     gammelStrand: `${ASSET_FOLDERS.images}/Gammel-Strand.jfif`,
     kongensNytorv: `${ASSET_FOLDERS.images}/Kongens-Nytorv.jfif`,

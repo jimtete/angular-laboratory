@@ -22,6 +22,92 @@ namespace LearningLab.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Background")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("background");
+
+                    b.Property<string>("CharacterClass")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("character_class");
+
+                    b.PrimitiveCollection<string>("Equipment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("equipment");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("first_name");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("int")
+                        .HasColumnName("height");
+
+                    b.Property<string>("Information")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("information");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("last_name");
+
+                    b.Property<int>("LogicRating")
+                        .HasColumnType("int")
+                        .HasColumnName("logic_rating");
+
+                    b.Property<int>("MotoricsRating")
+                        .HasColumnType("int")
+                        .HasColumnName("motorics_rating");
+
+                    b.Property<string>("Nationality")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("nationality");
+
+                    b.Property<int>("PhysicalRating")
+                        .HasColumnType("int")
+                        .HasColumnName("physical_rating");
+
+                    b.Property<string>("PortraitUrl")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("portrait_url");
+
+                    b.Property<int>("PsycheRating")
+                        .HasColumnType("int")
+                        .HasColumnName("psyche_rating");
+
+                    b.PrimitiveCollection<string>("Traits")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("traits");
+
+                    b.Property<int?>("Weight")
+                        .HasColumnType("int")
+                        .HasColumnName("weight");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("CharacterSheets", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CharacterSheets_LogicRating", "[logic_rating] BETWEEN 0 AND 15");
+
+                            t.HasCheckConstraint("CK_CharacterSheets_MotoricsRating", "[motorics_rating] BETWEEN 0 AND 15");
+
+                            t.HasCheckConstraint("CK_CharacterSheets_PhysicalRating", "[physical_rating] BETWEEN 0 AND 15");
+
+                            t.HasCheckConstraint("CK_CharacterSheets_PsycheRating", "[psyche_rating] BETWEEN 0 AND 15");
+                        });
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.User", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -57,6 +143,50 @@ namespace LearningLab.Data.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.User", "User")
+                        .WithOne("CharacterSheet")
+                        .HasForeignKey("LearningLab.Data.Models.Character.CharacterSheet", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsMany("LearningLab.Data.Models.Character.Action", "Actions", b1 =>
+                        {
+                            b1.Property<Guid>("CharacterSheetUserId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAddOrUpdate();
+
+                            b1.Property<string>("ActionType")
+                                .IsRequired();
+
+                            b1.Property<string>("Description");
+
+                            b1.Property<string>("Title");
+
+                            b1.HasKey("CharacterSheetUserId", "__synthesizedOrdinal");
+
+                            b1.ToTable("CharacterSheets");
+
+                            b1
+                                .ToJson("actions")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CharacterSheetUserId");
+                        });
+
+                    b.Navigation("Actions");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.User", b =>
+                {
+                    b.Navigation("CharacterSheet");
                 });
 #pragma warning restore 612, 618
         }

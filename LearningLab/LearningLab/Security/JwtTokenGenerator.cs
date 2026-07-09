@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using LearningLab.Data.Models.DTOs.Auth;
+using LearningLab.Services.Security;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,27 +17,18 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         _jwtOptions = jwtOptions.Value;
     }
 
-    public AuthResponse GenerateToken(
-        string userId,
-        string email,
-        IEnumerable<Claim>? additionalClaims = null)
+    public AuthResponse GenerateToken(Guid userId, string username)
     {
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes);
         var signingCredentials = CreateSigningCredentials();
+        var userIdValue = userId.ToString();
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, userId),
-            new(JwtRegisteredClaimNames.Email, email),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(ClaimTypes.NameIdentifier, userId),
-            new(ClaimTypes.Email, email)
+            new(JwtRegisteredClaimNames.Sub, userIdValue),
+            new(JwtRegisteredClaimNames.UniqueName, username),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
-
-        if (additionalClaims is not null)
-        {
-            claims.AddRange(additionalClaims);
-        }
 
         var token = new JwtSecurityToken(
             issuer: _jwtOptions.Issuer,

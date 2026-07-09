@@ -1,4 +1,10 @@
 import { Component, ElementRef, signal, viewChild } from '@angular/core';
+import {
+  ImageCroppedEvent,
+  ImageCropperComponent,
+  ImageTransform,
+  LoadedImage,
+} from 'ngx-image-cropper';
 import { ASSET_PATHS } from '../shared/constants/asset-paths';
 import { RatingRow } from './rating-row/rating-row';
 import { SheetTable } from './sheet-table/sheet-table';
@@ -28,23 +34,107 @@ const RATING_ROWS = [
 
 @Component({
   selector: 'app-character-sheet',
-  imports: [RatingRow, SheetTable],
+  imports: [ImageCropperComponent, RatingRow, SheetTable],
   templateUrl: './character-sheet.html',
   styleUrl: './character-sheet.css',
 })
 export class CharacterSheet {
   private readonly characterSheetForm = viewChild<ElementRef<HTMLFormElement>>('characterSheetForm');
+  private readonly portraitFileInput =
+    viewChild<ElementRef<HTMLInputElement>>('portraitFileInput');
 
-  protected readonly assets = ASSET_PATHS;
   protected readonly ratingRows = RATING_ROWS;
   protected readonly resetVersion = signal(0);
+  protected readonly portraitPreviewUrl = signal<string | null>(null);
+  protected readonly cropImageEvent = signal<Event | null>(null);
+  protected readonly pendingPortraitUrl = signal<string | null>(null);
+  protected readonly cropZoom = signal(1);
+  protected readonly cropTransform = signal<ImageTransform>({ scale: 1 });
+  protected readonly cropImageAspectRatio = signal(1);
+  protected readonly cropError = signal<string | null>(null);
 
   protected clearSheet(): void {
     this.characterSheetForm()?.nativeElement.reset();
+    this.portraitPreviewUrl.set(null);
+    this.resetPortraitCrop();
     this.resetVersion.update((version) => version + 1);
   }
 
+  protected selectPortrait(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.pendingPortraitUrl.set(null);
+    this.cropError.set(null);
+    this.cropZoom.set(1);
+    this.cropTransform.set({ scale: 1 });
+    this.cropImageEvent.set(event);
+  }
+
+  protected updatePortraitCrop(event: ImageCroppedEvent): void {
+    this.pendingPortraitUrl.set(event.base64 ?? null);
+  }
+
+  protected setCropImageDimensions(image: LoadedImage): void {
+    const { width, height } = image.transformed.size;
+
+    this.cropImageAspectRatio.set(height > 0 ? width / height : 1);
+  }
+
+  protected setCropZoom(event: Event): void {
+    const scale = Number((event.target as HTMLInputElement).value);
+
+    this.cropZoom.set(scale);
+    this.cropTransform.set({
+      ...this.cropTransform(),
+      scale,
+    });
+  }
+
+  protected applyPortraitCrop(): void {
+    const croppedPortrait = this.pendingPortraitUrl();
+
+    if (!croppedPortrait) {
+      return;
+    }
+
+    this.portraitPreviewUrl.set(croppedPortrait);
+    this.resetPortraitCrop();
+  }
+
+  protected cancelPortraitCrop(): void {
+    this.resetPortraitCrop();
+  }
+
+  protected handlePortraitLoadFailure(): void {
+    this.pendingPortraitUrl.set(null);
+    this.cropError.set('The selected image could not be loaded.');
+  }
+
+  protected publishChanges(): void {}
+
   protected printSheet(): void {
     window.print();
+  }
+
+  private resetPortraitCrop(clearFileInput = true): void {
+    this.cropImageEvent.set(null);
+    this.pendingPortraitUrl.set(null);
+    this.cropError.set(null);
+    this.cropZoom.set(1);
+    this.cropTransform.set({ scale: 1 });
+    this.cropImageAspectRatio.set(1);
+
+    if (clearFileInput) {
+      const input = this.portraitFileInput()?.nativeElement;
+
+      if (input) {
+        input.value = '';
+      }
+    }
   }
 }

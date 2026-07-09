@@ -10,4 +10,8 @@
       <ProjectReference Include="..\LearningLab.Data\LearningLab.Data.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Results\" />
+    </ItemGroup>
+
 </Project>

@@ -1,6 +1,6 @@
-namespace LearningLab.Security;
+namespace LearningLab.Data.Models.DTOs.Auth;
 
-public class AuthResponse
+public sealed class AuthResponse
 {
     public required string AccessToken { get; init; }
 

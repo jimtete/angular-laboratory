@@ -1,4 +1,5 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { ApiError, AuthApiService, RegisterUserRequest } from '../Infrastructure';
 
@@ -32,6 +33,7 @@ interface RegisterNotification {
 export class Register {
   private readonly registerForm = viewChild<ElementRef<HTMLFormElement>>('registerForm');
   private readonly authApiService = inject(AuthApiService);
+  private readonly router = inject(Router);
   private readonly errorPopupAnimationDurationMs = 200;
 
   protected readonly validationErrors = signal<RegisterFormErrors>({});
@@ -97,6 +99,7 @@ export class Register {
           messages: [response.message],
         });
         form.reset();
+        void this.router.navigate(['/character-sheet']);
       },
       error: (error: unknown) => {
         this.isSubmitting.set(false);

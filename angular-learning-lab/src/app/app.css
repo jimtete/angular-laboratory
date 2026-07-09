@@ -90,17 +90,22 @@
   text-underline-offset: 0.35rem;
 }
 
-.auth-links a {
+.auth-links a,
+.auth-links button {
   min-width: 6.5rem;
   padding: 0.7rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
   font-family: "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0;
   text-align: center;
+  text-transform: uppercase;
   box-sizing: border-box;
+  cursor: pointer;
   transition:
     background 160ms ease,
     color 160ms ease,
@@ -108,6 +113,7 @@
 }
 
 .auth-links a:hover,
+.auth-links button:hover,
 .auth-links .nav-link-active {
   background: #ffffff;
   color: #5b21b6;
