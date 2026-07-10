@@ -19,6 +19,11 @@
     >
       Home
     </a>
+    @if (hasCampaignAccess()) {
+      <a routerLink="/my-campaigns" routerLinkActive="nav-link-active">
+        My Campaigns
+      </a>
+    }
     @if (hasValidAccessToken()) {
       <a routerLink="/character-sheet" routerLinkActive="nav-link-active">
         Character Sheet

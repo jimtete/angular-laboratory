@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="assets\campaigns\" />
     <Folder Include="Security\AccessPermissions\" />
   </ItemGroup>
 

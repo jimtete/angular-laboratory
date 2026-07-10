@@ -1,4 +1,6 @@
 using LearningLab.Data.Models;
+using LearningLab.Data.Models.AccessControl;
+using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.Character;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +14,11 @@ public class LearningLabContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<CharacterSheet> CharacterSheets { get; set; }
+    public DbSet<Campaign> Campaigns { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
+    public DbSet<RolePermission> RolePermissions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,6 +50,121 @@ public class LearningLabContext : DbContext
             entity.Property(user => user.LastName)
                 .HasColumnName("last_name")
                 .IsRequired();
+
+            entity.HasMany(user => user.UserRoles)
+                .WithOne(userRole => userRole.User)
+                .HasForeignKey(userRole => userRole.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(user => user.OwnedCampaigns)
+                .WithOne(campaign => campaign.GameMaster)
+                .HasForeignKey(campaign => campaign.GameMasterId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Campaign>(entity =>
+        {
+            entity.ToTable("Campaigns");
+
+            entity.HasKey(campaign => campaign.CampaignId);
+
+            entity.Property(campaign => campaign.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(campaign => campaign.GameMasterId)
+                .HasColumnName("game_master_id");
+
+            entity.Property(campaign => campaign.CampaignName)
+                .HasColumnName("campaign_name")
+                .IsRequired();
+
+            entity.Property(campaign => campaign.Version)
+                .HasColumnName("version")
+                .IsRequired();
+
+            entity.Property(campaign => campaign.CampaignPictureUrl)
+                .HasColumnName("campaign_picture_url");
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.ToTable("Roles");
+
+            entity.HasKey(role => role.RoleId);
+
+            entity.Property(role => role.RoleId)
+                .HasColumnName("role_id");
+
+            entity.Property(role => role.Name)
+                .HasColumnName("name")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.HasIndex(role => role.Name)
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.ToTable("Permissions");
+
+            entity.HasKey(permission => permission.PermissionId);
+
+            entity.Property(permission => permission.PermissionId)
+                .HasColumnName("permission_id");
+
+            entity.Property(permission => permission.Name)
+                .HasColumnName("name")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.HasIndex(permission => permission.Name)
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.ToTable("UserRoles");
+
+            entity.HasKey(userRole => new { userRole.UserId, userRole.RoleId });
+
+            entity.Property(userRole => userRole.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(userRole => userRole.RoleId)
+                .HasColumnName("role_id");
+
+            entity.HasOne(userRole => userRole.Role)
+                .WithMany(role => role.UserRoles)
+                .HasForeignKey(userRole => userRole.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RolePermission>(entity =>
+        {
+            entity.ToTable("RolePermissions");
+
+            entity.HasKey(rolePermission => new
+            {
+                rolePermission.RoleId,
+                rolePermission.PermissionId
+            });
+
+            entity.Property(rolePermission => rolePermission.RoleId)
+                .HasColumnName("role_id");
+
+            entity.Property(rolePermission => rolePermission.PermissionId)
+                .HasColumnName("permission_id");
+
+            entity.HasOne(rolePermission => rolePermission.Role)
+                .WithMany(role => role.RolePermissions)
+                .HasForeignKey(rolePermission => rolePermission.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(rolePermission => rolePermission.Permission)
+                .WithMany(permission => permission.RolePermissions)
+                .HasForeignKey(rolePermission => rolePermission.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<CharacterSheet>(entity =>

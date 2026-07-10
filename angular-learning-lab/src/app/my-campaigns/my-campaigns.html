@@ -1,0 +1,27 @@
+<section class="my-campaigns-page" aria-label="My Campaigns">
+  @if (isMaster()) {
+    <button
+      type="button"
+      class="create-campaign-button"
+      aria-label="Create campaign"
+      title="Create campaign"
+      (click)="createCampaign()"
+    >
+      +
+    </button>
+  }
+
+  @if (!isLoading() && campaigns().length === 0) {
+    <p class="my-campaigns-empty">No Available Campaigns.</p>
+  } @else {
+    <div class="campaign-list">
+      @for (campaign of campaigns(); track campaign.campaignId) {
+        <article class="campaign-row">
+          <h2>{{ campaign.campaignName }}</h2>
+          <p>{{ campaign.version }}</p>
+          <p>{{ campaign.gameMasterUsername }}</p>
+        </article>
+      }
+    </div>
+  }
+</section>

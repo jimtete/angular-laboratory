@@ -4,6 +4,7 @@ using LearningLab.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningLab.Data.Migrations
 {
     [DbContext(typeof(LearningLabContext))]
-    partial class LearningLabContextModelSnapshot : ModelSnapshot
+    [Migration("20260710100915_Create_RBAC_Models")]
+    partial class Create_RBAC_Models
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,38 +99,6 @@ namespace LearningLab.Data.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
-                {
-                    b.Property<Guid>("CampaignId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("campaign_id");
-
-                    b.Property<string>("CampaignName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("campaign_name");
-
-                    b.Property<string>("CampaignPictureUrl")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("campaign_picture_url");
-
-                    b.Property<Guid>("GameMasterId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("game_master_id");
-
-                    b.Property<string>("Version")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("version");
-
-                    b.HasKey("CampaignId");
-
-                    b.HasIndex("GameMasterId");
-
-                    b.ToTable("Campaigns", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
@@ -291,17 +262,6 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
-                {
-                    b.HasOne("LearningLab.Data.Models.User", "GameMaster")
-                        .WithMany("OwnedCampaigns")
-                        .HasForeignKey("GameMasterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("GameMaster");
-                });
-
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.User", "User")
@@ -356,8 +316,6 @@ namespace LearningLab.Data.Migrations
             modelBuilder.Entity("LearningLab.Data.Models.User", b =>
                 {
                     b.Navigation("CharacterSheet");
-
-                    b.Navigation("OwnedCampaigns");
 
                     b.Navigation("UserRoles");
                 });

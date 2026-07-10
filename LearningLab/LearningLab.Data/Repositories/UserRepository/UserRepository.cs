@@ -14,13 +14,13 @@ public class UserRepository : IUserRepository
 
     public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return _context.Users
+        return QueryUsersWithAccessControl()
             .FirstOrDefaultAsync(user => user.UserId == userId, cancellationToken);
     }
 
     public Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
-        return _context.Users
+        return QueryUsersWithAccessControl()
             .FirstOrDefaultAsync(user => user.Username == username, cancellationToken);
     }
 
@@ -38,5 +38,14 @@ public class UserRepository : IUserRepository
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return _context.SaveChangesAsync(cancellationToken);
+    }
+
+    private IQueryable<User> QueryUsersWithAccessControl()
+    {
+        return _context.Users
+            .Include(user => user.UserRoles)
+            .ThenInclude(userRole => userRole.Role)
+            .ThenInclude(role => role.RolePermissions)
+            .ThenInclude(rolePermission => rolePermission.Permission);
     }
 }

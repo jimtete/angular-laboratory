@@ -1,12 +1,17 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using LearningLab.Data;
 using LearningLab.Data.Models.DTOs;
+using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.CharacterSheetRepository;
+using LearningLab.Data.Repositories.RoleRepository;
 using LearningLab.Data.Repositories.UserRepository;
 using LearningLab.ErrorHandling;
 using LearningLab.Security;
+using LearningLab.Security.AccessPermissions;
 using LearningLab.Services.AuthService;
+using LearningLab.Services.CampaignService;
 using LearningLab.Services.CharacterSheetService;
 using LearningLab.Services.Configuration;
 using LearningLab.Services.Security;
@@ -55,7 +60,8 @@ builder.Services
                 Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1),
-            NameClaimType = JwtRegisteredClaimNames.UniqueName
+            NameClaimType = JwtRegisteredClaimNames.UniqueName,
+            RoleClaimType = ClaimTypes.Role
         };
         options.Events = new JwtBearerEvents
         {
@@ -86,10 +92,14 @@ builder.Services
     });
 
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
 builder.Services.AddScoped<ICharacterSheetRepository, CharacterSheetRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ICharacterSheetService, CharacterSheetService>();
+builder.Services.AddAccessPermissionAuthorization();
 builder.Services.Configure<ProfilePictureStorageOptions>(options =>
 {
     options.RootPath = assetsRoot;

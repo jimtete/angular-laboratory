@@ -16,6 +16,9 @@ export class App {
 
   protected readonly isMenuOpen = signal(false);
   protected readonly hasValidAccessToken = computed(() => this.tokenStorage.hasValidAccessToken());
+  protected readonly hasCampaignAccess = computed(() =>
+    this.tokenStorage.hasAnyRole('Master', 'Player'),
+  );
 
   protected toggleMenu(): void {
     this.isMenuOpen.update((isOpen) => !isOpen);

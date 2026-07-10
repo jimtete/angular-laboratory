@@ -5,6 +5,11 @@ import { AuthResponse } from '../models';
 const accessTokenKey = 'learningLab.accessToken';
 const tokenTypeKey = 'learningLab.tokenType';
 const expiresAtUtcKey = 'learningLab.expiresAtUtc';
+const roleClaimType = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+const permissionClaimType = 'permission';
+
+type JwtPayloadValue = string | string[] | number | boolean | null | undefined;
+type JwtPayload = Record<string, JwtPayloadValue>;
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +46,24 @@ export class TokenStorageService {
       && responseExpiration > now
       && tokenExpiration !== null
       && tokenExpiration > now;
+  }
+
+  getRoles(): string[] {
+    const payload = this.getValidTokenPayload();
+
+    return payload ? this.getClaimValues(payload, roleClaimType, 'role', 'roles') : [];
+  }
+
+  getPermissions(): string[] {
+    const payload = this.getValidTokenPayload();
+
+    return payload ? this.getClaimValues(payload, permissionClaimType, 'permissions') : [];
+  }
+
+  hasAnyRole(...roles: string[]): boolean {
+    const normalizedRoles = new Set(roles.map((role) => role.toLowerCase()));
+
+    return this.getRoles().some((role) => normalizedRoles.has(role.toLowerCase()));
   }
 
   setAuth(response: AuthResponse): void {
@@ -100,6 +123,25 @@ export class TokenStorageService {
   }
 
   private getTokenExpiration(accessToken: string): number | null {
+    const payload = this.getTokenPayload(accessToken);
+    const expiration = payload?.['exp'];
+
+    return typeof expiration === 'number' ? expiration * 1000 : null;
+  }
+
+  private getValidTokenPayload(): JwtPayload | null {
+    this.storageVersion();
+
+    if (!this.hasValidAccessToken()) {
+      return null;
+    }
+
+    const accessToken = localStorage.getItem(accessTokenKey);
+
+    return accessToken ? this.getTokenPayload(accessToken) : null;
+  }
+
+  private getTokenPayload(accessToken: string): JwtPayload | null {
     const tokenParts = accessToken.split('.');
 
     if (tokenParts.length !== 3) {
@@ -111,11 +153,21 @@ export class TokenStorageService {
         .replace(/-/g, '+')
         .replace(/_/g, '/')
         .padEnd(Math.ceil(tokenParts[1].length / 4) * 4, '=');
-      const payload = JSON.parse(atob(base64)) as { exp?: unknown };
-
-      return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+      return JSON.parse(atob(base64)) as JwtPayload;
     } catch {
       return null;
     }
+  }
+
+  private getClaimValues(payload: JwtPayload, ...claimTypes: string[]): string[] {
+    return claimTypes.flatMap((claimType) => {
+      const value = payload[claimType];
+
+      if (Array.isArray(value)) {
+        return value.filter((item): item is string => typeof item === 'string');
+      }
+
+      return typeof value === 'string' ? [value] : [];
+    });
   }
 }

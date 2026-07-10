@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using LearningLab.Data.Models.DTOs.Auth;
+using LearningLab.Security.AccessPermissions;
 using LearningLab.Services.Security;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +18,11 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         _jwtOptions = jwtOptions.Value;
     }
 
-    public AuthResponse GenerateToken(Guid userId, string username)
+    public AuthResponse GenerateToken(
+        Guid userId,
+        string username,
+        IEnumerable<string> roles,
+        IEnumerable<string> permissions)
     {
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes);
         var signingCredentials = CreateSigningCredentials();
@@ -29,6 +34,18 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
             new(JwtRegisteredClaimNames.UniqueName, username),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        claims.AddRange(roles
+            .Where(role => !string.IsNullOrWhiteSpace(role))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(role => new Claim(ClaimTypes.Role, role)));
+
+        claims.AddRange(permissions
+            .Where(permission => !string.IsNullOrWhiteSpace(permission))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(permission => new Claim(
+                AccessPermissionClaimTypes.Permission,
+                permission)));
 
         var token = new JwtSecurityToken(
             issuer: _jwtOptions.Issuer,

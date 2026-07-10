@@ -4,6 +4,7 @@ using LearningLab.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningLab.Data.Migrations
 {
     [DbContext(typeof(LearningLabContext))]
-    partial class LearningLabContextModelSnapshot : ModelSnapshot
+    [Migration("20260710114907_CreateTable_Campaigns")]
+    partial class CreateTable_Campaigns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,9 +117,10 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("campaign_picture_url");
 
-                    b.Property<Guid>("GameMasterId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("game_master_id");
+                    b.Property<string>("GameMaster")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("game_master");
 
                     b.Property<string>("Version")
                         .IsRequired()
@@ -124,8 +128,6 @@ namespace LearningLab.Data.Migrations
                         .HasColumnName("version");
 
                     b.HasKey("CampaignId");
-
-                    b.HasIndex("GameMasterId");
 
                     b.ToTable("Campaigns", (string)null);
                 });
@@ -291,17 +293,6 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
-                {
-                    b.HasOne("LearningLab.Data.Models.User", "GameMaster")
-                        .WithMany("OwnedCampaigns")
-                        .HasForeignKey("GameMasterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("GameMaster");
-                });
-
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.User", "User")
@@ -356,8 +347,6 @@ namespace LearningLab.Data.Migrations
             modelBuilder.Entity("LearningLab.Data.Models.User", b =>
                 {
                     b.Navigation("CharacterSheet");
-
-                    b.Navigation("OwnedCampaigns");
 
                     b.Navigation("UserRoles");
                 });

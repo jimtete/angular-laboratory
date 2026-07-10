@@ -1,0 +1,65 @@
+.my-campaigns-page {
+  position: relative;
+  min-height: calc(100dvh - 4rem);
+  padding: 60px;
+  box-sizing: border-box;
+}
+
+.create-campaign-button {
+  position: absolute;
+  top: 60px;
+  right: 60px;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #5b21b6;
+  border-radius: 999px;
+  background: #6d28d9;
+  color: #ffffff;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.create-campaign-button:hover {
+  background: #5b21b6;
+  box-shadow: 0 0.65rem 1.4rem rgba(91, 33, 182, 0.32);
+  transform: translateY(-2px);
+}
+
+.my-campaigns-empty {
+  margin: 0;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: clamp(1.6rem, 4vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.campaign-list {
+  width: min(100%, 72rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.campaign-row {
+  padding: 1rem;
+  border: 2px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #6d28d9;
+}
+
+.campaign-row h2,
+.campaign-row p {
+  margin: 0;
+}

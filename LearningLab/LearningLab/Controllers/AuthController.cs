@@ -38,6 +38,14 @@ public class AuthController : ControllerBase
                 Message = "Username is already taken.",
                 Data = default
             }),
+            ApplicationStatusCode.DefaultRoleNotFound => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<AuthResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "The default Player role is not configured.",
+                    Data = default
+                }),
             _ => StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<AuthResponse>
             {
                 StatusCode = StatusCodes.Status500InternalServerError,

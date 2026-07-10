@@ -1,0 +1,50 @@
+<form #createCampaignForm class="create-campaign-page">
+  <section class="create-campaign-form" aria-label="Create New Campaign">
+    <label class="create-campaign-field">
+      <span>Campaign Name</span>
+      <input
+        class="create-campaign-field-control"
+        type="text"
+        name="campaignName"
+        [attr.aria-invalid]="validationErrors().campaignName ? true : null"
+      />
+    </label>
+
+    <label class="create-campaign-field">
+      <span>Version</span>
+      <input
+        class="create-campaign-field-control"
+        type="text"
+        name="version"
+        [attr.aria-invalid]="validationErrors().version ? true : null"
+      />
+    </label>
+
+    <label class="create-campaign-field">
+      <span>Campaign Picture Url</span>
+      <input
+        class="create-campaign-field-control"
+        type="text"
+        name="campaignPictureUrl"
+      />
+    </label>
+
+    <div class="create-campaign-actions">
+      <button
+        type="button"
+        class="create-campaign-action-button create-campaign-action-back"
+        (click)="goBack()"
+      >
+        Go Back
+      </button>
+      <button
+        type="button"
+        class="create-campaign-action-button create-campaign-action-submit"
+        [disabled]="isSubmitting()"
+        (click)="createCampaign()"
+      >
+        Create Campaign
+      </button>
+    </div>
+  </section>
+</form>
