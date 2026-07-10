@@ -8,15 +8,18 @@ using LearningLab.ErrorHandling;
 using LearningLab.Security;
 using LearningLab.Services.AuthService;
 using LearningLab.Services.CharacterSheetService;
+using LearningLab.Services.Configuration;
 using LearningLab.Services.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 const string CorsPolicy = "DefaultCorsPolicy";
 
 var builder = WebApplication.CreateBuilder(args);
+var assetsRoot = Path.Combine(builder.Environment.ContentRootPath, "assets");
 
 builder.Services.AddDbContext<LearningLabContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -87,6 +90,11 @@ builder.Services.AddScoped<ICharacterSheetRepository, CharacterSheetRepository>(
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICharacterSheetService, CharacterSheetService>();
+builder.Services.Configure<ProfilePictureStorageOptions>(options =>
+{
+    options.RootPath = assetsRoot;
+    options.RequestPath = "/assets";
+});
 
 builder.Services.AddCors(options =>
 {
@@ -116,6 +124,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
 app.UseCors(CorsPolicy);
+Directory.CreateDirectory(assetsRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(assetsRoot),
+    RequestPath = "/assets"
+});
 app.UseAuthentication();
 app.UseAuthorization();
 

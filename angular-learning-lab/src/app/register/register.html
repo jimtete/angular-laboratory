@@ -1,25 +1,4 @@
 <form #registerForm class="register-page">
-  @if (isNotificationVisible()) {
-    <aside
-      class="register-error-popup"
-      [class.register-error-popup-success]="notificationType() === 'success'"
-      [class.register-error-popup-error]="notificationType() === 'error'"
-      [class.register-error-popup-dismissing]="isErrorPopupDismissing()"
-      role="alert"
-      aria-live="assertive"
-      (click)="dismissErrorPopup()"
-    >
-      @if (notificationStatusCode(); as statusCode) {
-        <strong class="register-popup-status">Status code: {{ statusCode }}</strong>
-      }
-      <ul>
-        @for (message of notificationMessages(); track message) {
-          <li>{{ message }}</li>
-        }
-      </ul>
-    </aside>
-  }
-
   <section class="register-column register-form-column" aria-label="Register">
     <label class="register-field">
       <span>Username</span>

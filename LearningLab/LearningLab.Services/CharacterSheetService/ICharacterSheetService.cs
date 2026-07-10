@@ -13,4 +13,10 @@ public interface ICharacterSheetService
         Guid userId,
         UpdateCharacterSheetRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CharacterSheetResponse>> UpdateCharacterPortraitAsync(
+        Guid userId,
+        byte[] imageBytes,
+        string? contentType,
+        CancellationToken cancellationToken = default);
 }

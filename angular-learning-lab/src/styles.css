@@ -1,3 +1,12 @@
+.portrait-placeholder {
+  position: relative;
+}
+
+.portrait-placeholder img {
+  position: absolute;
+  inset: 0;
+}
+
 .portrait-crop-backdrop {
   position: fixed;
   inset: 0;

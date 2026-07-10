@@ -1,7 +1,8 @@
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ApiError, AuthApiService, RegisterUserRequest } from '../Infrastructure';
+import { ModalHelper } from '../shared/helpers/modal.helper';
 
 interface RegisterFormValues {
   username: string;
@@ -19,12 +20,6 @@ interface RegisterFormErrors {
   lastName?: string;
 }
 
-interface RegisterNotification {
-  type: 'success' | 'error';
-  statusCode?: number;
-  messages: string[];
-}
-
 @Component({
   selector: 'app-register',
   templateUrl: './register.html',
@@ -33,42 +28,15 @@ interface RegisterNotification {
 export class Register {
   private readonly registerForm = viewChild<ElementRef<HTMLFormElement>>('registerForm');
   private readonly authApiService = inject(AuthApiService);
+  private readonly modalHelper = inject(ModalHelper);
   private readonly router = inject(Router);
-  private readonly errorPopupAnimationDurationMs = 200;
 
   protected readonly validationErrors = signal<RegisterFormErrors>({});
-  protected readonly registerNotification = signal<RegisterNotification | null>(null);
-  protected readonly isErrorPopupDismissing = signal(false);
-  protected readonly validationErrorMessages = computed(() => {
-    const errors = this.validationErrors();
-
-    return [
-      errors.username,
-      errors.password,
-      errors.repeatPassword,
-      errors.firstName,
-      errors.lastName,
-    ].filter((error): error is string => Boolean(error));
-  });
-  protected readonly notificationMessages = computed(() => {
-    return this.registerNotification()?.messages ?? this.validationErrorMessages();
-  });
-  protected readonly notificationStatusCode = computed(() => {
-    return this.registerNotification()?.statusCode;
-  });
-  protected readonly notificationType = computed(() => {
-    return this.registerNotification()?.type ?? 'error';
-  });
-  protected readonly isNotificationVisible = computed(() => {
-    return this.notificationMessages().length > 0;
-  });
   protected readonly isSubmitting = signal(false);
 
   protected clearForm(): void {
     this.registerForm()?.nativeElement.reset();
     this.validationErrors.set({});
-    this.registerNotification.set(null);
-    this.isErrorPopupDismissing.set(false);
   }
 
   protected register(): void {
@@ -82,10 +50,11 @@ export class Register {
     const validationErrors = this.validateRegisterForm(formValues);
 
     this.validationErrors.set(validationErrors);
-    this.registerNotification.set(null);
-    this.isErrorPopupDismissing.set(false);
 
     if (Object.keys(validationErrors).length > 0) {
+      this.modalHelper.showError(this.getValidationErrorMessages(validationErrors), {
+        onClose: () => this.validationErrors.set({}),
+      });
       return;
     }
 
@@ -93,37 +62,19 @@ export class Register {
     this.authApiService.register(this.toRegisterRequest(formValues)).subscribe({
       next: (response) => {
         this.isSubmitting.set(false);
-        this.registerNotification.set({
-          type: 'success',
+        this.modalHelper.showSuccess(response.message, {
           statusCode: response.statusCode,
-          messages: [response.message],
         });
         form.reset();
         void this.router.navigate(['/character-sheet']);
       },
       error: (error: unknown) => {
         this.isSubmitting.set(false);
-        this.registerNotification.set({
-          type: 'error',
+        this.modalHelper.showError(this.getErrorMessage(error), {
           statusCode: this.getErrorStatusCode(error),
-          messages: [this.getErrorMessage(error)],
         });
       },
     });
-  }
-
-  protected dismissErrorPopup(): void {
-    if (!this.isNotificationVisible() || this.isErrorPopupDismissing()) {
-      return;
-    }
-
-    this.isErrorPopupDismissing.set(true);
-
-    window.setTimeout(() => {
-      this.validationErrors.set({});
-      this.registerNotification.set(null);
-      this.isErrorPopupDismissing.set(false);
-    }, this.errorPopupAnimationDurationMs);
   }
 
   private getFormValues(form: HTMLFormElement): RegisterFormValues {
@@ -162,6 +113,16 @@ export class Register {
     }
 
     return errors;
+  }
+
+  private getValidationErrorMessages(errors: RegisterFormErrors): string[] {
+    return [
+      errors.username,
+      errors.password,
+      errors.repeatPassword,
+      errors.firstName,
+      errors.lastName,
+    ].filter((error): error is string => Boolean(error));
   }
 
   private getStringValue(formData: FormData, key: keyof RegisterFormValues): string {

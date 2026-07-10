@@ -1,6 +1,8 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.DTOs.Character;
 using LearningLab.Data.Repositories.CharacterSheetRepository;
+using LearningLab.Services.Configuration;
+using Microsoft.Extensions.Options;
 using CharacterAction = LearningLab.Data.Models.Character.Action;
 using CharacterSheet = LearningLab.Data.Models.Character.CharacterSheet;
 
@@ -9,10 +11,14 @@ namespace LearningLab.Services.CharacterSheetService;
 public sealed class CharacterSheetService : ICharacterSheetService
 {
     private readonly ICharacterSheetRepository _characterSheetRepository;
+    private readonly ProfilePictureStorageOptions _profilePictureStorageOptions;
 
-    public CharacterSheetService(ICharacterSheetRepository characterSheetRepository)
+    public CharacterSheetService(
+        ICharacterSheetRepository characterSheetRepository,
+        IOptions<ProfilePictureStorageOptions> profilePictureStorageOptions)
     {
         _characterSheetRepository = characterSheetRepository;
+        _profilePictureStorageOptions = profilePictureStorageOptions.Value;
     }
 
     public async Task<ServiceResult<CharacterSheetResponse>> GetCharacterSheetAsync(
@@ -76,6 +82,62 @@ public sealed class CharacterSheetService : ICharacterSheetService
             ToResponse(characterSheet));
     }
 
+    public async Task<ServiceResult<CharacterSheetResponse>> UpdateCharacterPortraitAsync(
+        Guid userId,
+        byte[] imageBytes,
+        string? contentType,
+        CancellationToken cancellationToken = default)
+    {
+        if (imageBytes.Length == 0)
+        {
+            return new ServiceResult<CharacterSheetResponse>(
+                ApplicationStatusCode.ProfilePictureRequired);
+        }
+
+        if (imageBytes.LongLength > _profilePictureStorageOptions.MaxFileSizeBytes)
+        {
+            return new ServiceResult<CharacterSheetResponse>(
+                ApplicationStatusCode.ProfilePictureTooLarge);
+        }
+
+        if (!IsJpeg(imageBytes, contentType))
+        {
+            return new ServiceResult<CharacterSheetResponse>(
+                ApplicationStatusCode.UnsupportedProfilePictureFormat);
+        }
+
+        var characterSheet = await _characterSheetRepository.GetByUserIdAsync(
+            userId,
+            cancellationToken);
+
+        if (characterSheet is null)
+        {
+            return new ServiceResult<CharacterSheetResponse>(
+                ApplicationStatusCode.CharacterSheetNotFound);
+        }
+
+        var profilePictureId = Guid.NewGuid();
+        var userFolderName = userId.ToString("D");
+        var fileName = $"profile_pic_{profilePictureId:N}.jpg";
+        var userAssetDirectory = Path.Combine(
+            _profilePictureStorageOptions.RootPath,
+            "users",
+            userFolderName);
+        var filePath = Path.Combine(userAssetDirectory, fileName);
+
+        Directory.CreateDirectory(userAssetDirectory);
+        await File.WriteAllBytesAsync(filePath, imageBytes, cancellationToken);
+
+        var requestPath = _profilePictureStorageOptions.RequestPath.TrimEnd('/');
+        characterSheet.PortraitUrl = $"{requestPath}/users/{userFolderName}/{fileName}";
+
+        await _characterSheetRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<CharacterSheetResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(characterSheet));
+    }
+
     private static CharacterSheetResponse ToResponse(CharacterSheet characterSheet)
     {
         return new CharacterSheetResponse
@@ -105,5 +167,20 @@ public sealed class CharacterSheetService : ICharacterSheetService
             PhysicalRating = characterSheet.PhysicalRating,
             MotoricsRating = characterSheet.MotoricsRating
         };
+    }
+
+    private static bool IsJpeg(byte[] imageBytes, string? contentType)
+    {
+        if (!string.Equals(contentType, "image/jpeg", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(contentType, "image/jpg", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return imageBytes.Length >= 4
+            && imageBytes[0] == 0xFF
+            && imageBytes[1] == 0xD8
+            && imageBytes[^2] == 0xFF
+            && imageBytes[^1] == 0xD9;
     }
 }

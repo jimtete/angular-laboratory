@@ -16,46 +16,6 @@
   background: #9ca3af;
 }
 
-.login-error-popup {
-  position: fixed;
-  top: 10%;
-  left: 50%;
-  z-index: 1100;
-  width: clamp(18rem, 24vw, 26rem);
-  padding: 1.25rem 1.5rem;
-  border-radius: 8px;
-  background: #b91c1c;
-  color: #ffffff;
-  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.22);
-  box-sizing: border-box;
-  cursor: pointer;
-  transform: translateX(-50%);
-  animation: login-error-popup-in 200ms ease-out;
-}
-
-.login-error-popup ul {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
-.login-error-popup li {
-  margin: 0.35rem 0;
-  font-size: 0.95rem;
-  line-height: 1.35;
-}
-
-@keyframes login-error-popup-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -0.75rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
 .login-column {
   min-width: 0;
 }
@@ -171,9 +131,5 @@
 
   .login-button {
     width: 100%;
-  }
-
-  .login-error-popup {
-    width: min(88vw, 24rem);
   }
 }

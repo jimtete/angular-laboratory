@@ -1,0 +1,19 @@
+<aside
+  class="notification-modal"
+  [class.notification-modal-error]="type === 'error'"
+  [class.notification-modal-success]="type === 'success'"
+  [class.notification-modal-dismissing]="isDismissing()"
+  role="alert"
+  aria-live="assertive"
+  (click)="dismiss()"
+>
+  @if (statusCode) {
+    <strong class="notification-modal-status">Status code: {{ statusCode }}</strong>
+  }
+
+  <ul>
+    @for (message of messages; track message) {
+      <li>{{ message }}</li>
+    }
+  </ul>
+</aside>

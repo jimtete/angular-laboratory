@@ -1,4 +1,4 @@
-import { Component, ElementRef, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import {
   ImageCroppedEvent,
   ImageCropperComponent,
@@ -6,6 +6,7 @@ import {
   LoadedImage,
 } from 'ngx-image-cropper';
 import { ASSET_PATHS } from '../shared/constants/asset-paths';
+import { ModalHelper } from '../shared/helpers/modal.helper';
 import { RatingRow } from './rating-row/rating-row';
 import { SheetTable } from './sheet-table/sheet-table';
 
@@ -31,6 +32,7 @@ const RATING_ROWS = [
     hoverText: 'Motorics',
   },
 ];
+const MAX_PORTRAIT_UPLOAD_BYTES = 2 * 1024 * 1024;
 
 @Component({
   selector: 'app-character-sheet',
@@ -39,9 +41,10 @@ const RATING_ROWS = [
   styleUrl: './character-sheet.css',
 })
 export class CharacterSheet {
-  private readonly characterSheetForm = viewChild<ElementRef<HTMLFormElement>>('characterSheetForm');
-  private readonly portraitFileInput =
-    viewChild<ElementRef<HTMLInputElement>>('portraitFileInput');
+  private readonly characterSheetForm =
+    viewChild<ElementRef<HTMLFormElement>>('characterSheetForm');
+  private readonly portraitFileInput = viewChild<ElementRef<HTMLInputElement>>('portraitFileInput');
+  private readonly modalHelper = inject(ModalHelper);
 
   protected readonly ratingRows = RATING_ROWS;
   protected readonly resetVersion = signal(0);
@@ -65,6 +68,12 @@ export class CharacterSheet {
     const file = input.files?.[0];
 
     if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_PORTRAIT_UPLOAD_BYTES) {
+      this.resetPortraitCrop();
+      this.modalHelper.showError('Character profile picture must be 2 MB or smaller.');
       return;
     }
 
@@ -104,6 +113,7 @@ export class CharacterSheet {
 
     this.portraitPreviewUrl.set(croppedPortrait);
     this.resetPortraitCrop();
+    this.modalHelper.showSuccess('Character profile picture has successfully been set.');
   }
 
   protected cancelPortraitCrop(): void {

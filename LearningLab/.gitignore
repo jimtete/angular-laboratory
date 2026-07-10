@@ -27,3 +27,4 @@ coverage/
 # Local runtime files
 *.log
 *.pid
+LearningLab/assets/users/

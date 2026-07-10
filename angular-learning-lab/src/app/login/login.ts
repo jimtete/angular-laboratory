@@ -1,7 +1,8 @@
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ApiError, AuthApiService, LoginRequest } from '../Infrastructure';
+import { ModalHelper } from '../shared/helpers/modal.helper';
 
 interface LoginFormValues {
   username: string;
@@ -21,17 +22,11 @@ interface LoginFormErrors {
 export class Login {
   private readonly loginForm = viewChild<ElementRef<HTMLFormElement>>('loginForm');
   private readonly authApiService = inject(AuthApiService);
+  private readonly modalHelper = inject(ModalHelper);
   private readonly router = inject(Router);
 
   protected readonly validationErrors = signal<LoginFormErrors>({});
-  protected readonly apiError = signal<string | null>(null);
   protected readonly isSubmitting = signal(false);
-  protected readonly errorMessages = computed(() => {
-    const errors = this.validationErrors();
-
-    return [errors.username, errors.password, this.apiError()]
-      .filter((error): error is string => Boolean(error));
-  });
 
   protected login(event: SubmitEvent): void {
     event.preventDefault();
@@ -46,9 +41,11 @@ export class Login {
     const validationErrors = this.validateLoginForm(formValues);
 
     this.validationErrors.set(validationErrors);
-    this.apiError.set(null);
 
     if (Object.keys(validationErrors).length > 0) {
+      this.modalHelper.showError(this.getValidationErrorMessages(validationErrors), {
+        onClose: () => this.validationErrors.set({}),
+      });
       return;
     }
 
@@ -60,14 +57,9 @@ export class Login {
       },
       error: (error: unknown) => {
         this.isSubmitting.set(false);
-        this.apiError.set(this.getErrorMessage(error));
+        this.modalHelper.showError(this.getErrorMessage(error));
       },
     });
-  }
-
-  protected dismissErrorPopup(): void {
-    this.validationErrors.set({});
-    this.apiError.set(null);
   }
 
   private getFormValues(form: HTMLFormElement): LoginFormValues {
@@ -91,6 +83,10 @@ export class Login {
     }
 
     return errors;
+  }
+
+  private getValidationErrorMessages(errors: LoginFormErrors): string[] {
+    return [errors.username, errors.password].filter((error): error is string => Boolean(error));
   }
 
   private getStringValue(formData: FormData, key: keyof LoginFormValues): string {
