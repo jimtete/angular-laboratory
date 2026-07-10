@@ -32,4 +32,12 @@ export class RatingRow {
       currentValue === value && value === 1 ? 0 : value,
     );
   }
+
+  getValue(): number {
+    return this.selectedValue();
+  }
+
+  setValue(value: number): void {
+    this.selectedValue.set(Math.max(0, Math.min(15, value)));
+  }
 }

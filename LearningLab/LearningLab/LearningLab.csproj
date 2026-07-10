@@ -26,4 +26,8 @@
     <ProjectReference Include="..\LearningLab.Services\LearningLab.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Security\AccessPermissions\" />
+  </ItemGroup>
+
 </Project>

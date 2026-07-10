@@ -4,8 +4,6 @@ namespace LearningLab.Data.Models.DTOs.Character;
 
 public sealed class UpdateCharacterSheetRequest
 {
-    public string? PortraitUrl { get; init; }
-
     public string? Background { get; init; }
 
     public string? Information { get; init; }

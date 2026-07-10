@@ -1,6 +1,4 @@
-export interface CharacterSheetModel {
-  userId: string;
-  portraitUrl: string | null;
+export interface UpdateCharacterSheetRequest {
   background: string | null;
   information: string | null;
   firstName: string;
@@ -9,7 +7,7 @@ export interface CharacterSheetModel {
   nationality: string | null;
   height: number | null;
   weight: number | null;
-  actions: CharacterActionModel[];
+  actions: CharacterActionRequest[];
   traits: string[];
   equipment: string[];
   logicRating: number;
@@ -18,7 +16,7 @@ export interface CharacterSheetModel {
   motoricsRating: number;
 }
 
-export interface CharacterActionModel {
+export interface CharacterActionRequest {
   actionType: 0 | 1 | 2 | 3;
   title: string | null;
   description: string | null;

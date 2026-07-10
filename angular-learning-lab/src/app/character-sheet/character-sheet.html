@@ -22,38 +22,38 @@
     <div class="details-column">
       <section class="sheet-field sheet-field-class">
         <h2>Class</h2>
-        <textarea class="sheet-field-control" aria-label="Class"></textarea>
+        <textarea class="sheet-field-control" name="characterClass" aria-label="Class"></textarea>
       </section>
       <section class="sheet-field sheet-field-background">
         <h2>Background</h2>
-        <textarea class="sheet-field-control" aria-label="Background"></textarea>
+        <textarea class="sheet-field-control" name="background" aria-label="Background"></textarea>
       </section>
       <section class="sheet-field sheet-field-information">
         <h2>Information</h2>
-        <textarea class="sheet-field-control" aria-label="Information"></textarea>
+        <textarea class="sheet-field-control" name="information" aria-label="Information"></textarea>
       </section>
     </div>
 
     <div class="identity-column">
       <section class="sheet-field">
         <h2>First Name</h2>
-        <textarea class="sheet-field-control" aria-label="First Name"></textarea>
+        <textarea class="sheet-field-control" name="firstName" aria-label="First Name"></textarea>
       </section>
       <section class="sheet-field">
         <h2>Last Name</h2>
-        <textarea class="sheet-field-control" aria-label="Last Name"></textarea>
+        <textarea class="sheet-field-control" name="lastName" aria-label="Last Name"></textarea>
       </section>
       <section class="sheet-field">
         <h2>Nationality</h2>
-        <textarea class="sheet-field-control" aria-label="Nationality"></textarea>
+        <textarea class="sheet-field-control" name="nationality" aria-label="Nationality"></textarea>
       </section>
       <section class="sheet-field">
         <h2>Height</h2>
-        <textarea class="sheet-field-control" aria-label="Height"></textarea>
+        <textarea class="sheet-field-control" name="height" aria-label="Height"></textarea>
       </section>
       <section class="sheet-field">
         <h2>Weight</h2>
-        <textarea class="sheet-field-control" aria-label="Weight"></textarea>
+        <textarea class="sheet-field-control" name="weight" aria-label="Weight"></textarea>
       </section>
     </div>
   </div>
@@ -122,7 +122,7 @@
           [hideResizeSquares]="false"
           [transform]="cropTransform()"
           alignImage="center"
-          format="webp"
+          format="jpeg"
           output="base64"
           imageAltText="Character portrait being cropped"
           cropperFrameAriaLabel="Square character portrait crop area"

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.DTOs.Character;
 using LearningLab.Data.Repositories.CharacterSheetRepository;
@@ -10,6 +11,8 @@ namespace LearningLab.Services.CharacterSheetService;
 
 public sealed class CharacterSheetService : ICharacterSheetService
 {
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> CharacterSheetWriteLocks = new();
+
     private readonly ICharacterSheetRepository _characterSheetRepository;
     private readonly ProfilePictureStorageOptions _profilePictureStorageOptions;
 
@@ -41,45 +44,44 @@ public sealed class CharacterSheetService : ICharacterSheetService
         UpdateCharacterSheetRequest request,
         CancellationToken cancellationToken = default)
     {
-        var characterSheet = await _characterSheetRepository.GetByUserIdAsync(
+        return await ExecuteWithUserWriteLockAsync(
             userId,
-            cancellationToken);
-
-        if (characterSheet is null)
-        {
-            return new ServiceResult<CharacterSheetResponse>(
-                ApplicationStatusCode.CharacterSheetNotFound);
-        }
-
-        characterSheet.PortraitUrl = request.PortraitUrl;
-        characterSheet.Background = request.Background;
-        characterSheet.Information = request.Information;
-        characterSheet.FirstName = request.FirstName;
-        characterSheet.LastName = request.LastName;
-        characterSheet.CharacterClass = request.CharacterClass;
-        characterSheet.Nationality = request.Nationality;
-        characterSheet.Height = request.Height;
-        characterSheet.Weight = request.Weight;
-        characterSheet.Actions = request.Actions
-            .Select(action => new CharacterAction
+            cancellationToken,
+            async () =>
             {
-                ActionType = action.ActionType,
-                Title = action.Title,
-                Description = action.Description
-            })
-            .ToList();
-        characterSheet.Traits = [.. request.Traits];
-        characterSheet.Equipment = [.. request.Equipment];
-        characterSheet.LogicRating = request.LogicRating;
-        characterSheet.PsycheRating = request.PsycheRating;
-        characterSheet.PhysicalRating = request.PhysicalRating;
-        characterSheet.MotoricsRating = request.MotoricsRating;
+                var characterSheet = await GetOrCreateCharacterSheetAsync(
+                    userId,
+                    cancellationToken);
 
-        await _characterSheetRepository.SaveChangesAsync(cancellationToken);
+                characterSheet.Background = request.Background;
+                characterSheet.Information = request.Information;
+                characterSheet.FirstName = request.FirstName;
+                characterSheet.LastName = request.LastName;
+                characterSheet.CharacterClass = request.CharacterClass;
+                characterSheet.Nationality = request.Nationality;
+                characterSheet.Height = request.Height;
+                characterSheet.Weight = request.Weight;
+                characterSheet.Actions = request.Actions
+                    .Select(action => new CharacterAction
+                    {
+                        ActionType = action.ActionType,
+                        Title = action.Title,
+                        Description = action.Description
+                    })
+                    .ToList();
+                characterSheet.Traits = [.. request.Traits];
+                characterSheet.Equipment = [.. request.Equipment];
+                characterSheet.LogicRating = request.LogicRating;
+                characterSheet.PsycheRating = request.PsycheRating;
+                characterSheet.PhysicalRating = request.PhysicalRating;
+                characterSheet.MotoricsRating = request.MotoricsRating;
 
-        return new ServiceResult<CharacterSheetResponse>(
-            ApplicationStatusCode.Success,
-            ToResponse(characterSheet));
+                await _characterSheetRepository.SaveChangesAsync(cancellationToken);
+
+                return new ServiceResult<CharacterSheetResponse>(
+                    ApplicationStatusCode.Success,
+                    ToResponse(characterSheet));
+            });
     }
 
     public async Task<ServiceResult<CharacterSheetResponse>> UpdateCharacterPortraitAsync(
@@ -106,36 +108,83 @@ public sealed class CharacterSheetService : ICharacterSheetService
                 ApplicationStatusCode.UnsupportedProfilePictureFormat);
         }
 
+        return await ExecuteWithUserWriteLockAsync(
+            userId,
+            cancellationToken,
+            async () =>
+            {
+                var characterSheet = await GetOrCreateCharacterSheetAsync(
+                    userId,
+                    cancellationToken);
+
+                var profilePictureId = Guid.NewGuid();
+                var userFolderName = userId.ToString("D");
+                var fileName = $"profile_pic_{profilePictureId:N}.jpg";
+                var userAssetDirectory = Path.Combine(
+                    _profilePictureStorageOptions.RootPath,
+                    "users",
+                    userFolderName);
+                var filePath = Path.Combine(userAssetDirectory, fileName);
+
+                Directory.CreateDirectory(userAssetDirectory);
+                await File.WriteAllBytesAsync(filePath, imageBytes, cancellationToken);
+
+                var requestPath = _profilePictureStorageOptions.RequestPath.TrimEnd('/');
+                characterSheet.PortraitUrl = $"{requestPath}/users/{userFolderName}/{fileName}";
+
+                await _characterSheetRepository.SaveChangesAsync(cancellationToken);
+
+                return new ServiceResult<CharacterSheetResponse>(
+                    ApplicationStatusCode.Success,
+                    ToResponse(characterSheet));
+            });
+    }
+
+    private static async Task<ServiceResult<CharacterSheetResponse>> ExecuteWithUserWriteLockAsync(
+        Guid userId,
+        CancellationToken cancellationToken,
+        Func<Task<ServiceResult<CharacterSheetResponse>>> operation)
+    {
+        var semaphore = CharacterSheetWriteLocks.GetOrAdd(
+            userId,
+            _ => new SemaphoreSlim(1, 1));
+
+        await semaphore.WaitAsync(cancellationToken);
+
+        try
+        {
+            return await operation();
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    private async Task<CharacterSheet> GetOrCreateCharacterSheetAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
         var characterSheet = await _characterSheetRepository.GetByUserIdAsync(
             userId,
             cancellationToken);
 
-        if (characterSheet is null)
+        if (characterSheet is not null)
         {
-            return new ServiceResult<CharacterSheetResponse>(
-                ApplicationStatusCode.CharacterSheetNotFound);
+            return characterSheet;
         }
 
-        var profilePictureId = Guid.NewGuid();
-        var userFolderName = userId.ToString("D");
-        var fileName = $"profile_pic_{profilePictureId:N}.jpg";
-        var userAssetDirectory = Path.Combine(
-            _profilePictureStorageOptions.RootPath,
-            "users",
-            userFolderName);
-        var filePath = Path.Combine(userAssetDirectory, fileName);
+        characterSheet = new CharacterSheet
+        {
+            UserId = userId,
+            FirstName = "Unnamed",
+            LastName = "Character",
+            CharacterClass = "Adventurer"
+        };
 
-        Directory.CreateDirectory(userAssetDirectory);
-        await File.WriteAllBytesAsync(filePath, imageBytes, cancellationToken);
+        await _characterSheetRepository.AddAsync(characterSheet, cancellationToken);
 
-        var requestPath = _profilePictureStorageOptions.RequestPath.TrimEnd('/');
-        characterSheet.PortraitUrl = $"{requestPath}/users/{userFolderName}/{fileName}";
-
-        await _characterSheetRepository.SaveChangesAsync(cancellationToken);
-
-        return new ServiceResult<CharacterSheetResponse>(
-            ApplicationStatusCode.Success,
-            ToResponse(characterSheet));
+        return characterSheet;
     }
 
     private static CharacterSheetResponse ToResponse(CharacterSheet characterSheet)

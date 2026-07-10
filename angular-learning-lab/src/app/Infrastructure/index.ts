@@ -6,4 +6,5 @@ export * from './http/http-error.interceptor';
 export * from './models';
 export * from './services/api-client.service';
 export * from './services/auth-api.service';
+export * from './services/character-sheet-api.service';
 export * from './services/token-storage.service';

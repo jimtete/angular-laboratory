@@ -42,6 +42,24 @@ export class SheetTable {
     });
   }
 
+  getValues(): string[] {
+    return this.rows()
+      .map((row) => row.value.trim())
+      .filter((value) => value.length > 0);
+  }
+
+  setValues(values: string[]): void {
+    const populatedValues = values.filter((value) => value.trim().length > 0);
+
+    if (populatedValues.length === 0) {
+      this.resetRows();
+      return;
+    }
+
+    this.rows.set(populatedValues.map((value, index) => ({ id: index + 1, value })));
+    this.nextRowId = populatedValues.length + 1;
+  }
+
   private resetRows(): void {
     this.nextRowId = 2;
     this.rows.set([{ id: 1, value: '' }]);
