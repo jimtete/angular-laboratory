@@ -1,0 +1,11 @@
+.campaign-home-title {
+  margin: 0;
+  color: #000000;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: clamp(2.25rem, 5vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.05;
+  text-align: center;
+  text-transform: uppercase;
+}

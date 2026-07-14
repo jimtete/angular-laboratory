@@ -9,6 +9,4 @@ public sealed class CreateCampaignRequest
 
     [Required]
     public required string Version { get; init; }
-
-    public string? CampaignPictureUrl { get; init; }
 }

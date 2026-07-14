@@ -1,13 +1,23 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import {
+  ImageCroppedEvent,
+  ImageCropperComponent,
+  ImageTransform,
+  LoadedImage,
+} from 'ngx-image-cropper';
 
-import { ApiError, CampaignApiService, CreateCampaignRequest } from '../../Infrastructure';
+import {
+  ApiError,
+  CampaignApiService,
+  CampaignCacheService,
+  CreateCampaignRequest,
+} from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 
 interface CreateCampaignFormValues {
   campaignName: string;
   version: string;
-  campaignPictureUrl: string;
 }
 
 interface CreateCampaignFormErrors {
@@ -15,20 +25,34 @@ interface CreateCampaignFormErrors {
   version?: string;
 }
 
+const MAX_CAMPAIGN_PICTURE_UPLOAD_BYTES = 5 * 1024 * 1024;
+
 @Component({
   selector: 'app-create-new-campaign',
+  imports: [ImageCropperComponent],
   templateUrl: './create-new-campaign.html',
   styleUrl: './create-new-campaign.css',
 })
 export class CreateNewCampaign {
   private readonly createCampaignForm =
     viewChild<ElementRef<HTMLFormElement>>('createCampaignForm');
+  private readonly campaignPictureFileInput =
+    viewChild<ElementRef<HTMLInputElement>>('campaignPictureFileInput');
   private readonly campaignApiService = inject(CampaignApiService);
+  private readonly campaignCache = inject(CampaignCacheService);
   private readonly modalHelper = inject(ModalHelper);
   private readonly router = inject(Router);
 
   protected readonly validationErrors = signal<CreateCampaignFormErrors>({});
   protected readonly isSubmitting = signal(false);
+  protected readonly campaignPicturePreviewUrl = signal<string | null>(null);
+  protected readonly cropImageEvent = signal<Event | null>(null);
+  protected readonly pendingCampaignPictureUrl = signal<string | null>(null);
+  protected readonly cropZoom = signal(1);
+  protected readonly cropTransform = signal<ImageTransform>({ scale: 1 });
+  protected readonly cropImageAspectRatio = signal(1);
+  protected readonly cropError = signal<string | null>(null);
+  private readonly campaignPictureBlob = signal<Blob | null>(null);
 
   protected goBack(): void {
     void this.router.navigate(['/my-campaigns']);
@@ -54,11 +78,17 @@ export class CreateNewCampaign {
     }
 
     this.isSubmitting.set(true);
-    this.campaignApiService.createCampaign(this.toCreateCampaignRequest(formValues)).subscribe({
+    this.campaignApiService.createCampaign(
+      this.toCreateCampaignRequest(formValues),
+      this.campaignPictureBlob(),
+    ).subscribe({
       next: (response) => {
         this.isSubmitting.set(false);
         this.modalHelper.showSuccess(response.message, {
           statusCode: response.statusCode,
+        });
+        this.campaignCache.loadAvailableCampaigns(true).subscribe({
+          error: () => {},
         });
         void this.router.navigate(['/my-campaigns']);
       },
@@ -71,13 +101,74 @@ export class CreateNewCampaign {
     });
   }
 
+  protected selectCampaignPicture(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_CAMPAIGN_PICTURE_UPLOAD_BYTES) {
+      this.resetCampaignPictureCrop();
+      this.modalHelper.showError('Campaign picture must be 5 MB or smaller.');
+      return;
+    }
+
+    this.pendingCampaignPictureUrl.set(null);
+    this.cropError.set(null);
+    this.cropZoom.set(1);
+    this.cropTransform.set({ scale: 1 });
+    this.cropImageEvent.set(event);
+  }
+
+  protected updateCampaignPictureCrop(event: ImageCroppedEvent): void {
+    this.pendingCampaignPictureUrl.set(event.base64 ?? null);
+  }
+
+  protected setCropImageDimensions(image: LoadedImage): void {
+    const { width, height } = image.transformed.size;
+
+    this.cropImageAspectRatio.set(height > 0 ? width / height : 1);
+  }
+
+  protected setCropZoom(event: Event): void {
+    const scale = Number((event.target as HTMLInputElement).value);
+
+    this.cropZoom.set(scale);
+    this.cropTransform.set({
+      ...this.cropTransform(),
+      scale,
+    });
+  }
+
+  protected applyCampaignPictureCrop(): void {
+    const croppedCampaignPicture = this.pendingCampaignPictureUrl();
+
+    if (!croppedCampaignPicture) {
+      return;
+    }
+
+    this.campaignPicturePreviewUrl.set(croppedCampaignPicture);
+    this.campaignPictureBlob.set(this.dataUrlToBlob(croppedCampaignPicture));
+    this.resetCampaignPictureCrop();
+  }
+
+  protected cancelCampaignPictureCrop(): void {
+    this.resetCampaignPictureCrop();
+  }
+
+  protected handleCampaignPictureLoadFailure(): void {
+    this.pendingCampaignPictureUrl.set(null);
+    this.cropError.set('The selected image could not be loaded.');
+  }
+
   private getFormValues(form: HTMLFormElement): CreateCampaignFormValues {
     const formData = new FormData(form);
 
     return {
       campaignName: this.getStringValue(formData, 'campaignName'),
       version: this.getStringValue(formData, 'version'),
-      campaignPictureUrl: this.getStringValue(formData, 'campaignPictureUrl'),
     };
   }
 
@@ -111,8 +202,37 @@ export class CreateNewCampaign {
     return {
       campaignName: formValues.campaignName,
       version: formValues.version,
-      campaignPictureUrl: formValues.campaignPictureUrl || null,
     };
+  }
+
+  private dataUrlToBlob(dataUrl: string): Blob {
+    const [metadata, base64Data] = dataUrl.split(',');
+    const contentType = metadata.match(/data:(.*);base64/)?.[1] ?? 'image/jpeg';
+    const binary = window.atob(base64Data);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    return new Blob([bytes], { type: contentType });
+  }
+
+  private resetCampaignPictureCrop(clearFileInput = true): void {
+    this.cropImageEvent.set(null);
+    this.pendingCampaignPictureUrl.set(null);
+    this.cropError.set(null);
+    this.cropZoom.set(1);
+    this.cropTransform.set({ scale: 1 });
+    this.cropImageAspectRatio.set(1);
+
+    if (clearFileInput) {
+      const input = this.campaignPictureFileInput()?.nativeElement;
+
+      if (input) {
+        input.value = '';
+      }
+    }
   }
 
   private getErrorStatusCode(error: unknown): number | undefined {

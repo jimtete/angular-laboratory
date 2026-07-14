@@ -35,6 +35,10 @@ export class ModalHelper {
     this.show('success', messages, options);
   }
 
+  showWarning(messages: ModalMessages, options: ModalOptions = {}): void {
+    this.show('information', messages, options);
+  }
+
   private show(
     type: NotificationModalType,
     messages: ModalMessages,

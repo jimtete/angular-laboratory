@@ -22,6 +22,11 @@
   background: #15803d;
 }
 
+.notification-modal-information {
+  background: #facc15;
+  color: #1f1235;
+}
+
 .notification-modal-dismissing {
   animation: notification-modal-out 200ms ease-in forwards;
 }
@@ -43,7 +48,7 @@
 
 .notification-modal li {
   margin: 0.35rem 0;
-  color: #ffffff;
+  color: inherit;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 0.95rem;
   font-weight: 300;

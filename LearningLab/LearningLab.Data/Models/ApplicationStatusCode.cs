@@ -11,5 +11,13 @@ public enum ApplicationStatusCode
     ProfilePictureRequired = 3002,
     ProfilePictureTooLarge = 3003,
     UnsupportedProfilePictureFormat = 3004,
-    CampaignMasterRoleRequired = 4001
+    CampaignMasterRoleRequired = 4001,
+    CampaignPictureTooLarge = 4002,
+    UnsupportedCampaignPictureFormat = 4003,
+    CampaignNotFound = 4004,
+    InvalidCampaignSettings = 4005,
+    InvalidCampaignInvite = 4006,
+    CampaignInvitePlayerRoleRequired = 4007,
+    CampaignInviteAlreadyExists = 4008,
+    CampaignParticipantAlreadyExists = 4009
 }

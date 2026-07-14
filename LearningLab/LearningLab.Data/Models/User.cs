@@ -1,6 +1,7 @@
 using LearningLab.Data.Models.Character;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Notifications;
 
 namespace LearningLab.Data.Models;
 
@@ -15,4 +16,7 @@ public class User
     public CharacterSheet? CharacterSheet { get; set; }
     public List<UserRole> UserRoles { get; set; } = [];
     public List<Campaign.Campaign> OwnedCampaigns { get; set; } = [];
+    public List<PlayerCampaignParticipation> CampaignParticipations { get; set; } = [];
+    public List<CampaignParticipationInvite> CampaignParticipationInvites { get; set; } = [];
+    public List<Notification> Notifications { get; set; } = [];
 }

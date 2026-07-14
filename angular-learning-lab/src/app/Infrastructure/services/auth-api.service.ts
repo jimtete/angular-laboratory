@@ -3,6 +3,7 @@ import { Observable, tap } from 'rxjs';
 
 import { ApiResponse, AuthResponse, LoginRequest, RegisterUserRequest } from '../models';
 import { ApiClient } from './api-client.service';
+import { CampaignCacheService } from './campaign-cache.service';
 import { TokenStorageService } from './token-storage.service';
 
 @Injectable({
@@ -10,6 +11,7 @@ import { TokenStorageService } from './token-storage.service';
 })
 export class AuthApiService {
   private readonly apiClient = inject(ApiClient);
+  private readonly campaignCache = inject(CampaignCacheService);
   private readonly tokenStorage = inject(TokenStorageService);
 
   register(request: RegisterUserRequest): Observable<ApiResponse<AuthResponse>> {
@@ -30,6 +32,7 @@ export class AuthApiService {
 
   logout(): void {
     this.tokenStorage.clear();
+    this.campaignCache.clear();
   }
 
   private storeAuthentication(response: ApiResponse<AuthResponse>): void {
@@ -38,5 +41,9 @@ export class AuthApiService {
     }
 
     this.tokenStorage.setAuth(response.data);
+
+    if (this.tokenStorage.hasAnyRole('Master', 'Player')) {
+      this.campaignCache.preloadAvailableCampaigns();
+    }
   }
 }

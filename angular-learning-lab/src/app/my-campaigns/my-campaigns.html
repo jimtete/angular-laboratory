@@ -1,26 +1,45 @@
 <section class="my-campaigns-page" aria-label="My Campaigns">
-  @if (isMaster()) {
-    <button
-      type="button"
-      class="create-campaign-button"
-      aria-label="Create campaign"
-      title="Create campaign"
-      (click)="createCampaign()"
-    >
-      +
-    </button>
-  }
-
-  @if (!isLoading() && campaigns().length === 0) {
+  @if (!isLoading() && campaigns().length === 0 && !isMaster()) {
     <p class="my-campaigns-empty">No Available Campaigns.</p>
   } @else {
     <div class="campaign-list">
       @for (campaign of campaigns(); track campaign.campaignId) {
-        <article class="campaign-row">
-          <h2>{{ campaign.campaignName }}</h2>
-          <p>{{ campaign.version }}</p>
-          <p>{{ campaign.gameMasterUsername }}</p>
-        </article>
+        <button
+          type="button"
+          class="campaign-card campaign-card-button"
+          (click)="selectCampaign(campaign.campaignId)"
+        >
+          @if (getCampaignPictureSource(campaign); as pictureSource) {
+            <img class="campaign-card-glow" [src]="pictureSource" alt="" aria-hidden="true" />
+          }
+
+          <div class="campaign-card-frame">
+            @if (getCampaignPictureSource(campaign); as pictureSource) {
+              <img class="campaign-card-image" [src]="pictureSource" [alt]="campaign.campaignName" />
+            } @else {
+              <span class="campaign-card-initial">{{ campaign.campaignName.charAt(0) }}</span>
+            }
+
+            <h2 class="campaign-card-title">{{ campaign.campaignName }}</h2>
+
+            <div class="campaign-card-badges" aria-label="Campaign details">
+              <span class="campaign-card-badge">{{ campaign.version }}</span>
+              <span class="campaign-card-badge" aria-hidden="true"></span>
+            </div>
+          </div>
+        </button>
+      }
+
+      @if (isMaster()) {
+        <button
+          type="button"
+          class="campaign-card create-campaign-card"
+          aria-label="Create new campaign"
+          (click)="createCampaign()"
+        >
+          <span class="create-campaign-card-plus" aria-hidden="true">+</span>
+          <span class="create-campaign-card-label">Create New Campaign</span>
+        </button>
       }
     </div>
   }

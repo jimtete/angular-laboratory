@@ -13,4 +13,6 @@ public sealed class CampaignResponse
     public required string Version { get; init; }
 
     public string? CampaignPictureUrl { get; init; }
+
+    public DateTimeOffset DateCreated { get; init; }
 }

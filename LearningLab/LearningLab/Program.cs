@@ -2,22 +2,29 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using LearningLab.Data;
+using LearningLab.Data.Infrastructure.Database;
 using LearningLab.Data.Models.DTOs;
+using LearningLab.Data.Repositories.CampaignQueryRepository;
+using LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
+using LearningLab.Data.Repositories.CampaignSettingsRepository;
 using LearningLab.Data.Repositories.CharacterSheetRepository;
+using LearningLab.Data.Repositories.NotificationCommandRepository;
 using LearningLab.Data.Repositories.RoleRepository;
 using LearningLab.Data.Repositories.UserRepository;
 using LearningLab.ErrorHandling;
+using LearningLab.Infrastructure.StaticAssets;
 using LearningLab.Security;
 using LearningLab.Security.AccessPermissions;
 using LearningLab.Services.AuthService;
+using LearningLab.Services.CampaignParticipationInviteService;
+using LearningLab.Services.CampaignSettingsService;
 using LearningLab.Services.CampaignService;
 using LearningLab.Services.CharacterSheetService;
-using LearningLab.Services.Configuration;
 using LearningLab.Services.Security;
+using LearningLab.Services.UserService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -25,9 +32,13 @@ const string CorsPolicy = "DefaultCorsPolicy";
 
 var builder = WebApplication.CreateBuilder(args);
 var assetsRoot = Path.Combine(builder.Environment.ContentRootPath, "assets");
+var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection connection string is required.");
 
 builder.Services.AddDbContext<LearningLabContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(defaultConnectionString));
+builder.Services.AddSingleton<IDbConnectionFactory>(
+    _ => new SqlConnectionFactory(defaultConnectionString));
 
 builder.Services.AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
@@ -92,19 +103,22 @@ builder.Services
     });
 
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+builder.Services.AddScoped<ICampaignQueryRepository, CampaignQueryRepository>();
+builder.Services.AddScoped<ICampaignParticipationInviteRepository, CampaignParticipationInviteRepository>();
 builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+builder.Services.AddScoped<ICampaignSettingsRepository, CampaignSettingsRepository>();
 builder.Services.AddScoped<ICharacterSheetRepository, CharacterSheetRepository>();
+builder.Services.AddScoped<INotificationCommandRepository, NotificationCommandRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ICampaignParticipationInviteService, CampaignParticipationInviteService>();
+builder.Services.AddScoped<ICampaignSettingsService, CampaignSettingsService>();
 builder.Services.AddScoped<ICharacterSheetService, CharacterSheetService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddAccessPermissionAuthorization();
-builder.Services.Configure<ProfilePictureStorageOptions>(options =>
-{
-    options.RootPath = assetsRoot;
-    options.RequestPath = "/assets";
-});
+builder.Services.AddLearningLabAssetStorage(assetsRoot);
 
 builder.Services.AddCors(options =>
 {
@@ -134,12 +148,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
 app.UseCors(CorsPolicy);
-Directory.CreateDirectory(assetsRoot);
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(assetsRoot),
-    RequestPath = "/assets"
-});
+app.UseLearningLabStaticAssets(assetsRoot);
 app.UseAuthentication();
 app.UseAuthorization();
 

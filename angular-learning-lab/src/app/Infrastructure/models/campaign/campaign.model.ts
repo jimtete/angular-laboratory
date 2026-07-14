@@ -5,4 +5,6 @@ export interface CampaignModel {
   campaignName: string;
   version: string;
   campaignPictureUrl: string | null;
+  campaignPictureBase64?: string | null;
+  campaignPictureContentType?: string | null;
 }

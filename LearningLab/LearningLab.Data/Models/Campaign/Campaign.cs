@@ -10,4 +10,8 @@ public class Campaign
     public string CampaignName { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
     public string? CampaignPictureUrl { get; set; }
+    public DateTimeOffset DateCreated { get; set; }
+    public CampaignSettings Settings { get; set; } = null!;
+    public List<PlayerCampaignParticipation> PlayerParticipations { get; set; } = [];
+    public List<CampaignParticipationInvite> ParticipationInvites { get; set; } = [];
 }

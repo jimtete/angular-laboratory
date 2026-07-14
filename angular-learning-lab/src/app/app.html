@@ -48,3 +48,16 @@
 <main class="page">
   <router-outlet />
 </main>
+
+@if (isApiLoading()) {
+  <section
+    class="api-loading-overlay"
+    role="status"
+    aria-live="polite"
+    aria-label="Loading"
+  >
+    <div class="api-loading-panel">
+      <span class="api-loading-spinner" aria-hidden="true"></span>
+    </div>
+  </section>
+}

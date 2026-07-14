@@ -2,6 +2,7 @@ using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.Character;
+using LearningLab.Data.Models.Notifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearningLab.Data;
@@ -15,6 +16,10 @@ public class LearningLabContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<CharacterSheet> CharacterSheets { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
+    public DbSet<CampaignSettings> CampaignSettings { get; set; }
+    public DbSet<PlayerCampaignParticipation> PlayerCampaignParticipations { get; set; }
+    public DbSet<CampaignParticipationInvite> CampaignParticipationInvites { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
@@ -60,6 +65,63 @@ public class LearningLabContext : DbContext
                 .WithOne(campaign => campaign.GameMaster)
                 .HasForeignKey(campaign => campaign.GameMasterId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(user => user.CampaignParticipations)
+                .WithOne(participation => participation.User)
+                .HasForeignKey(participation => participation.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(user => user.CampaignParticipationInvites)
+                .WithOne(invite => invite.User)
+                .HasForeignKey(invite => invite.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(user => user.Notifications)
+                .WithOne(notification => notification.User)
+                .HasForeignKey(notification => notification.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.ToTable("Notifications");
+
+            entity.HasKey(notification => notification.NotificationId);
+
+            entity.Property(notification => notification.NotificationId)
+                .HasColumnName("notification_id");
+
+            entity.Property(notification => notification.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(notification => notification.NotificationType)
+                .HasColumnName("notification_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(notification => notification.Description)
+                .HasColumnName("description")
+                .HasMaxLength(512)
+                .IsRequired();
+
+            entity.Property(notification => notification.DateCreated)
+                .HasColumnName("date_created")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(notification => notification.DateRead)
+                .HasColumnName("date_read");
+
+            entity.Property(notification => notification.DateDeleted)
+                .HasColumnName("date_deleted");
+
+            entity.HasIndex(notification => new
+            {
+                notification.UserId,
+                notification.DateDeleted,
+                notification.DateCreated
+            });
         });
 
         modelBuilder.Entity<Campaign>(entity =>
@@ -84,6 +146,89 @@ public class LearningLabContext : DbContext
 
             entity.Property(campaign => campaign.CampaignPictureUrl)
                 .HasColumnName("campaign_picture_url");
+
+            entity.Property(campaign => campaign.DateCreated)
+                .HasColumnName("date_created")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(campaign => campaign.Settings)
+                .WithOne(settings => settings.Campaign)
+                .HasForeignKey<CampaignSettings>(settings => settings.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(campaign => campaign.PlayerParticipations)
+                .WithOne(participation => participation.Campaign)
+                .HasForeignKey(participation => participation.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(campaign => campaign.ParticipationInvites)
+                .WithOne(invite => invite.Campaign)
+                .HasForeignKey(invite => invite.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CampaignSettings>(entity =>
+        {
+            entity.ToTable("CampaignSettings");
+
+            entity.HasKey(settings => settings.CampaignId);
+
+            entity.Property(settings => settings.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(settings => settings.MaxNumberOfPlayers)
+                .HasColumnName("max_number_of_players")
+                .HasDefaultValue(1)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<PlayerCampaignParticipation>(entity =>
+        {
+            entity.ToTable("PlayerCampaignParticipation");
+
+            entity.HasKey(participation => new
+            {
+                participation.CampaignId,
+                participation.UserId
+            });
+
+            entity.Property(participation => participation.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(participation => participation.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(participation => participation.Nickname)
+                .HasColumnName("nickname")
+                .HasMaxLength(128);
+
+            entity.Property(participation => participation.DateJoined)
+                .HasColumnName("date_joined")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<CampaignParticipationInvite>(entity =>
+        {
+            entity.ToTable("CampaignParticipationInvite");
+
+            entity.HasKey(invite => new
+            {
+                invite.CampaignId,
+                invite.UserId
+            });
+
+            entity.Property(invite => invite.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(invite => invite.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(invite => invite.DateInvited)
+                .HasColumnName("date_invited")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
         });
 
         modelBuilder.Entity<Role>(entity =>

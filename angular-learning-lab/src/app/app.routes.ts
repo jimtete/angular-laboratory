@@ -1,6 +1,10 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, masterRoleGuard } from './Infrastructure';
+import { Campaign } from './campaign/campaign';
+import { CampaignHome } from './campaign/campaign-home/campaign-home';
+import { CampaignMembers } from './campaign/campaign-members/campaign-members';
+import { CampaignSettings } from './campaign/campaign-settings/campaign-settings';
 import { CharacterSheet } from './character-sheet/character-sheet';
 import { Home } from './home/home';
 import { Login } from './login/login';
@@ -35,5 +39,25 @@ export const routes: Routes = [
     path: 'character-sheet',
     component: CharacterSheet,
     canActivate: [authGuard]
+  },
+  {
+    path: 'campaigns/:campaignId',
+    component: Campaign,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        component: CampaignHome
+      },
+      {
+        path: 'campaign-members',
+        component: CampaignMembers
+      },
+      {
+        path: 'campaign-settings',
+        component: CampaignSettings,
+        canActivate: [masterRoleGuard]
+      }
+    ]
   }
 ];

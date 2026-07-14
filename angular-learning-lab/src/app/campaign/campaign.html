@@ -1,0 +1,67 @@
+<section
+  class="campaign-page"
+  [class.campaign-page-collapsed]="isSideNavCollapsed()"
+  aria-label="Campaign"
+>
+  <aside
+    class="campaign-side-nav"
+    [class.campaign-side-nav-collapsed]="isSideNavCollapsed()"
+    aria-label="Campaign navigation"
+  >
+    <button
+      type="button"
+      class="campaign-side-nav-item"
+      [class.campaign-side-nav-item-active]="isCampaignHome()"
+      aria-label="Campaign Home"
+      title="Campaign Home"
+      (click)="goToCampaignHome()"
+    >
+      <svg class="campaign-side-nav-icon" lucideHouse aria-hidden="true"></svg>
+      <span class="campaign-side-nav-label">Campaign Home</span>
+    </button>
+
+    <button
+      type="button"
+      class="campaign-side-nav-item"
+      [class.campaign-side-nav-item-active]="isCampaignMembers()"
+      aria-label="Campaign Members"
+      title="Campaign Members"
+      (click)="goToCampaignMembers()"
+    >
+      <svg class="campaign-side-nav-icon" lucideUsers aria-hidden="true"></svg>
+      <span class="campaign-side-nav-label">Campaign Members</span>
+    </button>
+
+    @if (isMaster()) {
+      <button
+        type="button"
+        class="campaign-side-nav-item"
+        [class.campaign-side-nav-item-active]="isCampaignSettings()"
+        aria-label="Campaign Settings"
+        title="Campaign Settings"
+        (click)="goToCampaignSettings()"
+      >
+        <svg class="campaign-side-nav-icon" lucideCog aria-hidden="true"></svg>
+        <span class="campaign-side-nav-label">Campaign Settings</span>
+      </button>
+    }
+
+    <button
+      type="button"
+      class="campaign-side-nav-toggle"
+      [attr.aria-label]="isSideNavCollapsed() ? 'Expand campaign navigation' : 'Collapse campaign navigation'"
+      [attr.aria-expanded]="!isSideNavCollapsed()"
+      (click)="toggleSideNav()"
+    >
+      <span class="campaign-side-nav-toggle-icon" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+  </aside>
+
+  <section class="campaign-content" aria-label="Campaign content">
+    <router-outlet />
+  </section>
+</section>

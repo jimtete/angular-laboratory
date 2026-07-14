@@ -12,21 +12,33 @@
 
     <label class="create-campaign-field">
       <span>Version</span>
-      <input
+      <select
         class="create-campaign-field-control"
-        type="text"
         name="version"
         [attr.aria-invalid]="validationErrors().version ? true : null"
-      />
+      >
+        <option value="">Select version</option>
+        <option value="3.5">3.5</option>
+        <option value="5e">5e</option>
+        <option value="5.5">5.5</option>
+      </select>
     </label>
 
-    <label class="create-campaign-field">
-      <span>Campaign Picture Url</span>
+    <label class="campaign-picture-upload">
       <input
-        class="create-campaign-field-control"
-        type="text"
-        name="campaignPictureUrl"
+        #campaignPictureFileInput
+        type="file"
+        accept="image/*"
+        hidden
+        (change)="selectCampaignPicture($event)"
       />
+
+      @if (campaignPicturePreviewUrl(); as previewUrl) {
+        <img [src]="previewUrl" alt="Selected campaign picture" />
+      } @else {
+        <span class="campaign-picture-upload-plus" aria-hidden="true">+</span>
+        <span class="campaign-picture-upload-label">Click to upload a campaign picture</span>
+      }
     </label>
 
     <div class="create-campaign-actions">
@@ -48,3 +60,74 @@
     </div>
   </section>
 </form>
+
+@if (cropImageEvent()) {
+  <div class="campaign-crop-backdrop" (click)="cancelCampaignPictureCrop()">
+    <section
+      class="campaign-crop-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="campaign-crop-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="campaign-crop-header">
+        <h2 id="campaign-crop-title">Crop campaign picture</h2>
+      </header>
+
+      <div
+        class="campaign-crop-stage"
+        [style.--crop-image-aspect-ratio]="cropImageAspectRatio()"
+      >
+        <image-cropper
+          [imageChangedEvent]="cropImageEvent()"
+          [maintainAspectRatio]="true"
+          [aspectRatio]="9 / 16"
+          [resizeToWidth]="720"
+          [resizeToHeight]="1280"
+          [imageQuality]="90"
+          [allowMoveImage]="false"
+          [hideResizeSquares]="false"
+          [transform]="cropTransform()"
+          alignImage="center"
+          format="jpeg"
+          output="base64"
+          imageAltText="Campaign picture being cropped"
+          cropperFrameAriaLabel="Campaign picture crop area"
+          (imageCropped)="updateCampaignPictureCrop($event)"
+          (imageLoaded)="setCropImageDimensions($event)"
+          (loadImageFailed)="handleCampaignPictureLoadFailure()"
+        />
+      </div>
+
+      <label class="campaign-crop-zoom">
+        <span>Zoom</span>
+        <input
+          type="range"
+          min="1"
+          max="3"
+          step="0.05"
+          [value]="cropZoom()"
+          (input)="setCropZoom($event)"
+        />
+      </label>
+
+      @if (cropError(); as error) {
+        <p class="campaign-crop-error" role="alert">{{ error }}</p>
+      }
+
+      <div class="campaign-crop-actions">
+        <button type="button" class="campaign-crop-cancel" (click)="cancelCampaignPictureCrop()">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="campaign-crop-apply"
+          [disabled]="!pendingCampaignPictureUrl()"
+          (click)="applyCampaignPictureCrop()"
+        >
+          Apply
+        </button>
+      </div>
+    </section>
+  </div>
+}

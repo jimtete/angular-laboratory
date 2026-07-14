@@ -16,6 +16,7 @@ public sealed class CampaignRepository : ICampaignRepository
         CancellationToken cancellationToken = default)
     {
         return await QueryCampaignsWithGameMaster()
+            .OrderByDescending(campaign => campaign.DateCreated)
             .ToListAsync(cancellationToken);
     }
 
@@ -25,6 +26,7 @@ public sealed class CampaignRepository : ICampaignRepository
     {
         return await QueryCampaignsWithGameMaster()
             .Where(campaign => campaign.GameMasterId == gameMasterId)
+            .OrderByDescending(campaign => campaign.DateCreated)
             .ToListAsync(cancellationToken);
     }
 

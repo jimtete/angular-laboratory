@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { AuthApiService, TokenStorageService } from './Infrastructure';
+import { ApiLoadingService, AuthApiService, TokenStorageService } from './Infrastructure';
 
 @Component({
   selector: 'app-root',
@@ -12,9 +12,11 @@ import { AuthApiService, TokenStorageService } from './Infrastructure';
 export class App {
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly authApiService = inject(AuthApiService);
+  private readonly apiLoadingService = inject(ApiLoadingService);
   private readonly router = inject(Router);
 
   protected readonly isMenuOpen = signal(false);
+  protected readonly isApiLoading = computed(() => this.apiLoadingService.isLoading());
   protected readonly hasValidAccessToken = computed(() => this.tokenStorage.hasValidAccessToken());
   protected readonly hasCampaignAccess = computed(() =>
     this.tokenStorage.hasAnyRole('Master', 'Player'),

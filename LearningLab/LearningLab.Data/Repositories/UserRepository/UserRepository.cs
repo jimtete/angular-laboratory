@@ -24,6 +24,17 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(user => user.Username == username, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<string>> ListUsernamesByRoleAsync(
+        string roleName,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Where(user => user.UserRoles.Any(userRole => userRole.Role.Name == roleName))
+            .OrderBy(user => user.Username)
+            .Select(user => user.Username)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<bool> ExistsByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
         return _context.Users

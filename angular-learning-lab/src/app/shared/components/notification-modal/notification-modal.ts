@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 
-export type NotificationModalType = 'error' | 'success';
+export type NotificationModalType = 'error' | 'success' | 'information';
 
 @Component({
   selector: 'app-notification-modal',

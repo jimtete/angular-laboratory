@@ -1,6 +1,7 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.DTOs;
 using LearningLab.Data.Models.DTOs.Character;
+using LearningLab.Infrastructure.StaticAssets;
 using LearningLab.Parsers;
 using LearningLab.Services.CharacterSheetService;
 using LearningLab.Services.Helpers;
@@ -42,7 +43,9 @@ public sealed class CharacterController : ControllerBase
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Character sheet fetched successfully.",
-                Data = result.Data
+                Data = result.Data is null
+                    ? null
+                    : WithPublicAssetUrls(result.Data)
             }),
             ApplicationStatusCode.CharacterSheetNotFound => NotFound(
                 new ApiResponse<CharacterSheetResponse>
@@ -85,7 +88,9 @@ public sealed class CharacterController : ControllerBase
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Character sheet saved successfully.",
-                Data = result.Data
+                Data = result.Data is null
+                    ? null
+                    : WithPublicAssetUrls(result.Data)
             }),
             ApplicationStatusCode.CharacterSheetNotFound => NotFound(
                 new ApiResponse<CharacterSheetResponse>
@@ -130,7 +135,9 @@ public sealed class CharacterController : ControllerBase
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Character profile picture uploaded successfully.",
-                Data = result.Data
+                Data = result.Data is null
+                    ? null
+                    : WithPublicAssetUrls(result.Data)
             }),
             ApplicationStatusCode.ProfilePictureRequired => BadRequest(
                 new ApiResponse<CharacterSheetResponse>
@@ -170,6 +177,30 @@ public sealed class CharacterController : ControllerBase
                     Message = "An unexpected error occurred.",
                     Data = null
                 })
+        };
+    }
+
+    private CharacterSheetResponse WithPublicAssetUrls(CharacterSheetResponse characterSheet)
+    {
+        return new CharacterSheetResponse
+        {
+            UserId = characterSheet.UserId,
+            PortraitUrl = Request.ToPublicStaticAssetUrl(characterSheet.PortraitUrl),
+            Background = characterSheet.Background,
+            Information = characterSheet.Information,
+            FirstName = characterSheet.FirstName,
+            LastName = characterSheet.LastName,
+            CharacterClass = characterSheet.CharacterClass,
+            Nationality = characterSheet.Nationality,
+            Height = characterSheet.Height,
+            Weight = characterSheet.Weight,
+            Actions = characterSheet.Actions,
+            Traits = characterSheet.Traits,
+            Equipment = characterSheet.Equipment,
+            LogicRating = characterSheet.LogicRating,
+            PsycheRating = characterSheet.PsycheRating,
+            PhysicalRating = characterSheet.PhysicalRating,
+            MotoricsRating = characterSheet.MotoricsRating
         };
     }
 
