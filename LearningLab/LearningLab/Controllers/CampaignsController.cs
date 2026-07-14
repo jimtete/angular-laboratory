@@ -69,6 +69,102 @@ public sealed class CampaignsController : ControllerBase
         };
     }
 
+    [HttpGet("invites")]
+    [Authorize(Roles = AccessRoleNames.Player)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<CampaignPendingInviteResponse>>>> FetchPendingInvites(
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<CampaignPendingInviteResponse>>();
+        }
+
+        var result = await _campaignParticipationInviteService.GetPendingInvitesAsync(
+            userId.Value,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<IReadOnlyList<CampaignPendingInviteResponse>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Campaign invites fetched successfully.",
+                Data = result.Data?.Select(WithPublicAssetUrls).ToList()
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(
+                new ApiResponse<IReadOnlyList<CampaignPendingInviteResponse>>
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "User was not found.",
+                    Data = null
+                }),
+            ApplicationStatusCode.CampaignInvitePlayerRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<IReadOnlyList<CampaignPendingInviteResponse>>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Player role can fetch campaign invites.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<IReadOnlyList<CampaignPendingInviteResponse>>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    [HttpGet("{campaignId:guid}/members/usernames")]
+    [Authorize(Roles = AccessRoleNames.Master)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<string>>>> FetchCampaignMemberUsernames(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<string>>();
+        }
+
+        var result = await _campaignParticipationInviteService.GetCampaignMemberUsernamesAsync(
+            userId.Value,
+            campaignId,
+            cancellationToken);
+
+        return MapCampaignUsernameListResponse(
+            result,
+            "Campaign member usernames fetched successfully.");
+    }
+
+    [HttpGet("{campaignId:guid}/invites/usernames")]
+    [Authorize(Roles = AccessRoleNames.Master)]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<string>>>> FetchCampaignInviteUsernames(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<string>>();
+        }
+
+        var result = await _campaignParticipationInviteService.GetCampaignInviteUsernamesAsync(
+            userId.Value,
+            campaignId,
+            cancellationToken);
+
+        return MapCampaignUsernameListResponse(
+            result,
+            "Campaign invite usernames fetched successfully.");
+    }
+
     [HttpPost]
     [Authorize(Roles = AccessRoleNames.Master)]
     [Consumes("multipart/form-data")]
@@ -225,6 +321,13 @@ public sealed class CampaignsController : ControllerBase
                     Message = "The player already exists in this campaign.",
                     Data = null
                 }),
+            ApplicationStatusCode.CampaignPlayerLimitReached => Conflict(
+                new ApiResponse<CampaignParticipationInviteResponse>
+                {
+                    StatusCode = StatusCodes.Status409Conflict,
+                    Message = "Campaign has no available player slots.",
+                    Data = null
+                }),
             _ => StatusCode(
                 StatusCodes.Status500InternalServerError,
                 new ApiResponse<CampaignParticipationInviteResponse>
@@ -234,6 +337,52 @@ public sealed class CampaignsController : ControllerBase
                     Data = null
                 })
         };
+    }
+
+    [HttpPost("{campaignId:guid}/invites/accept")]
+    [Authorize(Roles = AccessRoleNames.Player)]
+    public async Task<ActionResult<ApiResponse<CampaignInviteResolutionResponse>>> AcceptInvite(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignInviteResolutionResponse>();
+        }
+
+        var result = await _campaignParticipationInviteService.AcceptInviteAsync(
+            userId.Value,
+            campaignId,
+            cancellationToken);
+
+        return MapInviteResolutionResponse(
+            result,
+            "Campaign invite accepted successfully.");
+    }
+
+    [HttpPost("{campaignId:guid}/invites/reject")]
+    [Authorize(Roles = AccessRoleNames.Player)]
+    public async Task<ActionResult<ApiResponse<CampaignInviteResolutionResponse>>> RejectInvite(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignInviteResolutionResponse>();
+        }
+
+        var result = await _campaignParticipationInviteService.RejectInviteAsync(
+            userId.Value,
+            campaignId,
+            cancellationToken);
+
+        return MapInviteResolutionResponse(
+            result,
+            "Campaign invite rejected successfully.");
     }
 
     private CampaignResponse WithPublicAssetUrls(CampaignResponse campaign)
@@ -247,6 +396,119 @@ public sealed class CampaignsController : ControllerBase
             Version = campaign.Version,
             CampaignPictureUrl = Request.ToPublicStaticAssetUrl(campaign.CampaignPictureUrl),
             DateCreated = campaign.DateCreated
+        };
+    }
+
+    private CampaignPendingInviteResponse WithPublicAssetUrls(CampaignPendingInviteResponse invite)
+    {
+        return new CampaignPendingInviteResponse
+        {
+            CampaignId = invite.CampaignId,
+            CampaignName = invite.CampaignName,
+            Version = invite.Version,
+            CampaignPictureUrl = Request.ToPublicStaticAssetUrl(invite.CampaignPictureUrl),
+            GameMasterId = invite.GameMasterId,
+            GameMasterUsername = invite.GameMasterUsername,
+            DateInvited = invite.DateInvited
+        };
+    }
+
+    private ActionResult<ApiResponse<IReadOnlyList<string>>> MapCampaignUsernameListResponse(
+        ServiceResult<IReadOnlyList<string>> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<IReadOnlyList<string>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = result.Data
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<IReadOnlyList<string>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<IReadOnlyList<string>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<IReadOnlyList<string>>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign users.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<IReadOnlyList<string>>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private ActionResult<ApiResponse<CampaignInviteResolutionResponse>> MapInviteResolutionResponse(
+        ServiceResult<CampaignInviteResolutionResponse> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<CampaignInviteResolutionResponse>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = result.Data
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<CampaignInviteResolutionResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<CampaignInviteResolutionResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignInviteNotFound => NotFound(new ApiResponse<CampaignInviteResolutionResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign invite was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignInvitePlayerRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<CampaignInviteResolutionResponse>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Player role can resolve campaign invites.",
+                    Data = null
+                }),
+            ApplicationStatusCode.CampaignParticipantAlreadyExists => Conflict(
+                new ApiResponse<CampaignInviteResolutionResponse>
+                {
+                    StatusCode = StatusCodes.Status409Conflict,
+                    Message = "The player already exists in this campaign.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<CampaignInviteResolutionResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
         };
     }
 

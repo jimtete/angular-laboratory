@@ -20,7 +20,7 @@
   background: #6d28d9;
   border-bottom: 1px solid #5b21b6;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .menu-toggle {
@@ -68,6 +68,114 @@
   white-space: nowrap;
 }
 
+.notification-control {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.notification-bell {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.notification-bell:hover,
+.notification-control-open .notification-bell {
+  background: #ffffff;
+  color: #5b21b6;
+  border-color: #ffffff;
+}
+
+.notification-bell svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke-width: 2.2;
+}
+
+.notification-badge {
+  position: absolute;
+  right: -0.35rem;
+  bottom: -0.35rem;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  display: grid;
+  place-items: center;
+  padding: 0 0.25rem;
+  border: 2px solid #6d28d9;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #ffffff;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+.notification-empty-tooltip {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  z-index: 1100;
+  width: max-content;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(31, 18, 53, 0.14);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  box-shadow: 0 0.65rem 1.4rem rgba(17, 24, 39, 0.18);
+  font-family: "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  text-transform: none;
+  transform: translateY(-0.25rem);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.notification-control-empty:hover .notification-empty-tooltip,
+.notification-control-empty:focus-within .notification-empty-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  z-index: 1100;
+  width: 400px;
+  max-height: 50vh;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: stretch;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  border: 1px solid rgba(31, 18, 53, 0.16);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0.8rem 1.8rem rgba(17, 24, 39, 0.2);
+  box-sizing: border-box;
+}
+
 .top-nav-open .nav-links {
   max-width: 32rem;
   opacity: 1;
@@ -91,7 +199,7 @@
 }
 
 .auth-links a,
-.auth-links button {
+.auth-links > button {
   min-width: 6.5rem;
   padding: 0.7rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -113,7 +221,7 @@
 }
 
 .auth-links a:hover,
-.auth-links button:hover,
+.auth-links > button:hover,
 .auth-links .nav-link-active {
   background: #ffffff;
   color: #5b21b6;
@@ -122,9 +230,34 @@
 }
 
 .page {
+  position: relative;
+  z-index: 1;
   min-height: 100dvh;
   padding-top: var(--nav-height);
   box-sizing: border-box;
+}
+
+.app-background-viewport {
+  position: fixed;
+  inset: var(--nav-height) 0 0;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.15;
+  pointer-events: none;
+  user-select: none;
+}
+
+.app-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  max-width: none;
+  display: block;
+  transform: translate3d(0, 0, 0);
+  transform-origin: top center;
+  will-change: transform;
 }
 
 .api-loading-overlay {

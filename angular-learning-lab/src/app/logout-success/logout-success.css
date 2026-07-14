@@ -1,0 +1,33 @@
+.logout-success-page {
+  min-height: calc(100dvh - 4rem);
+  display: grid;
+  place-items: center;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.logout-success-button {
+  min-width: 14rem;
+  padding: 1rem 1.5rem;
+  border: 2px solid #6d28d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1235;
+  font-family: 'Cotemporary', 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.logout-success-button:hover {
+  background: #6d28d9;
+  color: #ffffff;
+  transform: translateY(-2px);
+}

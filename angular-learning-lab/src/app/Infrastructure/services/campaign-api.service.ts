@@ -3,9 +3,12 @@ import { Observable } from 'rxjs';
 
 import {
   ApiResponse,
+  CampaignInviteResolutionModel,
   CampaignModel,
+  CampaignPendingInviteModel,
   CampaignParticipationInviteModel,
   CampaignSettingsModel,
+  CampaignUsernamesModel,
   CreateCampaignParticipationInviteRequest,
   CreateCampaignRequest,
   UpdateCampaignSettingsRequest,
@@ -20,6 +23,20 @@ export class CampaignApiService {
 
   fetchAvailableCampaigns(): Observable<ApiResponse<CampaignModel[]>> {
     return this.apiClient.get<ApiResponse<CampaignModel[]>>('/api/campaigns');
+  }
+
+  fetchPendingInvites(): Observable<ApiResponse<CampaignPendingInviteModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignPendingInviteModel[]>>(
+      '/api/campaigns/invites',
+    );
+  }
+
+  fetchCampaignUsernames(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignUsernamesModel>> {
+    return this.apiClient.get<ApiResponse<CampaignUsernamesModel>>(
+      `/api/campaigns/${campaignId}/users`,
+    );
   }
 
   createCampaign(
@@ -66,5 +83,19 @@ export class CampaignApiService {
       ApiResponse<CampaignParticipationInviteModel>,
       CreateCampaignParticipationInviteRequest
     >(`/api/campaigns/${campaignId}/invites`, request);
+  }
+
+  acceptInvite(campaignId: string): Observable<ApiResponse<CampaignInviteResolutionModel>> {
+    return this.apiClient.post<ApiResponse<CampaignInviteResolutionModel>, null>(
+      `/api/campaigns/${campaignId}/invites/accept`,
+      null,
+    );
+  }
+
+  rejectInvite(campaignId: string): Observable<ApiResponse<CampaignInviteResolutionModel>> {
+    return this.apiClient.post<ApiResponse<CampaignInviteResolutionModel>, null>(
+      `/api/campaigns/${campaignId}/invites/reject`,
+      null,
+    );
   }
 }

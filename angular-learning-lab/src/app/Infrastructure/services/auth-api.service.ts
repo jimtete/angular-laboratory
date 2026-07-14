@@ -3,6 +3,7 @@ import { Observable, tap } from 'rxjs';
 
 import { ApiResponse, AuthResponse, LoginRequest, RegisterUserRequest } from '../models';
 import { ApiClient } from './api-client.service';
+import { GlobalEvents } from '../events/GlobalEvents';
 import { CampaignCacheService } from './campaign-cache.service';
 import { TokenStorageService } from './token-storage.service';
 
@@ -11,6 +12,7 @@ import { TokenStorageService } from './token-storage.service';
 })
 export class AuthApiService {
   private readonly apiClient = inject(ApiClient);
+  private readonly globalEvents = inject(GlobalEvents);
   private readonly campaignCache = inject(CampaignCacheService);
   private readonly tokenStorage = inject(TokenStorageService);
 
@@ -23,7 +25,10 @@ export class AuthApiService {
   login(request: LoginRequest): Observable<ApiResponse<AuthResponse>> {
     return this.apiClient
       .post<ApiResponse<AuthResponse>, LoginRequest>('/api/auth/login', request)
-      .pipe(tap((response) => this.storeAuthentication(response)));
+      .pipe(tap((response) => {
+        this.storeAuthentication(response);
+        this.globalEvents.emitSuccessfulLogin();
+      }));
   }
 
   helloWorld(): Observable<ApiResponse<string>> {
@@ -33,6 +38,7 @@ export class AuthApiService {
   logout(): void {
     this.tokenStorage.clear();
     this.campaignCache.clear();
+    this.globalEvents.emitSuccessfulLogout();
   }
 
   private storeAuthentication(response: ApiResponse<AuthResponse>): void {

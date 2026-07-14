@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LucideUserPlus } from '@lucide/angular';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 
 import {
   ApiError,
@@ -27,12 +27,41 @@ export class CampaignMembers {
   protected readonly isMaster = computed(() => this.tokenStorage.hasAnyRole('Master'));
   protected readonly isInvitePopupOpen = signal(false);
   protected readonly playerUsernames = signal<string[]>([]);
-  protected readonly invitedUsernames = signal<ReadonlySet<string>>(new Set<string>());
   protected readonly invitingUsername = signal<string | null>(null);
+  private readonly unavailableUsernames = signal<ReadonlySet<string>>(new Set<string>());
 
   protected openInvitePopup(): void {
-    this.isInvitePopupOpen.set(true);
-    this.fetchPlayerUsernames();
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || !this.isMaster()) {
+      return;
+    }
+
+    forkJoin({
+      players: this.userApiService.fetchPlayerUsernames(),
+      campaignUsers: this.campaignApiService.fetchCampaignUsernames(campaignId),
+    }).subscribe({
+      next: ({ players, campaignUsers }) => {
+        const unavailableUsernames = this.toUsernameSet([
+          ...(campaignUsers.data?.joinedUsernames ?? []),
+          ...(campaignUsers.data?.invitedUsernames ?? []),
+        ]);
+
+        this.unavailableUsernames.set(unavailableUsernames);
+        this.playerUsernames.set(
+          (players.data ?? []).filter(
+            (username) => !unavailableUsernames.has(this.normalizeUsername(username)),
+          ),
+        );
+        this.isInvitePopupOpen.set(true);
+      },
+      error: (error: unknown) => {
+        this.modalHelper.showError(
+          this.getErrorMessage(error, 'Players could not be loaded.'),
+          { statusCode: this.getErrorStatus(error) },
+        );
+      },
+    });
   }
 
   protected closeInvitePopup(): void {
@@ -53,11 +82,17 @@ export class CampaignMembers {
       .pipe(finalize(() => this.invitingUsername.set(null)))
       .subscribe({
         next: (response) => {
-          this.invitedUsernames.update((usernames) => {
+          this.unavailableUsernames.update((usernames) => {
             const nextUsernames = new Set(usernames);
-            nextUsernames.add(username);
+            nextUsernames.add(this.normalizeUsername(username));
             return nextUsernames;
           });
+          this.playerUsernames.update((usernames) =>
+            usernames.filter(
+              (existingUsername) =>
+                this.normalizeUsername(existingUsername) !== this.normalizeUsername(username),
+            ),
+          );
           this.modalHelper.showSuccess(response.message);
         },
         error: (error: unknown) => {
@@ -70,21 +105,10 @@ export class CampaignMembers {
   }
 
   protected isInviteDisabled(username: string): boolean {
-    return this.invitingUsername() !== null || this.invitedUsernames().has(username);
-  }
-
-  private fetchPlayerUsernames(): void {
-    this.userApiService.fetchPlayerUsernames().subscribe({
-      next: (response) => {
-        this.playerUsernames.set(response.data ?? []);
-      },
-      error: (error: unknown) => {
-        this.modalHelper.showError(
-          this.getErrorMessage(error, 'Players could not be loaded.'),
-          { statusCode: this.getErrorStatus(error) },
-        );
-      },
-    });
+    return (
+      this.invitingUsername() !== null ||
+      this.unavailableUsernames().has(this.normalizeUsername(username))
+    );
   }
 
   private getCampaignId(): string | null {
@@ -111,5 +135,13 @@ export class CampaignMembers {
       'status' in error &&
       typeof error.status === 'number'
     );
+  }
+
+  private toUsernameSet(usernames: string[]): ReadonlySet<string> {
+    return new Set(usernames.map((username) => this.normalizeUsername(username)));
+  }
+
+  private normalizeUsername(username: string): string {
+    return username.trim().toLowerCase();
   }
 }

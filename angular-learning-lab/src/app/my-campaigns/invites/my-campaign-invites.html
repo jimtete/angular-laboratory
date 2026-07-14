@@ -1,0 +1,116 @@
+<section class="campaign-invites-page" aria-label="Campaign invites">
+  <button type="button" class="campaign-invites-back" (click)="goBack()">
+    Go Back
+  </button>
+
+  @if (invites().length === 0) {
+    <p class="campaign-invites-empty">No Available Invites.</p>
+  } @else {
+    <div class="campaign-invites-list">
+      @for (invite of invites(); track invite.campaignId) {
+        <article class="campaign-invite-card">
+          <div class="campaign-invite-image-frame">
+            @if (getCampaignPictureSource(invite); as imageSource) {
+              <img
+                class="campaign-invite-image"
+                [src]="imageSource"
+                [alt]="invite.campaignName"
+              />
+            } @else {
+              <span class="campaign-invite-initial">{{ invite.campaignName.charAt(0) }}</span>
+            }
+          </div>
+
+          <div class="campaign-invite-content">
+            <h1>{{ invite.campaignName }}</h1>
+
+            <div class="campaign-invite-details-row">
+              <dl>
+                <div>
+                  <dt>Version</dt>
+                  <dd>{{ invite.version }}</dd>
+                </div>
+                <div>
+                  <dt>Master</dt>
+                  <dd>{{ invite.gameMasterUsername }}</dd>
+                </div>
+                <div>
+                  <dt>Invited</dt>
+                  <dd>{{ formatDate(invite.dateInvited) }}</dd>
+                </div>
+              </dl>
+
+              <div class="campaign-invite-actions" aria-label="Invite actions">
+                <button
+                  type="button"
+                  class="campaign-invite-action campaign-invite-action-accept"
+                  [disabled]="resolvingCampaignId() === invite.campaignId"
+                  (click)="openConfirmation(invite, 'accept')"
+                >
+                  <svg lucideCheck aria-hidden="true"></svg>
+                  Accept
+                </button>
+
+                <button
+                  type="button"
+                  class="campaign-invite-action campaign-invite-action-reject"
+                  [disabled]="resolvingCampaignId() === invite.campaignId"
+                  (click)="openConfirmation(invite, 'reject')"
+                >
+                  <svg lucideX aria-hidden="true"></svg>
+                  Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (selectedInvite()) {
+    <div
+      class="campaign-invite-confirmation-backdrop"
+      role="presentation"
+      (click)="closeConfirmation()"
+    >
+      <section
+        class="campaign-invite-confirmation"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="confirmationTitle()"
+        (click)="$event.stopPropagation()"
+      >
+        <h2>{{ confirmationTitle() }}</h2>
+        <p>{{ confirmationMessage() }}</p>
+
+        <div class="campaign-invite-confirmation-actions">
+          <button
+            type="button"
+            class="campaign-invite-confirmation-cancel"
+            (click)="closeConfirmation()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="campaign-invite-confirmation-confirm"
+            [class.campaign-invite-confirmation-confirm-accept]="pendingAction() === 'accept'"
+            [class.campaign-invite-confirmation-confirm-reject]="pendingAction() === 'reject'"
+            [disabled]="resolvingCampaignId() !== null"
+            (click)="confirmInviteResolution()"
+          >
+            @if (pendingAction() === 'accept') {
+              <svg lucideCheck aria-hidden="true"></svg>
+              Accept Invite
+            } @else {
+              <svg lucideX aria-hidden="true"></svg>
+              Reject Invite
+            }
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

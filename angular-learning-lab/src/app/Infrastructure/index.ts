@@ -1,4 +1,5 @@
 export * from './api.config';
+export * from './events/GlobalEvents';
 export * from './guards/auth.guard';
 export * from './guards/master-role.guard';
 export * from './http/api-loading.interceptor';
@@ -12,5 +13,8 @@ export * from './services/auth-api.service';
 export * from './services/campaign-cache.service';
 export * from './services/campaign-api.service';
 export * from './services/character-sheet-api.service';
+export * from './services/notification-api.service';
+export * from './services/notification-cache.service';
+export * from './services/notification-socket.service';
 export * from './services/token-storage.service';
 export * from './services/user-api.service';

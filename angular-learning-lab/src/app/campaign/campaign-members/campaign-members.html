@@ -62,7 +62,7 @@
                     class="campaign-members-player-invite"
                     [disabled]="isInviteDisabled(username)"
                     [attr.aria-label]="'Invite ' + username"
-                    [title]="invitedUsernames().has(username) ? 'Invite sent' : 'Invite player'"
+                    title="Invite player"
                     (click)="invitePlayer(username)"
                   >
                     <svg lucideUserPlus aria-hidden="true"></svg>

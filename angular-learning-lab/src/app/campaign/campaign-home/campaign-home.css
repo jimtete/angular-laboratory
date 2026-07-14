@@ -9,3 +9,58 @@
   text-align: center;
   text-transform: uppercase;
 }
+
+.campaign-home-members {
+  width: max-content;
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  margin: 3rem auto 0;
+}
+
+.campaign-home-members-ring {
+  --ring-size: 9rem;
+  --ring-thickness: 14px;
+
+  position: relative;
+  width: var(--ring-size);
+  height: var(--ring-size);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -150deg,
+    #6d28d9 0deg,
+    #6d28d9 300deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+}
+
+.campaign-home-members-ring::after {
+  content: "";
+  position: absolute;
+  inset: var(--ring-thickness);
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.campaign-home-members-ring span {
+  position: relative;
+  z-index: 1;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.campaign-home-members p {
+  margin: 0;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}

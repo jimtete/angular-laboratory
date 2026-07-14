@@ -19,5 +19,7 @@ public enum ApplicationStatusCode
     InvalidCampaignInvite = 4006,
     CampaignInvitePlayerRoleRequired = 4007,
     CampaignInviteAlreadyExists = 4008,
-    CampaignParticipantAlreadyExists = 4009
+    CampaignParticipantAlreadyExists = 4009,
+    CampaignInviteNotFound = 4010,
+    CampaignPlayerLimitReached = 4011
 }

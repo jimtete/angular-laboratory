@@ -1,0 +1,295 @@
+.campaign-invites-page {
+  min-height: calc(100dvh - 4rem);
+  padding: 60px;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.campaign-invites-back {
+  min-width: 9rem;
+  min-height: 2.75rem;
+  margin-bottom: 2rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid #6d28d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.campaign-invites-back:hover {
+  background: #6d28d9;
+  color: #ffffff;
+}
+
+.campaign-invites-empty {
+  margin: 0;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: clamp(1.6rem, 4vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.campaign-invites-list {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.campaign-invite-card {
+  width: min(100%, 58rem);
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f3f4f6;
+  box-sizing: border-box;
+}
+
+.campaign-invite-image-frame {
+  width: 9rem;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border: 1px solid #6d28d9;
+  border-radius: 8px;
+  background: #d1d5db;
+}
+
+.campaign-invite-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.campaign-invite-initial {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.campaign-invite-content {
+  min-width: 0;
+  align-self: center;
+}
+
+.campaign-invite-content h1 {
+  margin: 0 0 1rem;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.campaign-invite-content dl {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.campaign-invite-content dl div {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.campaign-invite-content dt,
+.campaign-invite-content dd {
+  margin: 0;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+}
+
+.campaign-invite-content dt {
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.campaign-invite-content dd {
+  font-weight: 600;
+}
+
+.campaign-invite-details-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.campaign-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  align-self: end;
+}
+
+.campaign-invite-action {
+  min-width: 8.5rem;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    filter 160ms ease,
+    transform 160ms ease;
+}
+
+.campaign-invite-action svg,
+.campaign-invite-confirmation-confirm svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke-width: 2.5;
+}
+
+.campaign-invite-action:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.campaign-invite-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.campaign-invite-action-accept {
+  background: #15803d;
+}
+
+.campaign-invite-action-reject {
+  background: #b91c1c;
+}
+
+.campaign-invite-confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(17, 24, 39, 0.42);
+  box-sizing: border-box;
+}
+
+.campaign-invite-confirmation {
+  width: min(92vw, 32rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1.25rem 3rem rgba(17, 24, 39, 0.26);
+  box-sizing: border-box;
+}
+
+.campaign-invite-confirmation h2,
+.campaign-invite-confirmation p {
+  margin: 0;
+  color: #1f1235;
+}
+
+.campaign-invite-confirmation h2 {
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.campaign-invite-confirmation p {
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.campaign-invite-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.campaign-invite-confirmation-cancel,
+.campaign-invite-confirmation-confirm {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.campaign-invite-confirmation-cancel {
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #1f1235;
+}
+
+.campaign-invite-confirmation-confirm {
+  border: 1px solid transparent;
+  color: #ffffff;
+}
+
+.campaign-invite-confirmation-confirm-accept {
+  background: #15803d;
+}
+
+.campaign-invite-confirmation-confirm-reject {
+  background: #b91c1c;
+}
+
+@media (max-width: 700px) {
+  .campaign-invites-page {
+    padding: 2rem;
+  }
+
+  .campaign-invite-card {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-invite-details-row {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-invite-actions {
+    justify-content: flex-start;
+  }
+
+  .campaign-invite-image-frame {
+    width: min(100%, 12rem);
+  }
+}

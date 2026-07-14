@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="notification-card"
+  [class]="typeClass"
+  (click)="selectNotification()"
+>
+  <span class="notification-card-type-indicator" aria-hidden="true"></span>
+
+  <span class="notification-card-content">
+    <strong>{{ typeLabel }}</strong>
+    <span>{{ notification().description }}</span>
+  </span>
+</button>

@@ -1,15 +1,4 @@
-<div #homePage class="home-page">
-  <div class="home-background-viewport" aria-hidden="true">
-    <img
-      #homeBackground
-      class="home-background"
-      [src]="assets.images.thoughtCabinet"
-      alt=""
-      decoding="async"
-      (load)="refreshParallax()"
-    />
-  </div>
-
+<div class="home-page">
   <div class="home-foreground">
     @if (isHeroImageLoaded()) {
       <section class="home-hero">

@@ -11,4 +11,11 @@ public interface INotificationCommandRepository
         string description,
         DateTimeOffset dateCreated,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> SoftDeleteNotificationsAsync(
+        Guid userId,
+        NotificationType notificationType,
+        string description,
+        DateTimeOffset dateDeleted,
+        CancellationToken cancellationToken = default);
 }

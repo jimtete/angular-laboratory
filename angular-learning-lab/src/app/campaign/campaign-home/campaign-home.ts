@@ -22,6 +22,8 @@ export class CampaignHome implements OnInit {
       .find((campaign) => campaign.campaignId === campaignId)
       ?.campaignName ?? '';
   });
+  protected readonly currentMembers = 3;
+  protected readonly maxMembers = 6;
 
   ngOnInit(): void {
     this.campaignCache.loadAvailableCampaigns().subscribe({

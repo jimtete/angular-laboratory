@@ -1,0 +1,81 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.notification-card {
+  width: 100%;
+  min-height: 50px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #eef0f4;
+  color: #1f1235;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.notification-card:hover,
+.notification-card:focus-visible {
+  background: #e4e7ec;
+  border-color: #b7bdc8;
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.notification-card-type-indicator {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.25rem;
+  border-radius: 999px;
+  background: #6d28d9;
+}
+
+.notification-card-campaign-invite .notification-card-type-indicator {
+  background: #0891b2;
+}
+
+.notification-card-default .notification-card-type-indicator {
+  background: #6d28d9;
+}
+
+.notification-card-content {
+  min-width: 0;
+  display: grid;
+  gap: 0.3rem;
+  overflow: hidden;
+}
+
+.notification-card-content strong {
+  min-width: 0;
+  color: #1f1235;
+  font-family: "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.notification-card-content span {
+  min-width: 0;
+  color: #1f1235;
+  font-family: "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}

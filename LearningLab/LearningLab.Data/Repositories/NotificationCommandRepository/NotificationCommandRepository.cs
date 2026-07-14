@@ -47,4 +47,43 @@ public sealed class NotificationCommandRepository : INotificationCommandReposito
 
         await connection.ExecuteAsync(command);
     }
+
+    public async Task<IReadOnlyList<Guid>> SoftDeleteNotificationsAsync(
+        Guid userId,
+        NotificationType notificationType,
+        string description,
+        DateTimeOffset dateDeleted,
+        CancellationToken cancellationToken = default)
+    {
+        var connection = _context.Database.GetDbConnection();
+
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync(cancellationToken);
+        }
+
+        var command = new CommandDefinition(
+            """
+            UPDATE [dbo].[Notifications]
+            SET [date_deleted] = @DateDeleted
+            OUTPUT inserted.[notification_id]
+            WHERE [user_id] = @UserId
+                AND [notification_type] = @NotificationType
+                AND [description] = @Description
+                AND [date_deleted] IS NULL;
+            """,
+            new
+            {
+                UserId = userId,
+                NotificationType = notificationType.ToString(),
+                Description = description,
+                DateDeleted = dateDeleted
+            },
+            transaction: _context.Database.CurrentTransaction?.GetDbTransaction(),
+            cancellationToken: cancellationToken);
+
+        var deletedNotificationIds = await connection.QueryAsync<Guid>(command);
+
+        return deletedNotificationIds.AsList();
+    }
 }

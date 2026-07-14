@@ -34,6 +34,42 @@
   <div class="auth-links">
     @if (hasValidAccessToken()) {
       <button type="button" (click)="logout()">Logout</button>
+
+      <div
+        class="notification-control"
+        [class.notification-control-empty]="notificationCount() === 0"
+        [class.notification-control-open]="isNotificationsOpen()"
+        (mouseenter)="openNotificationsOnHover()"
+      >
+        <button
+          type="button"
+          class="notification-bell"
+          aria-label="Notifications"
+          [attr.aria-expanded]="isNotificationsOpen()"
+          (click)="toggleNotifications()"
+        >
+          <svg lucideBell aria-hidden="true"></svg>
+
+          @if (notificationCount() > 0) {
+            <span class="notification-badge">{{ notificationBadgeText() }}</span>
+          }
+        </button>
+
+        @if (notificationCount() === 0) {
+          <span class="notification-empty-tooltip">No Notifications</span>
+        }
+
+        @if (isNotificationsOpen()) {
+          <section class="notification-dropdown" aria-label="Notifications">
+            @for (notification of notifications(); track notification.notificationId) {
+              <app-notification-card
+                [notification]="notification"
+                (notificationSelected)="selectNotification($event)"
+              />
+            }
+          </section>
+        }
+      </div>
     } @else {
       <a routerLink="/login" routerLinkActive="nav-link-active">
         Login
@@ -45,7 +81,18 @@
   </div>
 </nav>
 
-<main class="page">
+<div class="app-background-viewport" aria-hidden="true">
+  <img
+    #appBackground
+    class="app-background"
+    [src]="assets.images.thoughtCabinet"
+    alt=""
+    decoding="async"
+    (load)="refreshGlobalBackground()"
+  />
+</div>
+
+<main #appPage class="page">
   <router-outlet />
 </main>
 

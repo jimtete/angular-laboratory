@@ -2,7 +2,7 @@
   min-height: calc(100dvh - 4rem);
   display: grid;
   grid-template-columns: 17rem minmax(0, 1fr);
-  background: #ffffff;
+  background: transparent;
   transition: grid-template-columns 180ms ease;
 }
 

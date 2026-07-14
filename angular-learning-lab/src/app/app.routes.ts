@@ -8,7 +8,9 @@ import { CampaignSettings } from './campaign/campaign-settings/campaign-settings
 import { CharacterSheet } from './character-sheet/character-sheet';
 import { Home } from './home/home';
 import { Login } from './login/login';
+import { LogoutSuccess } from './logout-success/logout-success';
 import { CreateNewCampaign } from './my-campaigns/create-new-campaign/create-new-campaign';
+import { MyCampaignInvites } from './my-campaigns/invites/my-campaign-invites';
 import { MyCampaigns } from './my-campaigns/my-campaigns';
 import { Register } from './register/register';
 
@@ -26,6 +28,10 @@ export const routes: Routes = [
     component: Register
   },
   {
+    path: 'logout-success',
+    component: LogoutSuccess
+  },
+  {
     path: 'my-campaigns',
     component: MyCampaigns,
     canActivate: [authGuard]
@@ -34,6 +40,11 @@ export const routes: Routes = [
     path: 'my-campaigns/create-new-campaign',
     component: CreateNewCampaign,
     canActivate: [authGuard, masterRoleGuard]
+  },
+  {
+    path: 'my-campaigns/invites',
+    component: MyCampaignInvites,
+    canActivate: [authGuard]
   },
   {
     path: 'character-sheet',
