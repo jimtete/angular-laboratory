@@ -6,5 +6,6 @@ public static class StoredProcedureNames
     {
         public const string GetCampaignsByGameMasterId = "platform.GetCampaignsByGameMasterId";
         public const string CreateNotification = "platform.CreateNotification";
+        public const string GetAvailableNotificationsByUserId = "platform.GetAvailableNotificationsByUserId";
     }
 }

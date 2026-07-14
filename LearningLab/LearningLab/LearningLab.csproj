@@ -29,6 +29,7 @@
   <ItemGroup>
     <Folder Include="assets\campaigns\" />
     <Folder Include="Security\AccessPermissions\" />
+    <Folder Include="Sockets\" />
   </ItemGroup>
 
 </Project>

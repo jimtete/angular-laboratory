@@ -10,6 +10,7 @@ using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.CampaignSettingsRepository;
 using LearningLab.Data.Repositories.CharacterSheetRepository;
 using LearningLab.Data.Repositories.NotificationCommandRepository;
+using LearningLab.Data.Repositories.NotificationQueryRepository;
 using LearningLab.Data.Repositories.RoleRepository;
 using LearningLab.Data.Repositories.UserRepository;
 using LearningLab.ErrorHandling;
@@ -21,8 +22,10 @@ using LearningLab.Services.CampaignParticipationInviteService;
 using LearningLab.Services.CampaignSettingsService;
 using LearningLab.Services.CampaignService;
 using LearningLab.Services.CharacterSheetService;
+using LearningLab.Services.NotificationService;
 using LearningLab.Services.Security;
 using LearningLab.Services.UserService;
+using LearningLab.Sockets;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -76,6 +79,19 @@ builder.Services
         };
         options.Events = new JwtBearerEvents
         {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrWhiteSpace(accessToken)
+                    && path.StartsWithSegments(SocketEndpointPaths.Root))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
             OnChallenge = async context =>
             {
                 context.HandleResponse();
@@ -109,6 +125,7 @@ builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
 builder.Services.AddScoped<ICampaignSettingsRepository, CampaignSettingsRepository>();
 builder.Services.AddScoped<ICharacterSheetRepository, CharacterSheetRepository>();
 builder.Services.AddScoped<INotificationCommandRepository, NotificationCommandRepository>();
+builder.Services.AddScoped<INotificationQueryRepository, NotificationQueryRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -117,8 +134,10 @@ builder.Services.AddScoped<ICampaignParticipationInviteService, CampaignParticip
 builder.Services.AddScoped<ICampaignSettingsService, CampaignSettingsService>();
 builder.Services.AddScoped<ICharacterSheetService, CharacterSheetService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddAccessPermissionAuthorization();
 builder.Services.AddLearningLabAssetStorage(assetsRoot);
+builder.Services.AddLearningLabSockets();
 
 builder.Services.AddCors(options =>
 {
@@ -153,5 +172,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapLearningLabSockets();
 
 app.Run();

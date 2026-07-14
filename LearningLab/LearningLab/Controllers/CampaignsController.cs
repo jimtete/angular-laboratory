@@ -74,7 +74,7 @@ public sealed class CampaignsController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<ApiResponse<CampaignResponse>>> CreateCampaign(
         [FromForm] CreateCampaignRequest request,
-        [FromForm] IFormFile? campaignPicture,
+        IFormFile? campaignPicture,
         CancellationToken cancellationToken)
     {
         var userId = SessionHelper.GetUserId(User);
