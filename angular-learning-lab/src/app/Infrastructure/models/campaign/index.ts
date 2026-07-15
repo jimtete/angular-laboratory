@@ -1,4 +1,6 @@
+export * from './campaign-information.model';
 export * from './campaign-invite-resolution.model';
+export * from './campaign-member-information.model';
 export * from './campaign-participation-invite.model';
 export * from './campaign-pending-invite.model';
 export * from './campaign.model';
@@ -6,4 +8,5 @@ export * from './campaign-settings.model';
 export * from './campaign-usernames.model';
 export * from './create-campaign-participation-invite-request.model';
 export * from './create-campaign-request.model';
+export * from './update-campaign-member-nickname-request.model';
 export * from './update-campaign-settings-request.model';

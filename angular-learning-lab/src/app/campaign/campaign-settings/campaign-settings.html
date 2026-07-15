@@ -28,6 +28,16 @@
     aria-label="Max players"
   />
 
+  <label class="campaign-settings-field campaign-settings-description-field">
+    <span>Campaign Description</span>
+    <textarea
+      class="campaign-settings-description"
+      maxlength="16384"
+      [value]="campaignDescription()"
+      (input)="setCampaignDescription($event)"
+    ></textarea>
+  </label>
+
   <button
     type="button"
     class="campaign-settings-save"

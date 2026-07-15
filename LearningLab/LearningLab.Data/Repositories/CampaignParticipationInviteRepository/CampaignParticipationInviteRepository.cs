@@ -1,4 +1,5 @@
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.DTOs.Campaign;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
@@ -32,6 +33,23 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
             .Where(participation => participation.CampaignId == campaignId)
             .OrderBy(participation => participation.User.Username)
             .Select(participation => participation.User.Username)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<CampaignMemberInformationResponse>> ListParticipantInformationByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.PlayerCampaignParticipations
+            .Where(participation => participation.CampaignId == campaignId)
+            .OrderBy(participation => participation.User.Username)
+            .Select(participation => new CampaignMemberInformationResponse
+            {
+                Username = participation.User.Username,
+                FirstName = participation.User.FirstName,
+                LastName = participation.User.LastName,
+                Nickname = participation.Nickname
+            })
             .ToListAsync(cancellationToken);
     }
 
@@ -72,6 +90,19 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
             .SingleOrDefaultAsync(
                 invite => invite.CampaignId == campaignId
                     && invite.UserId == userId,
+                cancellationToken);
+    }
+
+    public Task<PlayerCampaignParticipation?> GetParticipationByUsernameAsync(
+        Guid campaignId,
+        string username,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.PlayerCampaignParticipations
+            .Include(participation => participation.User)
+            .SingleOrDefaultAsync(
+                participation => participation.CampaignId == campaignId
+                    && participation.User.Username == username,
                 cancellationToken);
     }
 

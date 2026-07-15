@@ -62,6 +62,17 @@
   </aside>
 
   <section class="campaign-content" aria-label="Campaign content">
+    <button
+      type="button"
+      class="campaign-reload-button"
+      [disabled]="isReloadingCampaignInformation()"
+      [attr.aria-label]="isReloadingCampaignInformation() ? 'Reloading campaign information' : 'Reload campaign information'"
+      [attr.title]="isReloadingCampaignInformation() ? 'Reloading campaign information' : 'Reload campaign information'"
+      (click)="reloadCampaignInformation()"
+    >
+      <svg lucideRefreshCw aria-hidden="true"></svg>
+    </button>
+
     <router-outlet />
   </section>
 </section>

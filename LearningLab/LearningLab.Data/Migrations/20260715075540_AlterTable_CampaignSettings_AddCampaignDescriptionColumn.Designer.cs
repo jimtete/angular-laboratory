@@ -4,6 +4,7 @@ using LearningLab.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningLab.Data.Migrations
 {
     [DbContext(typeof(LearningLabContext))]
-    partial class LearningLabContextModelSnapshot : ModelSnapshot
+    [Migration("20260715075540_AlterTable_CampaignSettings_AddCampaignDescriptionColumn")]
+    partial class AlterTable_CampaignSettings_AddCampaignDescriptionColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

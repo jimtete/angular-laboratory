@@ -9,6 +9,60 @@
       </tr>
     </thead>
     <tbody>
+      @for (member of members(); track member.username) {
+        <tr>
+          <td>{{ member.username }}</td>
+          <td>{{ member.firstName }}</td>
+          <td>{{ member.lastName }}</td>
+          <td>
+            <div class="campaign-members-nickname-cell">
+              <input
+                type="text"
+                class="campaign-members-nickname-input"
+                [value]="nicknameValue(member)"
+                [disabled]="!isMaster() || savingNicknameUsername() !== null"
+                [attr.aria-label]="'Nickname for ' + member.username"
+                (input)="setNicknameDraft(member.username, $event)"
+              />
+
+              <div
+                class="campaign-members-nickname-actions"
+                [class.campaign-members-nickname-actions-visible]="isNicknameDirty(member)"
+                [attr.aria-hidden]="isNicknameDirty(member) ? null : true"
+              >
+                <button
+                  type="button"
+                  class="campaign-members-nickname-action campaign-members-nickname-discard"
+                  [disabled]="savingNicknameUsername() !== null || !isNicknameDirty(member)"
+                  [attr.aria-label]="'Discard nickname changes for ' + member.username"
+                  [attr.tabindex]="isNicknameDirty(member) ? null : -1"
+                  title="Discard nickname changes"
+                  (click)="discardNickname(member)"
+                >
+                  <svg lucideX aria-hidden="true"></svg>
+                </button>
+
+                <button
+                  type="button"
+                  class="campaign-members-nickname-action campaign-members-nickname-save"
+                  [disabled]="savingNicknameUsername() !== null || !isNicknameDirty(member)"
+                  [attr.aria-label]="'Save nickname for ' + member.username"
+                  [attr.tabindex]="isNicknameDirty(member) ? null : -1"
+                  title="Save nickname"
+                  (click)="saveNickname(member)"
+                >
+                  <svg lucideCheck aria-hidden="true"></svg>
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4" class="campaign-members-empty-row">No members yet.</td>
+        </tr>
+      }
+
       @if (isMaster()) {
         <tr class="campaign-members-invite-row">
           <td colspan="4">

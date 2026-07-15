@@ -28,6 +28,100 @@
   text-align: left;
 }
 
+.campaign-members-nickname-cell {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) 4.85rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.campaign-members-nickname-input {
+  min-width: 0;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 600 1rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
+}
+
+.campaign-members-nickname-input:focus-visible {
+  border-color: #6d28d9;
+  outline: 2px solid rgba(109, 40, 217, 0.28);
+  outline-offset: 1px;
+}
+
+.campaign-members-nickname-input:disabled {
+  background: #f3f4f6;
+  color: rgba(31, 18, 53, 0.72);
+}
+
+.campaign-members-nickname-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.campaign-members-nickname-actions-visible {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.campaign-members-nickname-action {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.campaign-members-nickname-action:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.campaign-members-nickname-action svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke-width: 2.5;
+}
+
+.campaign-members-nickname-discard {
+  color: #dc2626;
+}
+
+.campaign-members-nickname-save {
+  color: #16a34a;
+}
+
+.campaign-members-nickname-discard:hover:not(:disabled),
+.campaign-members-nickname-discard:focus-visible:not(:disabled) {
+  background: rgba(220, 38, 38, 0.08);
+  outline: 0;
+}
+
+.campaign-members-nickname-save:hover:not(:disabled),
+.campaign-members-nickname-save:focus-visible:not(:disabled) {
+  background: rgba(22, 163, 74, 0.08);
+  outline: 0;
+}
+
+.campaign-members-table .campaign-members-empty-row {
+  padding: 1.5rem 1rem;
+  color: rgba(31, 18, 53, 0.68);
+  font-weight: 700;
+  text-align: center;
+}
+
 .campaign-members-invite-row td {
   height: 3.25rem;
   padding: 0;
@@ -196,4 +290,15 @@
 
 .campaign-members-popup-close:hover {
   background: #f3f4f6;
+}
+
+@media (max-width: 700px) {
+  .campaign-members-nickname-cell {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .campaign-members-nickname-actions {
+    justify-content: flex-end;
+  }
 }

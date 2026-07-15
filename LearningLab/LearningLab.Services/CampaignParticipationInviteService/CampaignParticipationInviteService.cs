@@ -329,6 +329,19 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
 
         var dateResolved = DateTimeOffset.UtcNow;
         IReadOnlyList<Guid> deletedNotificationIds = [];
+        NotificationResponse? acceptedInviteNotification = acceptInvite
+            ? new NotificationResponse
+            {
+                NotificationId = Guid.NewGuid(),
+                UserId = campaign.GameMasterId,
+                NotificationType = NotificationType.Information,
+                Description = BuildCampaignInviteAcceptedNotificationDescription(
+                    user.Username,
+                    campaign.CampaignName),
+                DateCreated = dateResolved,
+                DateRead = null
+            }
+            : null;
 
         await _campaignParticipationInviteRepository.ExecuteInTransactionAsync(
             async () =>
@@ -356,8 +369,26 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
                         campaign.CampaignName),
                     dateResolved,
                     cancellationToken);
+
+                if (acceptedInviteNotification is not null)
+                {
+                    await _notificationCommandRepository.CreateNotificationAsync(
+                        acceptedInviteNotification.NotificationId,
+                        acceptedInviteNotification.UserId,
+                        acceptedInviteNotification.NotificationType,
+                        acceptedInviteNotification.Description,
+                        acceptedInviteNotification.DateCreated,
+                        cancellationToken);
+                }
             },
             cancellationToken);
+
+        if (acceptedInviteNotification is not null)
+        {
+            await _applicationEventHub.PublishAsync(
+                new NotificationCreatedEvent(acceptedInviteNotification),
+                cancellationToken);
+        }
 
         if (deletedNotificationIds.Count > 0)
         {
@@ -418,6 +449,13 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
         string campaignName)
     {
         return $"{gameMasterUsername} invited you to join campaign \"{campaignName}\".";
+    }
+
+    private static string BuildCampaignInviteAcceptedNotificationDescription(
+        string playerUsername,
+        string campaignName)
+    {
+        return $"{playerUsername} has accepted the invite to join campaign \"{campaignName}\".";
     }
 
     private static CampaignPendingInviteResponse ToPendingInviteResponse(

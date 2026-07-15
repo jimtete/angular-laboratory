@@ -17,6 +17,7 @@ export class CampaignSettings implements OnInit {
   private hasShownLargeCampaignWarning = false;
 
   protected readonly maxPlayers = signal(1);
+  protected readonly campaignDescription = signal('');
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
 
@@ -28,6 +29,10 @@ export class CampaignSettings implements OnInit {
     const value = Number((event.target as HTMLInputElement).value);
 
     this.maxPlayers.set(this.clampMaxPlayers(value));
+  }
+
+  protected setCampaignDescription(event: Event): void {
+    this.campaignDescription.set((event.target as HTMLTextAreaElement).value);
   }
 
   protected warnAboutLargeCampaignIfNeeded(): void {
@@ -57,12 +62,14 @@ export class CampaignSettings implements OnInit {
     this.campaignApiService
       .updateCampaignSettings(campaignId, {
         maxNumberOfPlayers: this.maxPlayers(),
+        campaignDescription: this.campaignDescription(),
       })
       .pipe(finalize(() => this.isSaving.set(false)))
       .subscribe({
         next: (response) => {
           if (response.data) {
             this.maxPlayers.set(this.clampMaxPlayers(response.data.maxNumberOfPlayers));
+            this.campaignDescription.set(response.data.campaignDescription ?? this.campaignDescription());
           }
 
           this.modalHelper.showSuccess(response.message);
@@ -93,6 +100,7 @@ export class CampaignSettings implements OnInit {
         next: (response) => {
           if (response.data) {
             this.maxPlayers.set(this.clampMaxPlayers(response.data.maxNumberOfPlayers));
+            this.campaignDescription.set(response.data.campaignDescription ?? '');
           }
         },
         error: (error: unknown) => {

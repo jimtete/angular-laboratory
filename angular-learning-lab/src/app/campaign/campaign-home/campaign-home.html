@@ -1,9 +1,15 @@
 <h1 class="campaign-home-title">{{ campaignTitle() }}</h1>
 
-<section class="campaign-home-members" aria-label="Campaign members">
-  <div class="campaign-home-members-ring" aria-hidden="true">
-    <span>{{ currentMembers }}/{{ maxMembers }}</span>
-  </div>
+<div class="campaign-home-blocks">
+  <section class="campaign-home-members" aria-label="Campaign members">
+    <div
+      class="campaign-home-members-ring"
+      [style.--members-ring-fill]="membersRingFill()"
+      aria-hidden="true"
+    >
+      <span>{{ currentMembers() }}/{{ maxMembers }}</span>
+    </div>
 
-  <p>Members</p>
-</section>
+    <p>Members</p>
+  </section>
+</div>

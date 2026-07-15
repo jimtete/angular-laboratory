@@ -1,11 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LucideUserPlus } from '@lucide/angular';
+import { LucideCheck, LucideUserPlus, LucideX } from '@lucide/angular';
 import { finalize, forkJoin } from 'rxjs';
 
 import {
   ApiError,
   CampaignApiService,
+  CampaignInformationCacheService,
+  CampaignMemberInformationModel,
   TokenStorageService,
   UserApiService,
 } from '../../Infrastructure';
@@ -13,7 +15,7 @@ import { ModalHelper } from '../../shared/helpers/modal.helper';
 
 @Component({
   selector: 'app-campaign-members',
-  imports: [LucideUserPlus],
+  imports: [LucideCheck, LucideUserPlus, LucideX],
   templateUrl: './campaign-members.html',
   styleUrl: './campaign-members.css',
 })
@@ -22,12 +24,16 @@ export class CampaignMembers {
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly userApiService = inject(UserApiService);
   private readonly campaignApiService = inject(CampaignApiService);
+  private readonly campaignInformationCache = inject(CampaignInformationCacheService);
   private readonly modalHelper = inject(ModalHelper);
 
   protected readonly isMaster = computed(() => this.tokenStorage.hasAnyRole('Master'));
+  protected readonly members = computed(() => this.campaignInformationCache.joinedMembers());
   protected readonly isInvitePopupOpen = signal(false);
   protected readonly playerUsernames = signal<string[]>([]);
   protected readonly invitingUsername = signal<string | null>(null);
+  protected readonly nicknameDrafts = signal<Record<string, string>>({});
+  protected readonly savingNicknameUsername = signal<string | null>(null);
   private readonly unavailableUsernames = signal<ReadonlySet<string>>(new Set<string>());
 
   protected openInvitePopup(): void {
@@ -111,6 +117,66 @@ export class CampaignMembers {
     );
   }
 
+  protected nicknameValue(member: CampaignMemberInformationModel): string {
+    return this.nicknameDrafts()[member.username] ?? member.nickname ?? '';
+  }
+
+  protected setNicknameDraft(username: string, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+
+    this.nicknameDrafts.update((drafts) => ({
+      ...drafts,
+      [username]: value,
+    }));
+  }
+
+  protected isNicknameDirty(member: CampaignMemberInformationModel): boolean {
+    return this.normalizeNickname(this.nicknameValue(member)) !==
+      this.normalizeNickname(member.nickname);
+  }
+
+  protected discardNickname(member: CampaignMemberInformationModel): void {
+    this.nicknameDrafts.update((drafts) => ({
+      ...drafts,
+      [member.username]: member.nickname ?? '',
+    }));
+  }
+
+  protected saveNickname(member: CampaignMemberInformationModel): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.savingNicknameUsername() || !this.isNicknameDirty(member)) {
+      return;
+    }
+
+    this.savingNicknameUsername.set(member.username);
+
+    this.campaignApiService
+      .updateCampaignMemberNickname(campaignId, member.username, {
+        nickname: this.toNullableNickname(this.nicknameValue(member)),
+      })
+      .pipe(finalize(() => this.savingNicknameUsername.set(null)))
+      .subscribe({
+        next: (response) => {
+          if (response.data) {
+            this.campaignInformationCache.updateJoinedMember(response.data);
+            this.nicknameDrafts.update((drafts) => ({
+              ...drafts,
+              [response.data!.username]: response.data!.nickname ?? '',
+            }));
+          }
+
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Nickname could not be saved.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   private getCampaignId(): string | null {
     return (
       this.route.parent?.snapshot.paramMap.get('campaignId') ??
@@ -143,5 +209,15 @@ export class CampaignMembers {
 
   private normalizeUsername(username: string): string {
     return username.trim().toLowerCase();
+  }
+
+  private normalizeNickname(nickname: string | null | undefined): string {
+    return nickname?.trim() ?? '';
+  }
+
+  private toNullableNickname(nickname: string): string | null {
+    const trimmedNickname = nickname.trim();
+
+    return trimmedNickname ? trimmedNickname : null;
   }
 }

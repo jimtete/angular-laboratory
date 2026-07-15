@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace LearningLab.Data.Models.Campaign;
 
 public class CampaignSettings
@@ -7,4 +9,7 @@ public class CampaignSettings
     public Campaign Campaign { get; set; } = null!;
 
     public int MaxNumberOfPlayers { get; set; }
+    
+    [MaxLength(16384)]
+    public string CampaignDescription { get; set; }
 }

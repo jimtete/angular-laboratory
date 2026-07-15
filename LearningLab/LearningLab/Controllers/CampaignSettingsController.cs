@@ -21,6 +21,62 @@ public sealed class CampaignSettingsController : ControllerBase
         _campaignSettingsService = campaignSettingsService;
     }
 
+    [HttpGet("information")]
+    public async Task<ActionResult<ApiResponse<CampaignInformationResponse>>> FetchCampaignInformation(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignInformationResponse>();
+        }
+
+        var result = await _campaignSettingsService.GetCampaignInformationAsync(
+            userId.Value,
+            campaignId,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<CampaignInformationResponse>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Campaign information fetched successfully.",
+                Data = result.Data
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<CampaignInformationResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<CampaignInformationResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<CampaignInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can view campaign information.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<CampaignInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
     [HttpGet]
     public async Task<ActionResult<ApiResponse<CampaignSettingsResponse>>> FetchCampaignSettings(
         Guid campaignId,
@@ -30,7 +86,7 @@ public sealed class CampaignSettingsController : ControllerBase
 
         if (userId is null)
         {
-            return InvalidUserClaimResponse();
+            return InvalidUserClaimResponse<CampaignSettingsResponse>();
         }
 
         var result = await _campaignSettingsService.GetCampaignSettingsAsync(
@@ -87,7 +143,7 @@ public sealed class CampaignSettingsController : ControllerBase
 
         if (userId is null)
         {
-            return InvalidUserClaimResponse();
+            return InvalidUserClaimResponse<CampaignSettingsResponse>();
         }
 
         var result = await _campaignSettingsService.UpdateCampaignSettingsAsync(
@@ -142,13 +198,87 @@ public sealed class CampaignSettingsController : ControllerBase
         };
     }
 
-    private UnauthorizedObjectResult InvalidUserClaimResponse()
+    [HttpPut("members/{username}/nickname")]
+    public async Task<ActionResult<ApiResponse<CampaignMemberInformationResponse>>> UpdateCampaignMemberNickname(
+        Guid campaignId,
+        string username,
+        UpdateCampaignMemberNicknameRequest request,
+        CancellationToken cancellationToken)
     {
-        return Unauthorized(new ApiResponse<CampaignSettingsResponse>
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignMemberInformationResponse>();
+        }
+
+        var result = await _campaignSettingsService.UpdateCampaignMemberNicknameAsync(
+            userId.Value,
+            campaignId,
+            username,
+            request,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<CampaignMemberInformationResponse>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Campaign member nickname updated successfully.",
+                Data = result.Data
+            }),
+            ApplicationStatusCode.InvalidCampaignMemberNickname => BadRequest(
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Campaign member nickname is invalid.",
+                    Data = null
+                }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<CampaignMemberInformationResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<CampaignMemberInformationResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignParticipantNotFound => NotFound(
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Campaign member was not found.",
+                    Data = null
+                }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign members.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private UnauthorizedObjectResult InvalidUserClaimResponse<T>()
+    {
+        return Unauthorized(new ApiResponse<T>
         {
             StatusCode = StatusCodes.Status401Unauthorized,
             Message = "The access token does not contain a valid user identifier.",
-            Data = null
+            Data = default
         });
     }
 }

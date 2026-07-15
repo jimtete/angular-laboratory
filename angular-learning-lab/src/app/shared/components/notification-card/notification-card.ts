@@ -19,6 +19,8 @@ export class NotificationCard {
     switch (this.normalizedNotificationType()) {
       case NotificationTypes.CampaignInvite:
         return 'Campaign Invite';
+      case NotificationTypes.Information:
+        return 'Information';
       default:
         return 'Notification';
     }
@@ -28,6 +30,8 @@ export class NotificationCard {
     switch (this.normalizedNotificationType()) {
       case NotificationTypes.CampaignInvite:
         return 'notification-card-campaign-invite';
+      case NotificationTypes.Information:
+        return 'notification-card-information';
       default:
         return 'notification-card-default';
     }
@@ -37,19 +41,26 @@ export class NotificationCard {
     const notificationType = this.notification().notificationType;
 
     if (typeof notificationType === 'number') {
-      return notificationType === NotificationTypes.CampaignInvite
-        ? NotificationTypes.CampaignInvite
-        : null;
+      return this.toKnownNotificationType(notificationType);
     }
 
     if (notificationType === 'CampaignInvite') {
       return NotificationTypes.CampaignInvite;
     }
 
+    if (notificationType === 'Information') {
+      return NotificationTypes.Information;
+    }
+
     const parsedType = Number(notificationType);
 
-    return parsedType === NotificationTypes.CampaignInvite
-      ? NotificationTypes.CampaignInvite
+    return this.toKnownNotificationType(parsedType);
+  }
+
+  private toKnownNotificationType(notificationType: number): NotificationTypes | null {
+    return notificationType === NotificationTypes.CampaignInvite ||
+      notificationType === NotificationTypes.Information
+      ? notificationType
       : null;
   }
 }

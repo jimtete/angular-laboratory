@@ -46,6 +46,10 @@
   background: #0891b2;
 }
 
+.notification-card-information .notification-card-type-indicator {
+  background: #6d28d9;
+}
+
 .notification-card-default .notification-card-type-indicator {
   background: #6d28d9;
 }

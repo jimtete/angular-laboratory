@@ -1,4 +1,5 @@
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.DTOs.Campaign;
 
 namespace LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
 
@@ -9,6 +10,10 @@ public interface ICampaignParticipationInviteRepository
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<string>> ListParticipantUsernamesByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CampaignMemberInformationResponse>> ListParticipantInformationByCampaignIdAsync(
         Guid campaignId,
         CancellationToken cancellationToken = default);
 
@@ -23,6 +28,11 @@ public interface ICampaignParticipationInviteRepository
     Task<CampaignParticipationInvite?> GetInviteAsync(
         Guid campaignId,
         Guid userId,
+        CancellationToken cancellationToken = default);
+
+    Task<PlayerCampaignParticipation?> GetParticipationByUsernameAsync(
+        Guid campaignId,
+        string username,
         CancellationToken cancellationToken = default);
 
     Task<bool> ExistsInviteAsync(

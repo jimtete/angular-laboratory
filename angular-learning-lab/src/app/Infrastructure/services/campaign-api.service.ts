@@ -3,7 +3,9 @@ import { Observable } from 'rxjs';
 
 import {
   ApiResponse,
+  CampaignInformationModel,
   CampaignInviteResolutionModel,
+  CampaignMemberInformationModel,
   CampaignModel,
   CampaignPendingInviteModel,
   CampaignParticipationInviteModel,
@@ -11,6 +13,7 @@ import {
   CampaignUsernamesModel,
   CreateCampaignParticipationInviteRequest,
   CreateCampaignRequest,
+  UpdateCampaignMemberNicknameRequest,
   UpdateCampaignSettingsRequest,
 } from '../models';
 import { ApiClient } from './api-client.service';
@@ -36,6 +39,14 @@ export class CampaignApiService {
   ): Observable<ApiResponse<CampaignUsernamesModel>> {
     return this.apiClient.get<ApiResponse<CampaignUsernamesModel>>(
       `/api/campaigns/${campaignId}/users`,
+    );
+  }
+
+  fetchCampaignInformation(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignInformationModel>> {
+    return this.apiClient.get<ApiResponse<CampaignInformationModel>>(
+      `/api/campaigns/${campaignId}/settings/information`,
     );
   }
 
@@ -83,6 +94,20 @@ export class CampaignApiService {
       ApiResponse<CampaignParticipationInviteModel>,
       CreateCampaignParticipationInviteRequest
     >(`/api/campaigns/${campaignId}/invites`, request);
+  }
+
+  updateCampaignMemberNickname(
+    campaignId: string,
+    username: string,
+    request: UpdateCampaignMemberNicknameRequest,
+  ): Observable<ApiResponse<CampaignMemberInformationModel>> {
+    return this.apiClient.put<
+      ApiResponse<CampaignMemberInformationModel>,
+      UpdateCampaignMemberNicknameRequest
+    >(
+      `/api/campaigns/${campaignId}/settings/members/${encodeURIComponent(username)}/nickname`,
+      request,
+    );
   }
 
   acceptInvite(campaignId: string): Observable<ApiResponse<CampaignInviteResolutionModel>> {

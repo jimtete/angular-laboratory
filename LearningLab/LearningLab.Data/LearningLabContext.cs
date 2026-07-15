@@ -1,6 +1,7 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Campaign.Sessions;
 using LearningLab.Data.Models.Character;
 using LearningLab.Data.Models.Notifications;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,8 @@ public class LearningLabContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<CharacterSheet> CharacterSheets { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
+    public DbSet<CampaignSession> CampaignSessions { get; set; }
+    public DbSet<SessionNote> SessionNotes { get; set; }
     public DbSet<CampaignSettings> CampaignSettings { get; set; }
     public DbSet<PlayerCampaignParticipation> PlayerCampaignParticipations { get; set; }
     public DbSet<CampaignParticipationInvite> CampaignParticipationInvites { get; set; }
@@ -177,6 +180,10 @@ public class LearningLabContext : DbContext
             entity.Property(settings => settings.CampaignId)
                 .HasColumnName("campaign_id");
 
+            entity.Property(settings => settings.CampaignDescription)
+                .HasColumnName("campaign_description")
+                .HasDefaultValue("");
+
             entity.Property(settings => settings.MaxNumberOfPlayers)
                 .HasColumnName("max_number_of_players")
                 .HasDefaultValue(1)
@@ -229,6 +236,90 @@ public class LearningLabContext : DbContext
                 .HasColumnName("date_invited")
                 .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
                 .IsRequired();
+        });
+
+        modelBuilder.Entity<CampaignSession>(entity =>
+        {
+            entity.ToTable("CampaignSessions");
+
+            entity.HasKey(session => session.Id);
+
+            entity.Property(session => session.Id)
+                .HasColumnName("session_id");
+
+            entity.Property(session => session.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(session => session.SessionNumber)
+                .HasColumnName("session_number")
+                .IsRequired();
+
+            entity.Property(session => session.Description)
+                .HasColumnName("description");
+
+            entity.Property(session => session.SessionDate)
+                .HasColumnName("session_date")
+                .IsRequired();
+
+            entity.Property(session => session.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(session => session.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(session => session.Campaign)
+                .WithMany()
+                .HasForeignKey(session => session.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(session => new
+            {
+                session.CampaignId,
+                session.SessionNumber
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<SessionNote>(entity =>
+        {
+            entity.ToTable("SessionNotes");
+
+            entity.HasKey(note => note.Id);
+
+            entity.Property(note => note.Id)
+                .HasColumnName("session_note_id");
+
+            entity.Property(note => note.SessionId)
+                .HasColumnName("session_id");
+
+            entity.Property(note => note.Type)
+                .HasColumnName("note_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(note => note.Content)
+                .HasColumnName("content")
+                .IsRequired();
+
+            entity.Property(note => note.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(note => note.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(note => note.Session)
+                .WithMany(session => session.Notes)
+                .HasForeignKey(note => note.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Role>(entity =>

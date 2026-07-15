@@ -21,5 +21,7 @@ public enum ApplicationStatusCode
     CampaignInviteAlreadyExists = 4008,
     CampaignParticipantAlreadyExists = 4009,
     CampaignInviteNotFound = 4010,
-    CampaignPlayerLimitReached = 4011
+    CampaignPlayerLimitReached = 4011,
+    CampaignParticipantNotFound = 4012,
+    InvalidCampaignMemberNickname = 4013
 }

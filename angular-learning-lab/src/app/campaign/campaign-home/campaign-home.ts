@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { CampaignCacheService } from '../../Infrastructure';
+import { CampaignCacheService, CampaignInformationCacheService } from '../../Infrastructure';
 
 @Component({
   selector: 'app-campaign-home',
@@ -11,6 +11,7 @@ import { CampaignCacheService } from '../../Infrastructure';
 export class CampaignHome implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly campaignCache = inject(CampaignCacheService);
+  private readonly campaignInformationCache = inject(CampaignInformationCacheService);
 
   protected readonly campaignId = computed(() => {
     return this.route.parent?.snapshot.paramMap.get('campaignId') ?? null;
@@ -22,8 +23,16 @@ export class CampaignHome implements OnInit {
       .find((campaign) => campaign.campaignId === campaignId)
       ?.campaignName ?? '';
   });
-  protected readonly currentMembers = 3;
+  protected readonly currentMembers = computed(
+    () => this.campaignInformationCache.joinedMembers().length,
+  );
   protected readonly maxMembers = 6;
+  protected readonly membersRingFill = computed(() => {
+    const fillPercentage = (this.currentMembers() / this.maxMembers) * 100;
+    const boundedFillPercentage = Math.max(0, Math.min(100, fillPercentage));
+
+    return `${boundedFillPercentage}%`;
+  });
 
   ngOnInit(): void {
     this.campaignCache.loadAvailableCampaigns().subscribe({
