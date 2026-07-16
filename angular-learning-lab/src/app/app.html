@@ -29,6 +29,11 @@
         Character Sheet
       </a>
     }
+    @if (isMaster()) {
+      <a routerLink="/assets" routerLinkActive="nav-link-active">
+        Assets
+      </a>
+    }
   </div>
 
   <div class="auth-links">

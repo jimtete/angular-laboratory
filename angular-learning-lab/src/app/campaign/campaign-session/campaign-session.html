@@ -1,0 +1,336 @@
+<section class="campaign-session-page" aria-label="Campaign session">
+  @if (isLoading()) {
+    <p class="campaign-session-status">Loading session...</p>
+  } @else if (session()) {
+    <header class="campaign-session-header">
+      <h1>{{ headerText() }}</h1>
+
+      <div class="campaign-session-date-control">
+        <button
+          type="button"
+          class="campaign-session-calendar-button"
+          aria-label="Edit session date"
+          title="Edit session date"
+          (click)="openDatePicker()"
+        >
+          <svg lucideCalendarDays aria-hidden="true"></svg>
+        </button>
+
+        @if (isDatePickerOpen()) {
+          <div class="campaign-session-date-picker">
+            <input
+              type="date"
+              [value]="selectedDate()"
+              (input)="setSelectedDate($event)"
+              aria-label="Session date"
+            />
+
+            <button
+              type="button"
+              [disabled]="isSavingDate()"
+              (click)="saveSelectedDate()"
+            >
+              OK
+            </button>
+          </div>
+        }
+      </div>
+    </header>
+
+    <textarea
+      class="campaign-session-description"
+      [value]="descriptionDraft()"
+      [disabled]="isSavingDescription()"
+      aria-label="Session description"
+      (input)="setDescriptionDraft($event)"
+      (blur)="saveDescriptionIfDirty()"
+    ></textarea>
+
+    <div class="campaign-session-notes-stack" aria-label="Session notes">
+      @for (note of orderedNotes(); track note.id) {
+        <div class="campaign-session-notes-line" aria-hidden="true"></div>
+
+        <article
+          class="campaign-session-note"
+          [class.campaign-session-note-milestone]="isCampaignMilestoneNote(note)"
+          (contextmenu)="openNoteContextMenu($event, note)"
+        >
+          <p>{{ note.content }}</p>
+
+          @if (isImportantChoiceNote(note) && note.choices.length > 0) {
+            <div class="campaign-session-note-choices">
+              @for (choice of note.choices; track choice.id) {
+                <div
+                  class="campaign-session-note-choice"
+                  [class.campaign-session-note-choice-selected]="choice.isChosen"
+                >
+                  <span>{{ choice.choiceText }}</span>
+                </div>
+              }
+            </div>
+          }
+        </article>
+      }
+
+      <div class="campaign-session-notes-line" aria-hidden="true"></div>
+
+      <button
+        type="button"
+        class="campaign-session-note-add"
+        aria-label="Add session note"
+        title="Add session note"
+        (click)="openNoteTypeDialog()"
+      >
+        +
+      </button>
+    </div>
+
+    @if (isSavingDescription()) {
+      <p class="campaign-session-status">Saving description...</p>
+    }
+
+    @if (noteContextMenu(); as menu) {
+      <div
+        class="campaign-session-note-context-menu"
+        role="menu"
+        [style.left.px]="menu.x"
+        [style.top.px]="menu.y"
+        (click)="$event.stopPropagation()"
+        (contextmenu)="$event.preventDefault()"
+      >
+        <button
+          type="button"
+          role="menuitem"
+          (click)="editNote(menu.note)"
+        >
+          Edit
+        </button>
+
+        <button
+          type="button"
+          role="menuitem"
+          class="campaign-session-note-context-delete"
+          (click)="confirmDeleteNote(menu.note)"
+        >
+          Delete
+        </button>
+
+        <button
+          type="button"
+          role="menuitem"
+          (click)="allowMoreNoteOptions(menu.note)"
+        >
+          More options
+        </button>
+      </div>
+    }
+
+    @if (deleteConfirmationNote(); as note) {
+      <div class="campaign-session-unsaved-backdrop" role="presentation">
+        <section
+          class="campaign-session-unsaved-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Delete session note"
+        >
+          <h2>Delete Note</h2>
+          <p>This note will be permanently deleted.</p>
+
+          <div class="campaign-session-note-delete-preview">
+            {{ note.content }}
+          </div>
+
+          <div class="campaign-session-unsaved-actions">
+            <button
+              type="button"
+              [disabled]="isDeletingNote()"
+              (click)="cancelDeleteNote()"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              class="campaign-session-note-delete-confirm"
+              [disabled]="isDeletingNote()"
+              (click)="deleteNote()"
+            >
+              {{ isDeletingNote() ? 'Deleting...' : 'Delete' }}
+            </button>
+          </div>
+        </section>
+      </div>
+    }
+  } @else {
+    <p class="campaign-session-status">Session was not found.</p>
+  }
+
+  @if (isUnsavedChangesDialogOpen()) {
+    <div class="campaign-session-unsaved-backdrop" role="presentation">
+      <section
+        class="campaign-session-unsaved-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Unsaved session changes"
+      >
+        <h2>Unsaved Changes</h2>
+        <p>You have unsaved session description changes.</p>
+
+        <div class="campaign-session-unsaved-actions">
+          <button type="button" (click)="cancelLeave()">Cancel</button>
+          <button type="button" class="campaign-session-discard" (click)="discardAndLeave()">
+            Discard
+          </button>
+          <button
+            type="button"
+            class="campaign-session-save"
+            [disabled]="isSavingDescription()"
+            (click)="saveAndLeave()"
+          >
+            Save
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (isNoteTypeDialogOpen()) {
+    <div class="campaign-session-note-type-backdrop" role="presentation" (click)="closeNoteTypeDialog()">
+      <section
+        class="campaign-session-note-type-dialog"
+        [class.campaign-session-note-type-dialog-editor]="isNoteEditorOpen()"
+        [class.campaign-session-note-type-dialog-important-choice]="isImportantChoiceEditor()"
+        [class.campaign-session-note-type-dialog-milestone]="isCampaignMilestonePicker()"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Note type"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="campaign-session-note-type-header">
+          <h2>{{ editingNote() ? 'Edit Note' : 'Select Note Type' }}</h2>
+          <button
+            type="button"
+            class="campaign-session-note-type-close"
+            aria-label="Close note type selector"
+            title="Close"
+            (click)="closeNoteTypeDialog()"
+          >
+            X
+          </button>
+        </header>
+
+        @if (!isNoteEditorOpen()) {
+          <div class="campaign-session-note-type-options">
+            @for (option of noteTypeOptions; track option.type) {
+              <button
+                type="button"
+                class="campaign-session-note-type-option"
+                [class.campaign-session-note-type-option-selected]="selectedNoteType() === option.type"
+                (click)="selectNoteType(option.type)"
+              >
+                {{ option.label }}
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="campaign-session-note-editor-panel">
+            <div class="campaign-session-note-editor-scroll">
+              @if (isCampaignMilestonePicker()) {
+                <div class="campaign-session-milestone-picker" aria-label="Available campaign milestones">
+                  @if (isLoadingAvailableMilestones()) {
+                    <p class="campaign-session-milestone-picker-status">Loading milestones...</p>
+                  } @else {
+                    @for (milestone of availableMilestones(); track milestone.id) {
+                      <button
+                        type="button"
+                        class="campaign-session-milestone-option"
+                        [class.campaign-session-milestone-option-selected]="selectedMilestoneId() === milestone.id"
+                        (click)="selectCampaignMilestone(milestone)"
+                      >
+                        <strong>{{ milestone.title }}</strong>
+                        <span>{{ milestone.description || 'No description.' }}</span>
+                      </button>
+                    } @empty {
+                      <p class="campaign-session-milestone-picker-status">No unachieved milestones.</p>
+                    }
+                  }
+                </div>
+              } @else {
+                <textarea
+                  class="campaign-session-note-editor"
+                  [class.campaign-session-note-editor-compact]="isImportantChoiceEditor()"
+                  [value]="noteDraft()"
+                  aria-label="Session note"
+                  (input)="setNoteDraft($event)"
+                ></textarea>
+              }
+
+              @if (isImportantChoiceEditor()) {
+                <div class="campaign-session-important-choice-grid" aria-label="Important choice options">
+                  @for (choice of importantChoiceDrafts(); track choice.draftId) {
+                    <section class="campaign-session-important-choice-option">
+                      <label class="campaign-session-important-choice-check">
+                        <input
+                          type="checkbox"
+                          [checked]="choice.isChosen"
+                          (change)="setImportantChoiceChosen(choice.draftId, $event)"
+                        />
+                        <span>Chosen</span>
+                      </label>
+
+                      <textarea
+                        [value]="choice.choiceText"
+                        aria-label="Choice description"
+                        (input)="setImportantChoiceText(choice.draftId, $event)"
+                      ></textarea>
+
+                      <button
+                        type="button"
+                        class="campaign-session-important-choice-remove"
+                        aria-label="Remove choice"
+                        title="Remove choice"
+                        (click)="removeImportantChoiceOption(choice.draftId)"
+                      >
+                        X
+                      </button>
+                    </section>
+                  }
+
+                  <button
+                    type="button"
+                    class="campaign-session-important-choice-add"
+                    aria-label="Add choice option"
+                    title="Add choice option"
+                    (click)="addImportantChoiceOption()"
+                  >
+                    +
+                  </button>
+                </div>
+              }
+            </div>
+
+            <div class="campaign-session-note-editor-actions">
+              <button
+                type="button"
+                class="campaign-session-note-editor-cancel"
+                [disabled]="isSavingNote()"
+                (click)="closeNoteTypeDialog()"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                class="campaign-session-note-editor-add"
+                [disabled]="!canAddNote()"
+                (click)="addNote()"
+              >
+                {{ noteEditorActionText() }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</section>

@@ -3,18 +3,25 @@ import { Observable } from 'rxjs';
 
 import {
   ApiResponse,
+  AssetModel,
   CampaignInformationModel,
   CampaignInviteResolutionModel,
   CampaignMemberInformationModel,
+  CampaignMilestoneModel,
+  CampaignMilestoneRequest,
   CampaignModel,
   CampaignPendingInviteModel,
   CampaignParticipationInviteModel,
+  CampaignSessionModel,
   CampaignSettingsModel,
   CampaignUsernamesModel,
   CreateCampaignParticipationInviteRequest,
   CreateCampaignRequest,
+  CreateAssetFolderRequest,
+  CreateItemAssetRequest,
   UpdateCampaignMemberNicknameRequest,
   UpdateCampaignSettingsRequest,
+  UpdateItemAssetRequest,
 } from '../models';
 import { ApiClient } from './api-client.service';
 
@@ -84,6 +91,104 @@ export class CampaignApiService {
       ApiResponse<CampaignSettingsModel>,
       UpdateCampaignSettingsRequest
     >(`/api/campaigns/${campaignId}/settings`, request);
+  }
+
+  fetchCampaignSessions(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignSessionModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignSessionModel[]>>(
+      `/api/campaigns/${campaignId}/sessions`,
+    );
+  }
+
+  createCampaignSession(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignSessionModel>> {
+    return this.apiClient.post<ApiResponse<CampaignSessionModel>, null>(
+      `/api/campaigns/${campaignId}/sessions`,
+      null,
+    );
+  }
+
+  fetchCampaignMilestones(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignMilestoneModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignMilestoneModel[]>>(
+      `/api/campaigns/${campaignId}/content/milestones`,
+    );
+  }
+
+  fetchUnachievedCampaignMilestones(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignMilestoneModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignMilestoneModel[]>>(
+      `/api/campaigns/${campaignId}/content/milestones/unachieved`,
+    );
+  }
+
+  createCampaignMilestone(
+    campaignId: string,
+    request: CampaignMilestoneRequest,
+  ): Observable<ApiResponse<CampaignMilestoneModel>> {
+    return this.apiClient.post<
+      ApiResponse<CampaignMilestoneModel>,
+      CampaignMilestoneRequest
+    >(`/api/campaigns/${campaignId}/content/milestones`, request);
+  }
+
+  updateCampaignMilestone(
+    campaignId: string,
+    milestoneId: number,
+    request: CampaignMilestoneRequest,
+  ): Observable<ApiResponse<CampaignMilestoneModel>> {
+    return this.apiClient.put<
+      ApiResponse<CampaignMilestoneModel>,
+      CampaignMilestoneRequest
+    >(`/api/campaigns/${campaignId}/content/milestones/${milestoneId}`, request);
+  }
+
+  deleteCampaignMilestone(
+    campaignId: string,
+    milestoneId: number,
+  ): Observable<ApiResponse<object>> {
+    return this.apiClient.delete<ApiResponse<object>>(
+      `/api/campaigns/${campaignId}/content/milestones/${milestoneId}`,
+    );
+  }
+
+  fetchAssets(parentAssetId: number | null = null): Observable<ApiResponse<AssetModel[]>> {
+    return this.apiClient.get<ApiResponse<AssetModel[]>>(
+      '/api/assets',
+      parentAssetId === null ? undefined : { params: { parentAssetId } },
+    );
+  }
+
+  createAssetFolder(
+    request: CreateAssetFolderRequest,
+  ): Observable<ApiResponse<AssetModel>> {
+    return this.apiClient.post<ApiResponse<AssetModel>, CreateAssetFolderRequest>(
+      '/api/assets/folders',
+      request,
+    );
+  }
+
+  createItemAsset(
+    request: CreateItemAssetRequest,
+  ): Observable<ApiResponse<AssetModel>> {
+    return this.apiClient.post<ApiResponse<AssetModel>, CreateItemAssetRequest>(
+      '/api/assets/items',
+      request,
+    );
+  }
+
+  updateItemAsset(
+    assetId: number,
+    request: UpdateItemAssetRequest,
+  ): Observable<ApiResponse<AssetModel>> {
+    return this.apiClient.put<ApiResponse<AssetModel>, UpdateItemAssetRequest>(
+      `/api/assets/items/${assetId}`,
+      request,
+    );
   }
 
   invitePlayer(

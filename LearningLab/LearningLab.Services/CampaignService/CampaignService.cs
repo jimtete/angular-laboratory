@@ -1,5 +1,6 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
+using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.DTOs.Campaign;
 using LearningLab.Data.Repositories.CampaignQueryRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
@@ -77,7 +78,8 @@ public sealed class CampaignService : ICampaignService
             Settings = new CampaignSettings
             {
                 CampaignId = campaignId,
-                MaxNumberOfPlayers = 1
+                MaxNumberOfPlayers = 1,
+                PassiveSkillsCheck = PassiveSkillsCheck.Manual
             }
         };
 

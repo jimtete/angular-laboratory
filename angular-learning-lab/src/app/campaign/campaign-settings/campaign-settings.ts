@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { ApiError, CampaignApiService } from '../../Infrastructure';
+import { ApiError, CampaignApiService, PassiveSkillsCheck } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 
 @Component({
@@ -18,8 +18,15 @@ export class CampaignSettings implements OnInit {
 
   protected readonly maxPlayers = signal(1);
   protected readonly campaignDescription = signal('');
+  protected readonly passiveSkillsCheck = signal<PassiveSkillsCheck>(PassiveSkillsCheck.Manual);
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
+  protected readonly isPassiveSkillsInfoOpen = signal(false);
+  protected readonly passiveSkillCheckOptions = [
+    { value: PassiveSkillsCheck.ProfficiencyBased, label: 'Proficiency Based' },
+    { value: PassiveSkillsCheck.StatsBased, label: 'Stats Based' },
+    { value: PassiveSkillsCheck.Manual, label: 'Manual' },
+  ];
 
   ngOnInit(): void {
     this.fetchSettings();
@@ -33,6 +40,18 @@ export class CampaignSettings implements OnInit {
 
   protected setCampaignDescription(event: Event): void {
     this.campaignDescription.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  protected setPassiveSkillsCheck(event: Event): void {
+    this.passiveSkillsCheck.set(Number((event.target as HTMLSelectElement).value));
+  }
+
+  protected showPassiveSkillsInfo(): void {
+    this.isPassiveSkillsInfoOpen.set(true);
+  }
+
+  protected closePassiveSkillsInfo(): void {
+    this.isPassiveSkillsInfoOpen.set(false);
   }
 
   protected warnAboutLargeCampaignIfNeeded(): void {
@@ -62,6 +81,7 @@ export class CampaignSettings implements OnInit {
     this.campaignApiService
       .updateCampaignSettings(campaignId, {
         maxNumberOfPlayers: this.maxPlayers(),
+        passiveSkillsCheck: this.passiveSkillsCheck(),
         campaignDescription: this.campaignDescription(),
       })
       .pipe(finalize(() => this.isSaving.set(false)))
@@ -69,6 +89,7 @@ export class CampaignSettings implements OnInit {
         next: (response) => {
           if (response.data) {
             this.maxPlayers.set(this.clampMaxPlayers(response.data.maxNumberOfPlayers));
+            this.passiveSkillsCheck.set(this.toPassiveSkillsCheck(response.data.passiveSkillsCheck));
             this.campaignDescription.set(response.data.campaignDescription ?? this.campaignDescription());
           }
 
@@ -100,6 +121,7 @@ export class CampaignSettings implements OnInit {
         next: (response) => {
           if (response.data) {
             this.maxPlayers.set(this.clampMaxPlayers(response.data.maxNumberOfPlayers));
+            this.passiveSkillsCheck.set(this.toPassiveSkillsCheck(response.data.passiveSkillsCheck));
             this.campaignDescription.set(response.data.campaignDescription ?? '');
           }
         },
@@ -125,6 +147,16 @@ export class CampaignSettings implements OnInit {
     }
 
     return Math.max(1, Math.min(20, Math.round(value)));
+  }
+
+  private toPassiveSkillsCheck(
+    value: PassiveSkillsCheck | keyof typeof PassiveSkillsCheck | string | number,
+  ): PassiveSkillsCheck {
+    if (typeof value === 'number') {
+      return value in PassiveSkillsCheck ? value as PassiveSkillsCheck : PassiveSkillsCheck.Manual;
+    }
+
+    return PassiveSkillsCheck[value as keyof typeof PassiveSkillsCheck] ?? PassiveSkillsCheck.Manual;
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

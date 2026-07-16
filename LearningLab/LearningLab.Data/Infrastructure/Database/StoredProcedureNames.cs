@@ -8,4 +8,9 @@ public static class StoredProcedureNames
         public const string CreateNotification = "platform.CreateNotification";
         public const string GetAvailableNotificationsByUserId = "platform.GetAvailableNotificationsByUserId";
     }
+
+    public static class Gameplay
+    {
+        public const string GetAvailableItemsByCampaignId = "gameplay.GetAvailableItemsByCampaignId";
+    }
 }

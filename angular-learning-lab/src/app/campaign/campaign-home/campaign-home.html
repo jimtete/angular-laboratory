@@ -12,4 +12,30 @@
 
     <p>Members</p>
   </section>
+
+  @if (isMaster()) {
+    <section class="campaign-home-sessions" aria-label="Campaign sessions">
+      <button
+        type="button"
+        class="campaign-home-latest-session"
+        [disabled]="!latestSession() || isLoadingSessions()"
+        [attr.aria-label]="latestSession() ? 'Open ' + latestSessionText() : 'No latest session'"
+        (click)="openLatestSession()"
+      >
+        <span class="campaign-home-session-kicker">Latest Session</span>
+        <span class="campaign-home-session-title">
+          {{ isLoadingSessions() ? 'Loading...' : latestSessionText() }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="campaign-home-start-session"
+        [disabled]="isCreatingSession()"
+        (click)="createSession()"
+      >
+        {{ isCreatingSession() ? 'Creating...' : 'Start New Session' }}
+      </button>
+    </section>
+  }
 </div>

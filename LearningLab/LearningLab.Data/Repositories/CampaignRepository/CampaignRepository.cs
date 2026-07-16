@@ -62,6 +62,16 @@ public sealed class CampaignRepository : ICampaignRepository
                 cancellationToken);
     }
 
+    public Task<int> CountByIdsAsync(
+        IReadOnlyCollection<Guid> campaignIds,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.Campaigns
+            .CountAsync(
+                campaign => campaignIds.Contains(campaign.CampaignId),
+                cancellationToken);
+    }
+
     public async Task AddAsync(
         Campaign campaign,
         CancellationToken cancellationToken = default)

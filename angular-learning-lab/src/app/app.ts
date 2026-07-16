@@ -58,6 +58,7 @@ export class App implements AfterViewInit, OnDestroy {
   protected readonly hasCampaignAccess = computed(() =>
     this.tokenStorage.hasAnyRole('Master', 'Player'),
   );
+  protected readonly isMaster = computed(() => this.tokenStorage.hasAnyRole('Master'));
 
   ngAfterViewInit(): void {
     window.addEventListener('scroll', this.scheduleBackgroundUpdate, { passive: true });
@@ -144,7 +145,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.authApiService.logout();
     this.isMenuOpen.set(false);
     this.isNotificationsOpen.set(false);
-    void this.router.navigate(['/logout-success']);
+    void this.router.navigate(['/home']);
   }
 
   private isCampaignInviteNotification(notification: NotificationModel): boolean {

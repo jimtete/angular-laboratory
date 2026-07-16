@@ -1,0 +1,29 @@
+<section class="campaign-sessions-page" aria-label="Campaign sessions">
+  @if (isLoading()) {
+    <p class="campaign-sessions-status">Loading sessions...</p>
+  }
+
+  <div class="campaign-sessions-grid">
+    @for (session of sessions(); track session.id) {
+      <button
+        type="button"
+        class="campaign-session-card"
+        [attr.aria-label]="'Open session ' + session.sessionNumber"
+        (click)="openSession(session)"
+      >
+        Session {{ session.sessionNumber }}
+      </button>
+    }
+
+    <button
+      type="button"
+      class="campaign-session-card campaign-session-add"
+      [disabled]="isCreating()"
+      aria-label="Add campaign session"
+      [attr.title]="isCreating() ? 'Creating session' : 'Add campaign session'"
+      (click)="createSession()"
+    >
+      <span aria-hidden="true">+</span>
+    </button>
+  </div>
+</section>

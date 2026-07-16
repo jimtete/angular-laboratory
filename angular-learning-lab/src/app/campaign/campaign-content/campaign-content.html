@@ -1,0 +1,180 @@
+<section class="campaign-content-page" aria-label="Campaign content">
+  <nav class="campaign-content-tabs" aria-label="Campaign content sections">
+    <button
+      type="button"
+      class="campaign-content-tab"
+      [class.campaign-content-tab-active]="selectedTab() === 'main-story'"
+      (click)="selectTab('main-story')"
+    >
+      Main Story
+    </button>
+
+    <button
+      type="button"
+      class="campaign-content-tab"
+      [class.campaign-content-tab-active]="selectedTab() === 'campaign-milestones'"
+      (click)="selectTab('campaign-milestones')"
+    >
+      Campaign Milestones
+    </button>
+  </nav>
+
+  @if (selectedTab() === 'campaign-milestones') {
+    <section class="campaign-milestones-page" aria-label="Campaign milestones">
+      <button
+        type="button"
+        class="campaign-milestone-create-button"
+        aria-label="Create campaign milestone"
+        title="Create campaign milestone"
+        (click)="openCreateMilestoneDialog()"
+      >
+        +
+      </button>
+
+      <div class="campaign-milestone-list">
+        @if (isLoadingMilestones()) {
+          <p class="campaign-milestone-status">Loading milestones...</p>
+        } @else {
+          @for (milestone of milestones(); track milestone.id) {
+            <article class="campaign-milestone-card">
+              <header class="campaign-milestone-card-header">
+                <h2>{{ milestone.title }}</h2>
+                <span class="campaign-milestone-info" aria-hidden="true">i</span>
+                <div class="campaign-milestone-info-panel" role="tooltip">
+                  <strong>{{ milestone.title }}</strong>
+                  <p>{{ milestone.description || 'No description.' }}</p>
+                </div>
+              </header>
+
+              <p class="campaign-milestone-description">
+                {{ milestone.description || 'No description.' }}
+              </p>
+
+              <div class="campaign-milestone-card-actions">
+                <button
+                  type="button"
+                  class="campaign-milestone-card-action"
+                  aria-label="Update campaign milestone"
+                  title="Update campaign milestone"
+                  (click)="openEditMilestoneDialog(milestone)"
+                >
+                  <svg lucidePencil aria-hidden="true"></svg>
+                </button>
+
+                <button
+                  type="button"
+                  class="campaign-milestone-card-action campaign-milestone-card-delete"
+                  aria-label="Delete campaign milestone"
+                  title="Delete campaign milestone"
+                  (click)="confirmDeleteMilestone(milestone)"
+                >
+                  <svg lucideTrash2 aria-hidden="true"></svg>
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <p class="campaign-milestone-status">No milestones yet.</p>
+          }
+        }
+      </div>
+    </section>
+  }
+
+  @if (isCreateMilestoneDialogOpen()) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-milestone-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="editingMilestone() ? 'Update campaign milestone' : 'Create campaign milestone'"
+      >
+        <label class="campaign-milestone-field">
+          <span>Title</span>
+          <input
+            type="text"
+            [value]="milestoneTitleDraft()"
+            (input)="setMilestoneTitleDraft($event)"
+          />
+        </label>
+
+        <label class="campaign-milestone-field campaign-milestone-description-field">
+          <span>Description</span>
+          <textarea
+            [value]="milestoneDescriptionDraft()"
+            (input)="setMilestoneDescriptionDraft($event)"
+          ></textarea>
+        </label>
+
+        <label class="campaign-milestone-field">
+          <span>Importance</span>
+          <select
+            [value]="milestoneImportanceDraft()"
+            (change)="setMilestoneImportanceDraft($event)"
+          >
+            @for (option of importanceOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="isCreatingMilestone()"
+            (click)="closeCreateMilestoneDialog()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="campaign-milestone-create"
+            [disabled]="!canCreateMilestone()"
+            (click)="createMilestone()"
+          >
+            {{ milestoneDialogActionText() }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (deleteConfirmationMilestone(); as milestone) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-milestone-delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete campaign milestone"
+      >
+        <h2>Delete Milestone</h2>
+        <p>This milestone will be permanently deleted.</p>
+
+        <div class="campaign-milestone-delete-preview">
+          {{ milestone.title }}
+        </div>
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="isDeletingMilestone()"
+            (click)="cancelDeleteMilestone()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="campaign-milestone-delete-confirm"
+            [disabled]="isDeletingMilestone()"
+            (click)="deleteMilestone()"
+          >
+            {{ isDeletingMilestone() ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

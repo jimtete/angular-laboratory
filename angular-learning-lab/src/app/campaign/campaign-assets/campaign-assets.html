@@ -1,0 +1,237 @@
+<section class="campaign-assets-page" aria-label="Campaign assets">
+  <div class="campaign-assets-panel">
+    <header class="campaign-assets-toolbar">
+      <div class="campaign-assets-breadcrumb" aria-label="Asset folder path">
+        <button type="button" aria-label="Assets home" title="Assets home" (click)="openRootFolder()">Home</button>
+        @for (folder of folderStack(); track folder.id; let index = $index) {
+          <span aria-hidden="true">/</span>
+          <button type="button" (click)="openBreadcrumbFolder(index)">
+            {{ folder.name }}
+          </button>
+        }
+      </div>
+
+      <div class="campaign-assets-actions">
+        <button
+          type="button"
+          class="campaign-assets-icon-action"
+          aria-label="Create folder"
+          title="Create folder"
+          (click)="openCreateFolderDialog()"
+        >
+          <svg lucideFolder aria-hidden="true"></svg>
+          <span class="campaign-assets-plus" aria-hidden="true">+</span>
+        </button>
+        <button
+          type="button"
+          class="campaign-assets-icon-action"
+          aria-label="Create item"
+          title="Create item"
+          (click)="openCreateItemDialog()"
+        >
+          <svg lucidePackage aria-hidden="true"></svg>
+          <span class="campaign-assets-plus" aria-hidden="true">+</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="campaign-assets-scroll" [attr.aria-label]="currentFolderLabel()">
+      @if (isLoadingAssets()) {
+        <p class="campaign-assets-status">Loading assets...</p>
+      } @else {
+        <div class="campaign-assets-grid">
+          @for (asset of assets(); track asset.id) {
+            @if (isFolder(asset)) {
+              <button
+                type="button"
+                class="campaign-assets-entry campaign-assets-folder"
+                (click)="openFolder(asset)"
+              >
+                <svg lucideFolder aria-hidden="true"></svg>
+                <strong>{{ asset.name }}</strong>
+                <span>Folder</span>
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="campaign-assets-entry campaign-assets-item"
+                (click)="openEditItemDialog(asset)"
+              >
+                <svg lucidePackage aria-hidden="true"></svg>
+                <strong>{{ asset.name }}</strong>
+                <span>{{ getItemTypeLabel(asset) }}</span>
+                @if (asset.description) {
+                  <p>{{ asset.description }}</p>
+                }
+              </button>
+            }
+          } @empty {
+            <p class="campaign-assets-status">No folders or items yet.</p>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (isCreateFolderDialogOpen()) {
+    <div class="campaign-assets-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-assets-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Create folder"
+      >
+        <button
+          type="button"
+          class="campaign-assets-dialog-close"
+          aria-label="Close"
+          title="Close"
+          [disabled]="isCreatingFolder()"
+          (click)="closeCreateFolderDialog()"
+        >
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+
+        <label class="campaign-assets-field">
+          <span>Directory Name</span>
+          <input
+            type="text"
+            [value]="folderNameDraft()"
+            (input)="setFolderNameDraft($event)"
+          />
+        </label>
+
+        <button
+          type="button"
+          class="campaign-assets-create"
+          [disabled]="!canCreateFolder()"
+          (click)="createFolder()"
+        >
+          {{ isCreatingFolder() ? 'Creating...' : 'Create' }}
+        </button>
+      </section>
+    </div>
+  }
+
+  @if (isCreateItemDialogOpen()) {
+    <div class="campaign-assets-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-assets-dialog campaign-assets-item-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="itemDialogTitle()"
+      >
+        <button
+          type="button"
+          class="campaign-assets-dialog-close"
+          aria-label="Close"
+          title="Close"
+          [disabled]="isCreatingItem()"
+          (click)="closeCreateItemDialog()"
+        >
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+
+        <label class="campaign-assets-field">
+          <span>Asset Type</span>
+          <select [value]="selectedAssetTypeDraft()" disabled>
+            @for (option of assetTypeOptions; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+
+        @if (selectedAssetTypeDraft() === 'Item') {
+          <label class="campaign-assets-field">
+            <span>Item Type</span>
+            <select
+              [value]="selectedItemTypeDraft()"
+              (change)="setSelectedItemTypeDraft($event)"
+            >
+              @for (option of itemTypeOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="campaign-assets-field">
+            <span>Item Name</span>
+            <input
+              type="text"
+              [value]="itemNameDraft()"
+              (input)="setItemNameDraft($event)"
+            />
+          </label>
+
+          <label class="campaign-assets-field campaign-assets-description-field">
+            <span>Item Description</span>
+            <textarea
+              [value]="itemDescriptionDraft()"
+              (input)="setItemDescriptionDraft($event)"
+            ></textarea>
+          </label>
+
+          <div class="campaign-assets-field campaign-assets-campaign-field">
+            <span>Campaign Availability</span>
+
+            <div class="campaign-assets-selected-campaigns">
+              @for (campaign of selectedCampaigns(); track campaign.campaignId) {
+                <span class="campaign-assets-campaign-chip">
+                  {{ campaign.campaignName }}
+                  <button
+                    type="button"
+                    aria-label="Remove campaign"
+                    title="Remove campaign"
+                    [disabled]="isCreatingItem()"
+                    (click)="removeCampaign(campaign.campaignId)"
+                  >
+                    X
+                  </button>
+                </span>
+              } @empty {
+                <span class="campaign-assets-universal">Universal</span>
+              }
+            </div>
+
+            <div class="campaign-assets-campaign-picker-wrap">
+              <button
+                type="button"
+                class="campaign-assets-campaign-picker"
+                [disabled]="isCreatingItem() || isLoadingCampaigns() || availableCampaignOptions().length === 0"
+                (click)="toggleCampaignPicker()"
+              >
+                {{ getCampaignPickerLabel() }}
+              </button>
+
+              @if (isCampaignPickerOpen()) {
+                <div class="campaign-assets-campaign-options" role="listbox">
+                  @for (campaign of availableCampaignOptions(); track campaign.campaignId) {
+                    <button
+                      type="button"
+                      role="option"
+                      [disabled]="isCreatingItem()"
+                      (click)="addCampaign(campaign.campaignId)"
+                    >
+                      {{ campaign.campaignName }}
+                    </button>
+                  } @empty {
+                    <p>No more campaigns.</p>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <button
+          type="button"
+          class="campaign-assets-create"
+          [disabled]="!canCreateItem()"
+          (click)="createItem()"
+        >
+          {{ itemDialogButtonLabel() }}
+        </button>
+      </section>
+    </div>
+  }
+</section>

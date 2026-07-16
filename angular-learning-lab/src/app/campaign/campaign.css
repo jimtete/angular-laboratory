@@ -11,6 +11,8 @@
 }
 
 .campaign-side-nav {
+  position: sticky;
+  top: 4rem;
   min-height: calc(100dvh - 4rem);
   display: flex;
   flex-direction: column;
@@ -135,6 +137,14 @@
   min-width: 0;
   padding: 3rem;
   box-sizing: border-box;
+}
+
+.campaign-content-flush {
+  padding: 0;
+}
+
+.campaign-content-flush .campaign-reload-button {
+  top: 4.25rem;
 }
 
 .campaign-reload-button {

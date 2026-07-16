@@ -98,6 +98,69 @@ namespace LearningLab.Data.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.Asset", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("asset_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssetType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("asset_type");
+
+                    b.PrimitiveCollection<string>("CampaignIds")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("campaign_ids");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("")
+                        .HasColumnName("description");
+
+                    b.Property<string>("ItemType")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("item_type");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("ParentAssetId")
+                        .HasColumnType("int")
+                        .HasColumnName("parent_asset_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentAssetId", "Name")
+                        .IsUnique()
+                        .HasFilter("[parent_asset_id] IS NOT NULL");
+
+                    b.ToTable("Assets", (string)null);
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
                 {
                     b.Property<Guid>("CampaignId")
@@ -134,6 +197,59 @@ namespace LearningLab.Data.Migrations
                     b.HasIndex("GameMasterId");
 
                     b.ToTable("Campaigns", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignMilestone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_milestone_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("AchievedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("achieved_at");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Importance")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasColumnName("importance");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId", "Title");
+
+                    b.ToTable("CampaignMilestones", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignParticipationInvite", b =>
@@ -179,6 +295,14 @@ namespace LearningLab.Data.Migrations
                         .HasDefaultValue(1)
                         .HasColumnName("max_number_of_players");
 
+                    b.Property<string>("PassiveSkillsCheck")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValue("Manual")
+                        .HasColumnName("passive_skills_check");
+
                     b.HasKey("CampaignId");
 
                     b.ToTable("CampaignSettings", (string)null);
@@ -210,6 +334,137 @@ namespace LearningLab.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PlayerCampaignParticipation", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("session_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("description");
+
+                    b.Property<DateTimeOffset?>("SessionDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("session_date");
+
+                    b.Property<int>("SessionNumber")
+                        .HasColumnType("int")
+                        .HasColumnName("session_number");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId", "SessionNumber")
+                        .IsUnique();
+
+                    b.ToTable("CampaignSessions", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("session_note_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("content");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int")
+                        .HasColumnName("note_order");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int")
+                        .HasColumnName("session_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("note_type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId", "Order")
+                        .IsUnique();
+
+                    b.ToTable("SessionNotes", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNoteChoice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("session_note_choice_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChoiceText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("choice_text");
+
+                    b.Property<bool>("IsChosen")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_chosen");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int")
+                        .HasColumnName("choice_order");
+
+                    b.Property<int>("SessionNoteId")
+                        .HasColumnType("int")
+                        .HasColumnName("session_note_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionNoteId", "IsChosen")
+                        .IsUnique()
+                        .HasFilter("[is_chosen] = 1");
+
+                    b.HasIndex("SessionNoteId", "Order")
+                        .IsUnique();
+
+                    b.ToTable("SessionNoteChoices", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
@@ -417,6 +672,16 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.Asset", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Assets.Asset", "ParentAsset")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentAssetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentAsset");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.User", "GameMaster")
@@ -426,6 +691,17 @@ namespace LearningLab.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("GameMaster");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignMilestone", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("Milestones")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignParticipationInvite", b =>
@@ -475,6 +751,39 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Campaign");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNote", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", "Session")
+                        .WithMany("Notes")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNoteChoice", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Sessions.SessionNote", "SessionNote")
+                        .WithMany("Choices")
+                        .HasForeignKey("SessionNoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SessionNote");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
@@ -539,14 +848,31 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("UserRoles");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.Asset", b =>
+                {
+                    b.Navigation("Children");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
                 {
+                    b.Navigation("Milestones");
+
                     b.Navigation("ParticipationInvites");
 
                     b.Navigation("PlayerParticipations");
 
                     b.Navigation("Settings")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", b =>
+                {
+                    b.Navigation("Notes");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNote", b =>
+                {
+                    b.Navigation("Choices");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.User", b =>

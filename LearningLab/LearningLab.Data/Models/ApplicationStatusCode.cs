@@ -23,5 +23,16 @@ public enum ApplicationStatusCode
     CampaignInviteNotFound = 4010,
     CampaignPlayerLimitReached = 4011,
     CampaignParticipantNotFound = 4012,
-    InvalidCampaignMemberNickname = 4013
+    InvalidCampaignMemberNickname = 4013,
+    InvalidCampaignSession = 4014,
+    CampaignSessionNotFound = 4015,
+    InvalidSessionNote = 4016,
+    SessionNoteNotFound = 4017,
+    InvalidCampaignMilestone = 4018,
+    CampaignMilestoneNotFound = 4019,
+    InvalidAsset = 5001,
+    AssetNotFound = 5002,
+    AssetParentNotFound = 5003,
+    AssetParentMustBeFolder = 5004,
+    AssetAlreadyExists = 5005
 }

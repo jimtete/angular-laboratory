@@ -1,9 +1,13 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, masterRoleGuard } from './Infrastructure';
+import { authGuard, masterRoleGuard, pendingChangesGuard } from './Infrastructure';
 import { Campaign } from './campaign/campaign';
+import { CampaignAssets } from './campaign/campaign-assets/campaign-assets';
+import { CampaignContent } from './campaign/campaign-content/campaign-content';
 import { CampaignHome } from './campaign/campaign-home/campaign-home';
 import { CampaignMembers } from './campaign/campaign-members/campaign-members';
+import { CampaignSession } from './campaign/campaign-session/campaign-session';
+import { CampaignSessions } from './campaign/campaign-sessions/campaign-sessions';
 import { CampaignSettings } from './campaign/campaign-settings/campaign-settings';
 import { CharacterSheet } from './character-sheet/character-sheet';
 import { Home } from './home/home';
@@ -57,6 +61,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'assets',
+    component: CampaignAssets,
+    canActivate: [authGuard, masterRoleGuard]
+  },
+  {
     path: 'campaigns/:campaignId',
     component: Campaign,
     canActivate: [authGuard],
@@ -68,6 +77,22 @@ export const routes: Routes = [
       {
         path: 'campaign-members',
         component: CampaignMembers
+      },
+      {
+        path: 'campaign-content',
+        component: CampaignContent,
+        canActivate: [masterRoleGuard]
+      },
+      {
+        path: 'campaign-sessions',
+        component: CampaignSessions,
+        canActivate: [masterRoleGuard]
+      },
+      {
+        path: 'campaign-sessions/:sessionNumber',
+        component: CampaignSession,
+        canActivate: [masterRoleGuard],
+        canDeactivate: [pendingChangesGuard]
       },
       {
         path: 'campaign-settings',

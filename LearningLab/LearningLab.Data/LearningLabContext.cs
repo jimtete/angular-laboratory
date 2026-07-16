@@ -1,5 +1,6 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
+using LearningLab.Data.Models.Assets;
 using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.Campaign.Sessions;
 using LearningLab.Data.Models.Character;
@@ -19,6 +20,9 @@ public class LearningLabContext : DbContext
     public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<CampaignSession> CampaignSessions { get; set; }
     public DbSet<SessionNote> SessionNotes { get; set; }
+    public DbSet<SessionNoteChoice> SessionNoteChoices { get; set; }
+    public DbSet<CampaignMilestone> CampaignMilestones { get; set; }
+    public DbSet<Asset> Assets { get; set; }
     public DbSet<CampaignSettings> CampaignSettings { get; set; }
     public DbSet<PlayerCampaignParticipation> PlayerCampaignParticipations { get; set; }
     public DbSet<CampaignParticipationInvite> CampaignParticipationInvites { get; set; }
@@ -169,6 +173,12 @@ public class LearningLabContext : DbContext
                 .WithOne(invite => invite.Campaign)
                 .HasForeignKey(invite => invite.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(campaign => campaign.Milestones)
+                .WithOne(milestone => milestone.Campaign)
+                .HasForeignKey(milestone => milestone.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         });
 
         modelBuilder.Entity<CampaignSettings>(entity =>
@@ -187,6 +197,13 @@ public class LearningLabContext : DbContext
             entity.Property(settings => settings.MaxNumberOfPlayers)
                 .HasColumnName("max_number_of_players")
                 .HasDefaultValue(1)
+                .IsRequired();
+
+            entity.Property(settings => settings.PassiveSkillsCheck)
+                .HasColumnName("passive_skills_check")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .HasDefaultValue(PassiveSkillsCheck.Manual)
                 .IsRequired();
         });
 
@@ -258,8 +275,7 @@ public class LearningLabContext : DbContext
                 .HasColumnName("description");
 
             entity.Property(session => session.SessionDate)
-                .HasColumnName("session_date")
-                .IsRequired();
+                .HasColumnName("session_date");
 
             entity.Property(session => session.CreatedAt)
                 .HasColumnName("created_at")
@@ -296,6 +312,10 @@ public class LearningLabContext : DbContext
             entity.Property(note => note.SessionId)
                 .HasColumnName("session_id");
 
+            entity.Property(note => note.Order)
+                .HasColumnName("note_order")
+                .IsRequired();
+
             entity.Property(note => note.Type)
                 .HasColumnName("note_type")
                 .HasMaxLength(64)
@@ -320,6 +340,166 @@ public class LearningLabContext : DbContext
                 .WithMany(session => session.Notes)
                 .HasForeignKey(note => note.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(note => note.Choices)
+                .WithOne(choice => choice.SessionNote)
+                .HasForeignKey(choice => choice.SessionNoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(note => new
+            {
+                note.SessionId,
+                note.Order
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<SessionNoteChoice>(entity =>
+        {
+            entity.ToTable("SessionNoteChoices");
+
+            entity.HasKey(choice => choice.Id);
+
+            entity.Property(choice => choice.Id)
+                .HasColumnName("session_note_choice_id");
+
+            entity.Property(choice => choice.SessionNoteId)
+                .HasColumnName("session_note_id");
+
+            entity.Property(choice => choice.Order)
+                .HasColumnName("choice_order")
+                .IsRequired();
+
+            entity.Property(choice => choice.ChoiceText)
+                .HasColumnName("choice_text")
+                .IsRequired();
+
+            entity.Property(choice => choice.IsChosen)
+                .HasColumnName("is_chosen")
+                .IsRequired();
+
+            entity.HasIndex(choice => new
+            {
+                choice.SessionNoteId,
+                choice.Order
+            })
+            .IsUnique();
+
+            entity.HasIndex(choice => new
+            {
+                choice.SessionNoteId,
+                choice.IsChosen
+            })
+            .IsUnique()
+            .HasFilter("[is_chosen] = 1");
+        });
+
+        modelBuilder.Entity<CampaignMilestone>(entity =>
+        {
+            entity.ToTable("CampaignMilestones");
+
+            entity.HasKey(milestone => milestone.Id);
+
+            entity.Property(milestone => milestone.Id)
+                .HasColumnName("campaign_milestone_id");
+
+            entity.Property(milestone => milestone.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(milestone => milestone.Title)
+                .HasColumnName("title")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(milestone => milestone.Description)
+                .HasColumnName("description")
+                .HasMaxLength(2048);
+
+            entity.Property(milestone => milestone.AchievedAt)
+                .HasColumnName("achieved_at");
+
+            entity.Property(milestone => milestone.Importance)
+                .HasColumnName("importance")
+                .HasMaxLength(32)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(milestone => milestone.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(milestone => milestone.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasIndex(milestone => new
+            {
+                milestone.CampaignId,
+                milestone.Title
+            });
+        });
+
+        modelBuilder.Entity<Asset>(entity =>
+        {
+            entity.ToTable("Assets");
+
+            entity.HasKey(asset => asset.Id);
+
+            entity.Property(asset => asset.Id)
+                .HasColumnName("asset_id");
+
+            entity.Property(asset => asset.ParentAssetId)
+                .HasColumnName("parent_asset_id");
+
+            entity.Property(asset => asset.AssetType)
+                .HasColumnName("asset_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(asset => asset.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(asset => asset.Description)
+                .HasColumnName("description")
+                .HasMaxLength(4096)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(asset => asset.ItemType)
+                .HasColumnName("item_type")
+                .HasMaxLength(64)
+                .HasConversion<string>();
+
+            entity.PrimitiveCollection(asset => asset.CampaignIds)
+                .HasColumnName("campaign_ids")
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(asset => asset.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(asset => asset.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(asset => asset.ParentAsset)
+                .WithMany(asset => asset.Children)
+                .HasForeignKey(asset => asset.ParentAssetId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(asset => new
+            {
+                asset.ParentAssetId,
+                asset.Name
+            })
+            .IsUnique();
         });
 
         modelBuilder.Entity<Role>(entity =>

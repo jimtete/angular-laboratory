@@ -9,7 +9,9 @@ public class CampaignSettings
     public Campaign Campaign { get; set; } = null!;
 
     public int MaxNumberOfPlayers { get; set; }
+
+    public PassiveSkillsCheck PassiveSkillsCheck { get; set; } = PassiveSkillsCheck.Manual;
     
     [MaxLength(16384)]
-    public string CampaignDescription { get; set; }
+    public string CampaignDescription { get; set; } = string.Empty;
 }

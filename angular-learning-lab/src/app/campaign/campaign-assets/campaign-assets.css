@@ -1,0 +1,376 @@
+.campaign-assets-page,
+.campaign-assets-panel,
+.campaign-assets-entry,
+.campaign-assets-dialog {
+  box-sizing: border-box;
+}
+
+.campaign-assets-page {
+  min-height: calc(100dvh - 10rem);
+  display: grid;
+  padding: 1.5rem;
+}
+
+.campaign-assets-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 4px solid #6d28d9;
+  border-radius: 1.5rem;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.campaign-assets-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(109, 40, 217, 0.24);
+}
+
+.campaign-assets-breadcrumb,
+.campaign-assets-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.campaign-assets-breadcrumb button,
+.campaign-assets-actions button,
+.campaign-assets-create {
+  min-height: 2.5rem;
+  border: 1px solid #6d28d9;
+  border-radius: 8px;
+  font: 700 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-assets-breadcrumb button {
+  background: transparent;
+  color: #1f1235;
+}
+
+.campaign-assets-actions button,
+.campaign-assets-create {
+  padding: 0.55rem 0.9rem;
+  background: #6d28d9;
+  color: #ffffff;
+}
+
+.campaign-assets-actions .campaign-assets-icon-action {
+  position: relative;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  min-height: 2.75rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #6d28d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1235;
+}
+
+.campaign-assets-icon-action svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  color: #6d28d9;
+  stroke-width: 2.1;
+}
+
+.campaign-assets-plus {
+  position: absolute;
+  right: -0.35rem;
+  bottom: -0.35rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #ffffff;
+  font: 800 0.9rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-assets-scroll {
+  min-height: 0;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.campaign-assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.campaign-assets-entry {
+  min-height: 9rem;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  align-content: start;
+  gap: 0.45rem;
+  padding: 1rem;
+  border: 1px solid rgba(109, 40, 217, 0.32);
+  border-radius: 10px;
+  background: rgba(109, 40, 217, 0.06);
+  color: #1f1235;
+  text-align: left;
+}
+
+.campaign-assets-folder,
+.campaign-assets-item {
+  cursor: pointer;
+}
+
+.campaign-assets-entry svg {
+  width: 1.7rem;
+  height: 1.7rem;
+  color: #6d28d9;
+  stroke-width: 2.2;
+}
+
+.campaign-assets-entry strong {
+  font: 800 1.1rem/1.15 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.campaign-assets-entry span,
+.campaign-assets-entry p,
+.campaign-assets-status {
+  margin: 0;
+  color: #4b5563;
+  font: 600 0.92rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-assets-entry p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.campaign-assets-folder:hover,
+.campaign-assets-folder:focus-visible,
+.campaign-assets-item:hover,
+.campaign-assets-item:focus-visible,
+.campaign-assets-breadcrumb button:hover,
+.campaign-assets-breadcrumb button:focus-visible,
+.campaign-assets-actions button:hover,
+.campaign-assets-actions button:focus-visible,
+.campaign-assets-create:hover:not(:disabled),
+.campaign-assets-create:focus-visible:not(:disabled) {
+  outline: 2px solid rgba(109, 40, 217, 0.34);
+  outline-offset: 2px;
+}
+
+.campaign-assets-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.42);
+}
+
+.campaign-assets-dialog {
+  position: relative;
+  width: min(100%, 32rem);
+  display: grid;
+  gap: 1rem;
+  padding: 3.25rem 1.25rem 1.25rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.25);
+}
+
+.campaign-assets-item-dialog {
+  width: min(100%, 38rem);
+  max-height: min(86vh, 42rem);
+  overflow: auto;
+}
+
+.campaign-assets-dialog-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  cursor: pointer;
+}
+
+.campaign-assets-dialog-close svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.campaign-assets-field {
+  display: grid;
+  gap: 0.4rem;
+  color: #1f1235;
+  font: 800 0.78rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-assets-field input,
+.campaign-assets-field select,
+.campaign-assets-field textarea {
+  width: 100%;
+  min-height: 2.7rem;
+  padding: 0.75rem;
+  border: 2px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 600 1rem/1.25 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  box-shadow: 0 0 0 1px #6d28d9;
+  box-sizing: border-box;
+}
+
+.campaign-assets-description-field textarea {
+  min-height: 10rem;
+  resize: vertical;
+}
+
+.campaign-assets-campaign-field {
+  position: relative;
+}
+
+.campaign-assets-selected-campaigns {
+  min-height: 2.7rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.45rem;
+  border: 2px solid #9ca3af;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #6d28d9;
+}
+
+.campaign-assets-campaign-chip,
+.campaign-assets-universal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid rgba(109, 40, 217, 0.34);
+  border-radius: 6px;
+  background: rgba(109, 40, 217, 0.08);
+  color: #1f1235;
+  font: 600 0.9rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: none;
+}
+
+.campaign-assets-universal {
+  color: #4b5563;
+}
+
+.campaign-assets-campaign-chip button {
+  width: 1.3rem;
+  height: 1.3rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(31, 18, 53, 0.24);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 800 0.72rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-assets-campaign-picker-wrap {
+  position: relative;
+}
+
+.campaign-assets-campaign-picker,
+.campaign-assets-campaign-options button {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid #6d28d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 600 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.campaign-assets-campaign-picker {
+  padding: 0.65rem 0.75rem;
+}
+
+.campaign-assets-campaign-options {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 2;
+  max-height: 12.5rem;
+  overflow: auto;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid rgba(109, 40, 217, 0.42);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0.8rem 1.8rem rgba(17, 24, 39, 0.18);
+}
+
+.campaign-assets-campaign-options button {
+  padding: 0.55rem 0.65rem;
+  border-color: transparent;
+  border-radius: 6px;
+}
+
+.campaign-assets-campaign-options button:hover,
+.campaign-assets-campaign-options button:focus-visible {
+  background: rgba(109, 40, 217, 0.09);
+  outline: 1px solid rgba(109, 40, 217, 0.3);
+}
+
+.campaign-assets-campaign-options p {
+  margin: 0;
+  padding: 0.65rem;
+  color: #4b5563;
+  font: 600 0.9rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: none;
+}
+
+.campaign-assets-create {
+  justify-self: end;
+  min-width: 7rem;
+}
+
+.campaign-assets-create:disabled,
+.campaign-assets-dialog-close:disabled,
+.campaign-assets-campaign-picker:disabled,
+.campaign-assets-campaign-chip button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .campaign-assets-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .campaign-assets-actions button {
+    flex: 1 1 auto;
+  }
+}

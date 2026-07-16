@@ -1,7 +1,16 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
-import { CampaignCacheService, CampaignInformationCacheService } from '../../Infrastructure';
+import {
+  ApiError,
+  CampaignApiService,
+  CampaignCacheService,
+  CampaignInformationCacheService,
+  CampaignSessionModel,
+  TokenStorageService,
+} from '../../Infrastructure';
+import { ModalHelper } from '../../shared/helpers/modal.helper';
 
 @Component({
   selector: 'app-campaign-home',
@@ -10,12 +19,20 @@ import { CampaignCacheService, CampaignInformationCacheService } from '../../Inf
 })
 export class CampaignHome implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly campaignApiService = inject(CampaignApiService);
   private readonly campaignCache = inject(CampaignCacheService);
   private readonly campaignInformationCache = inject(CampaignInformationCacheService);
+  private readonly tokenStorage = inject(TokenStorageService);
+  private readonly modalHelper = inject(ModalHelper);
 
+  protected readonly sessions = signal<CampaignSessionModel[]>([]);
+  protected readonly isLoadingSessions = signal(false);
+  protected readonly isCreatingSession = signal(false);
   protected readonly campaignId = computed(() => {
     return this.route.parent?.snapshot.paramMap.get('campaignId') ?? null;
   });
+  protected readonly isMaster = computed(() => this.tokenStorage.hasAnyRole('Master'));
   protected readonly campaignTitle = computed(() => {
     const campaignId = this.campaignId();
 
@@ -33,10 +50,126 @@ export class CampaignHome implements OnInit {
 
     return `${boundedFillPercentage}%`;
   });
+  protected readonly latestSession = computed(() => {
+    return [...this.sessions()]
+      .sort((first, second) => (
+        second.sessionNumber - first.sessionNumber ||
+        second.id - first.id
+      ))[0] ?? null;
+  });
+  protected readonly latestSessionText = computed(() => {
+    const latestSession = this.latestSession();
+
+    return latestSession ? `Session ${latestSession.sessionNumber}` : 'No Sessions';
+  });
 
   ngOnInit(): void {
     this.campaignCache.loadAvailableCampaigns().subscribe({
       error: () => {},
     });
+
+    this.loadSessions();
+  }
+
+  protected openLatestSession(): void {
+    const campaignId = this.campaignId();
+    const latestSession = this.latestSession();
+
+    if (!campaignId || !latestSession) {
+      return;
+    }
+
+    void this.router.navigate([
+      '/campaigns',
+      campaignId,
+      'campaign-sessions',
+      latestSession.sessionNumber,
+    ]);
+  }
+
+  protected createSession(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId || this.isCreatingSession()) {
+      return;
+    }
+
+    this.isCreatingSession.set(true);
+
+    this.campaignApiService
+      .createCampaignSession(campaignId)
+      .pipe(finalize(() => this.isCreatingSession.set(false)))
+      .subscribe({
+        next: (response) => {
+          const createdSession = response.data;
+
+          if (!createdSession) {
+            this.loadSessions();
+            return;
+          }
+
+          this.sessions.update((sessions) => (
+            [...sessions, createdSession]
+              .sort((first, second) => first.sessionNumber - second.sessionNumber)
+          ));
+
+          void this.router.navigate([
+            '/campaigns',
+            campaignId,
+            'campaign-sessions',
+            createdSession.sessionNumber,
+          ]);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign session could not be created.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private loadSessions(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId || !this.isMaster()) {
+      return;
+    }
+
+    this.isLoadingSessions.set(true);
+
+    this.campaignApiService
+      .fetchCampaignSessions(campaignId)
+      .pipe(finalize(() => this.isLoadingSessions.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.sessions.set(response.data ?? []);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign sessions could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    return this.isApiError(error) ? error.message : fallback;
+  }
+
+  private getErrorStatus(error: unknown): number | undefined {
+    return this.isApiError(error) ? error.status : undefined;
+  }
+
+  private isApiError(error: unknown): error is ApiError {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'message' in error &&
+      typeof error.message === 'string' &&
+      'status' in error &&
+      typeof error.status === 'number'
+    );
   }
 }

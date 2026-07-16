@@ -1,0 +1,670 @@
+.campaign-session-page {
+  min-height: 100%;
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.campaign-session-header h1 {
+  margin: 0;
+  color: #000000;
+  font-family: 'Cotemporary', 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.campaign-session-date-control {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.campaign-session-calendar-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #6d28d9;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  cursor: pointer;
+}
+
+.campaign-session-calendar-button svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke-width: 2.2;
+}
+
+.campaign-session-calendar-button:hover,
+.campaign-session-calendar-button:focus-visible {
+  background: rgba(109, 40, 217, 0.08);
+  outline: 2px solid rgba(109, 40, 217, 0.34);
+  outline-offset: 2px;
+}
+
+.campaign-session-date-picker {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  box-shadow: 0 0.45rem 1rem rgba(107, 114, 128, 0.25);
+}
+
+.campaign-session-date-picker input,
+.campaign-session-date-picker button {
+  min-height: 2.35rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font-weight: 700;
+}
+
+.campaign-session-date-picker input {
+  padding: 0.35rem 0.5rem;
+}
+
+.campaign-session-date-picker button {
+  min-width: 3.5rem;
+  cursor: pointer;
+}
+
+.campaign-session-description {
+  width: 100%;
+  min-height: 50vh;
+  padding: 1rem;
+  border: 1px solid rgba(255, 253, 232, 0.96);
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px #6d28d9,
+    0 0.45rem 1rem rgba(107, 114, 128, 0.25);
+  color: #1f1235;
+  font: 600 1.05rem/1.5 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.campaign-session-description:focus {
+  outline: 2px solid rgba(109, 40, 217, 0.28);
+  outline-offset: 2px;
+}
+
+.campaign-session-notes-stack {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  box-sizing: border-box;
+}
+
+.campaign-session-notes-line {
+  width: 0;
+  height: 4.5rem;
+  border-left: 2px dashed rgba(31, 18, 53, 0.35);
+}
+
+.campaign-session-note {
+  width: 100%;
+  min-height: 5rem;
+  padding: 1rem;
+  border: 1px solid rgba(109, 40, 217, 0.36);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0.35rem 0.9rem rgba(107, 114, 128, 0.18);
+  box-sizing: border-box;
+  cursor: context-menu;
+}
+
+.campaign-session-note p {
+  margin: 0;
+  color: #1f1235;
+  font: 600 1.02rem/1.5 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.campaign-session-note-milestone {
+  min-height: 200px;
+  padding: 1.1rem 1.25rem;
+  border: 4px double #9a4f16;
+  border-radius: 0;
+  background: #f3dfbd;
+  color: #2f1808;
+  box-shadow: none;
+}
+
+.campaign-session-note-milestone:hover,
+.campaign-session-note-milestone:focus-within {
+  background: #f5dfbd;
+}
+
+.campaign-session-note-milestone p,
+.campaign-session-milestone-option strong,
+.campaign-session-milestone-option span {
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+}
+
+.campaign-session-note-milestone p {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #2f1808;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.campaign-session-note-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.campaign-session-note-choice {
+  min-height: 2.5rem;
+  display: grid;
+  align-items: center;
+  padding: 0.55rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #1f1235;
+  font: 500 0.92rem/1.25 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.campaign-session-note-choice-selected {
+  border-color: #16a34a;
+  background: rgba(220, 252, 231, 0.7);
+}
+
+.campaign-session-note-add {
+  width: 100%;
+  min-height: 80px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(107, 114, 128, 0.55);
+  border-radius: 8px;
+  background: rgba(229, 231, 235, 0.75);
+  color: rgba(75, 85, 99, 0.82);
+  font-family: 'Cotemporary', 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 3.25rem;
+  font-weight: 600;
+  line-height: 1;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+}
+
+.campaign-session-note-add:hover,
+.campaign-session-note-add:focus-visible {
+  background: rgba(209, 213, 219, 0.9);
+  outline: 2px solid rgba(107, 114, 128, 0.38);
+  outline-offset: 2px;
+}
+
+.campaign-session-note-context-menu {
+  position: fixed;
+  z-index: 1500;
+  min-width: 11rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 0.75rem 1.5rem rgba(17, 24, 39, 0.22);
+  box-sizing: border-box;
+}
+
+.campaign-session-note-context-menu button {
+  min-height: 2.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 0;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 500 0.8875rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.campaign-session-note-context-menu button:hover,
+.campaign-session-note-context-menu button:focus-visible {
+  background: rgba(109, 40, 217, 0.08);
+  outline: 2px solid rgba(109, 40, 217, 0.28);
+  outline-offset: 1px;
+}
+
+.campaign-session-note-context-delete {
+  color: #dc2626 !important;
+}
+
+.campaign-session-note-delete-preview {
+  max-height: 10rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  border-radius: 6px;
+  background: rgba(254, 242, 242, 0.82);
+  color: #1f1235;
+  font: 600 0.95rem/1.45 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.campaign-session-unsaved-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.campaign-session-note-delete-confirm {
+  border-color: #dc2626 !important;
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.campaign-session-status {
+  margin: 0;
+  color: #1f1235;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.campaign-session-unsaved-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.42);
+  box-sizing: border-box;
+}
+
+.campaign-session-unsaved-dialog {
+  width: min(100%, 28rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.25);
+  box-sizing: border-box;
+}
+
+.campaign-session-unsaved-dialog h2,
+.campaign-session-unsaved-dialog p {
+  margin: 0;
+  color: #1f1235;
+}
+
+.campaign-session-unsaved-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.campaign-session-unsaved-actions button {
+  min-width: 5.5rem;
+  min-height: 2.5rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.campaign-session-unsaved-actions .campaign-session-discard {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.campaign-session-unsaved-actions .campaign-session-save {
+  border-color: #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.campaign-session-note-type-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1450;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.42);
+  box-sizing: border-box;
+}
+
+.campaign-session-note-type-dialog {
+  width: min(100%, 36rem);
+  min-height: 20rem;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1.2rem;
+  padding: 1.4rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.25);
+  box-sizing: border-box;
+}
+
+.campaign-session-note-type-dialog-editor {
+  height: min(72vh, 38rem);
+  min-height: 0;
+}
+
+.campaign-session-note-type-dialog-important-choice {
+  height: min(86vh, 46rem);
+  width: min(100%, 48rem);
+}
+
+.campaign-session-note-type-dialog-milestone {
+  height: min(84vh, 46rem);
+  width: min(100%, 64rem);
+}
+
+.campaign-session-note-type-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.campaign-session-note-type-header h2 {
+  margin: 0;
+  color: #1f1235;
+  font-family: 'Cotemporary', 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.campaign-session-note-type-close {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.campaign-session-note-type-options {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+
+.campaign-session-note-type-option {
+  min-height: 3rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 600 1rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.campaign-session-note-type-option:hover,
+.campaign-session-note-type-option:focus-visible,
+.campaign-session-note-type-option-selected {
+  border-color: #6d28d9;
+  background: rgba(109, 40, 217, 0.08);
+  outline: none;
+}
+
+.campaign-session-note-editor {
+  width: 100%;
+  min-height: 22rem;
+  max-height: 48vh;
+  padding: 0.9rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 500 1rem/1.45 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  overflow: auto;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.campaign-session-note-editor-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 1rem;
+}
+
+.campaign-session-note-editor-scroll {
+  min-height: 0;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.campaign-session-note-editor-compact {
+  min-height: 8rem;
+  max-height: 18vh;
+}
+
+.campaign-session-note-editor:focus {
+  outline: 2px solid rgba(109, 40, 217, 0.28);
+  outline-offset: 2px;
+}
+
+.campaign-session-milestone-picker {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.campaign-session-milestone-picker-status {
+  margin: 0;
+  color: #1f1235;
+  font: 600 1rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-session-milestone-option {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  border: 4px double #9a4f16;
+  border-radius: 0;
+  background: #f3dfbd;
+  color: #2f1808;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.campaign-session-milestone-option strong {
+  display: block;
+  color: #2f1808;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.campaign-session-milestone-option span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #3f2410;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.campaign-session-milestone-option:hover,
+.campaign-session-milestone-option:focus-visible {
+  background: #f5dfbd;
+  outline: 2px solid rgba(154, 79, 22, 0.38);
+  outline-offset: 2px;
+}
+
+.campaign-session-milestone-option-selected {
+  background: #f5dfbd;
+  box-shadow:
+    inset 0 0 0 3px #6d28d9,
+    0 0 0 2px rgba(109, 40, 217, 0.22);
+}
+
+.campaign-session-note-editor-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.campaign-session-note-editor-actions button {
+  min-width: 7rem;
+  min-height: 2.65rem;
+  border-radius: 6px;
+  font: 600 1rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-session-note-editor-cancel {
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #1f1235;
+}
+
+.campaign-session-note-editor-add {
+  border: 1px solid #6d28d9;
+  background: #6d28d9;
+  color: #ffffff;
+}
+
+.campaign-session-note-editor-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.campaign-session-important-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.campaign-session-important-choice-option {
+  position: relative;
+  min-height: 8.5rem;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.campaign-session-important-choice-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #1f1235;
+  font: 500 0.88rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-session-important-choice-option textarea {
+  width: 100%;
+  min-height: 4.5rem;
+  padding: 0.55rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  color: #1f1235;
+  font: 500 0.92rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.campaign-session-important-choice-remove {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.campaign-session-important-choice-add {
+  min-height: 8.5rem;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 2.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .campaign-session-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .campaign-session-date-control {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .campaign-session-date-picker {
+    right: auto;
+    left: 0;
+  }
+
+  .campaign-session-note-choices,
+  .campaign-session-important-choice-grid {
+    grid-template-columns: 1fr;
+  }
+}

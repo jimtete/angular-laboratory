@@ -6,7 +6,7 @@ public class CampaignSession
     public Guid CampaignId { get; set; }
     public int SessionNumber { get; set; }
     public string? Description { get; set; }
-    public DateTimeOffset SessionDate { get; set; }
+    public DateTimeOffset? SessionDate { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public Campaign Campaign { get; set; } = null!;

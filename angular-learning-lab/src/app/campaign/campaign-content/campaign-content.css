@@ -1,0 +1,339 @@
+.campaign-content-page {
+  min-height: 100%;
+  display: grid;
+  align-content: start;
+  margin: 0;
+}
+
+.campaign-content-tabs {
+  width: 100%;
+  min-height: 3.25rem;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  border-left: 4px double rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.16);
+  background: rgba(255, 253, 232, 0.82);
+  box-sizing: border-box;
+}
+
+.campaign-content-tab {
+  min-width: 11rem;
+  padding: 0.8rem 1.2rem;
+  border: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0;
+  background: transparent;
+  color: #1f1235;
+  font: 600 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.campaign-content-tab:hover,
+.campaign-content-tab:focus-visible,
+.campaign-content-tab-active {
+  background: rgba(255, 255, 255, 0.7);
+  outline: none;
+}
+
+.campaign-milestones-page {
+  position: relative;
+  min-height: calc(100dvh - 7.25rem);
+  padding: 8rem 2rem 2rem;
+  box-sizing: border-box;
+}
+
+.campaign-milestone-create-button {
+  position: absolute;
+  top: 4.25rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid #9a4f16;
+  border-radius: 50%;
+  background: #fff8e7;
+  color: #6f3511;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.campaign-milestone-create-button:hover,
+.campaign-milestone-create-button:focus-visible {
+  background: #f5dfbd;
+  outline: 2px solid rgba(154, 79, 22, 0.32);
+  outline-offset: 2px;
+}
+
+.campaign-milestone-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.campaign-milestone-card {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  padding: 1.1rem 1.25rem;
+  border: 4px double #9a4f16;
+  border-radius: 0;
+  background: #f3dfbd;
+  color: #2f1808;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  box-sizing: border-box;
+}
+
+.campaign-milestone-card-actions {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.campaign-milestone-card-action {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #9a4f16;
+  border-radius: 6px;
+  background: #fff8e7;
+  color: #6f3511;
+  cursor: pointer;
+}
+
+.campaign-milestone-card-action svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 2.2;
+}
+
+.campaign-milestone-card-action:hover,
+.campaign-milestone-card-action:focus-visible {
+  background: #f5dfbd;
+  outline: 2px solid rgba(154, 79, 22, 0.32);
+  outline-offset: 2px;
+}
+
+.campaign-milestone-card-delete {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.campaign-milestone-card-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.campaign-milestone-card h2 {
+  margin: 0;
+  color: #2f1808;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.campaign-milestone-description {
+  display: -webkit-box;
+  margin: 0.85rem 0 0;
+  overflow: hidden;
+  color: #3f2410;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.campaign-milestone-info {
+  width: 1.65rem;
+  height: 1.65rem;
+  flex: 0 0 auto;
+  display: none;
+  place-items: center;
+  border: 1px solid #9a4f16;
+  border-radius: 50%;
+  background: #fff8e7;
+  color: #6f3511;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.campaign-milestone-info-panel {
+  position: absolute;
+  top: 2rem;
+  right: 0;
+  z-index: 5;
+  width: min(32rem, 80vw);
+  max-height: 18rem;
+  display: none;
+  padding: 1rem;
+  border: 2px solid #9a4f16;
+  background: #fff8e7;
+  box-shadow: 0 0.75rem 1.5rem rgba(47, 24, 8, 0.2);
+  overflow: auto;
+  color: #2f1808;
+  box-sizing: border-box;
+}
+
+.campaign-milestone-info-panel strong,
+.campaign-milestone-info-panel p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.campaign-milestone-info-panel strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.campaign-milestone-card:hover .campaign-milestone-info,
+.campaign-milestone-card:focus-within .campaign-milestone-info {
+  display: grid;
+}
+
+.campaign-milestone-card:hover .campaign-milestone-info-panel,
+.campaign-milestone-card:focus-within .campaign-milestone-info-panel {
+  display: block;
+}
+
+.campaign-milestone-status {
+  margin: 0;
+  color: #1f1235;
+  font: 700 1rem/1.3 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-milestone-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.42);
+  box-sizing: border-box;
+}
+
+.campaign-milestone-dialog {
+  width: min(100%, 38rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.25);
+  box-sizing: border-box;
+}
+
+.campaign-milestone-delete-dialog {
+  width: min(100%, 30rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.25);
+  box-sizing: border-box;
+}
+
+.campaign-milestone-delete-dialog h2,
+.campaign-milestone-delete-dialog p {
+  margin: 0;
+  color: #1f1235;
+}
+
+.campaign-milestone-delete-preview {
+  padding: 0.85rem;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  border-radius: 6px;
+  background: rgba(254, 242, 242, 0.82);
+  color: #1f1235;
+  font: 700 1rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.campaign-milestone-field {
+  display: grid;
+  gap: 0.4rem;
+  color: #1f1235;
+  font: 800 0.78rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-milestone-field input,
+.campaign-milestone-field select,
+.campaign-milestone-field textarea {
+  width: 100%;
+  min-height: 2.7rem;
+  padding: 0.75rem;
+  border: 2px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1235;
+  box-shadow: 0 0 0 1px #6d28d9;
+  box-sizing: border-box;
+}
+
+.campaign-milestone-field input,
+.campaign-milestone-field select {
+  font: 600 1rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-milestone-field textarea {
+  min-height: 12rem;
+  resize: vertical;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.campaign-milestone-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.campaign-milestone-dialog-actions button {
+  min-width: 6rem;
+  min-height: 2.6rem;
+  border-radius: 6px;
+  font: 800 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-milestone-close {
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #1f1235;
+}
+
+.campaign-milestone-create {
+  border: 1px solid #6d28d9;
+  background: #6d28d9;
+  color: #ffffff;
+}
+
+.campaign-milestone-delete-confirm {
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.campaign-milestone-dialog-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

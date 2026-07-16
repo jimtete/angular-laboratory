@@ -3,40 +3,90 @@
     <p class="campaign-settings-status">Loading settings...</p>
   }
 
-  <label class="campaign-settings-field">
-    <span>Max Players</span>
-    <input
-      class="campaign-settings-number"
-      type="number"
-      min="1"
-      max="20"
-      [value]="maxPlayers()"
-      (input)="setMaxPlayers($event)"
-      (change)="warnAboutLargeCampaignIfNeeded()"
-    />
-  </label>
+  <div class="campaign-settings-columns">
+    <section class="campaign-settings-column">
+      <label class="campaign-settings-field">
+        <span>Max Players</span>
+        <input
+          class="campaign-settings-number"
+          type="number"
+          min="1"
+          max="20"
+          [value]="maxPlayers()"
+          (input)="setMaxPlayers($event)"
+          (change)="warnAboutLargeCampaignIfNeeded()"
+        />
+      </label>
 
-  <input
-    class="campaign-settings-slider"
-    type="range"
-    min="1"
-    max="20"
-    step="1"
-    [value]="maxPlayers()"
-    (input)="setMaxPlayers($event)"
-    (change)="warnAboutLargeCampaignIfNeeded()"
-    aria-label="Max players"
-  />
+      <input
+        class="campaign-settings-slider"
+        type="range"
+        min="1"
+        max="20"
+        step="1"
+        [value]="maxPlayers()"
+        (input)="setMaxPlayers($event)"
+        (change)="warnAboutLargeCampaignIfNeeded()"
+        aria-label="Max players"
+      />
 
-  <label class="campaign-settings-field campaign-settings-description-field">
-    <span>Campaign Description</span>
-    <textarea
-      class="campaign-settings-description"
-      maxlength="16384"
-      [value]="campaignDescription()"
-      (input)="setCampaignDescription($event)"
-    ></textarea>
-  </label>
+      <label class="campaign-settings-field campaign-settings-description-field">
+        <span>Campaign Description</span>
+        <textarea
+          class="campaign-settings-description"
+          maxlength="16384"
+          [value]="campaignDescription()"
+          (input)="setCampaignDescription($event)"
+        ></textarea>
+      </label>
+    </section>
+
+    <section class="campaign-settings-column">
+      <label
+        class="campaign-settings-field"
+        (click)="showPassiveSkillsInfo()"
+        (focusin)="showPassiveSkillsInfo()"
+      >
+        <span>Passive Skill Checks</span>
+        <select
+          class="campaign-settings-select"
+          [value]="passiveSkillsCheck()"
+          (change)="setPassiveSkillsCheck($event)"
+        >
+          @for (option of passiveSkillCheckOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+    </section>
+  </div>
+
+  @if (isPassiveSkillsInfoOpen()) {
+    <aside class="campaign-settings-passive-info" aria-live="polite">
+      <button
+        type="button"
+        class="campaign-settings-passive-info-close"
+        aria-label="Close passive skill check information"
+        title="Close"
+        (click)="closePassiveSkillsInfo()"
+      >
+        X
+      </button>
+      <h2>Passive Skill Checks</h2>
+      <p>
+        <strong>Proficiency Based:</strong>
+        players who are proficient in the relevant skill receive the information.
+      </p>
+      <p>
+        <strong>Skills Based:</strong>
+        players receive the information when their skill meets the required threshold.
+      </p>
+      <p>
+        <strong>Manual:</strong>
+        no automation is applied; the Master decides what information is revealed.
+      </p>
+    </aside>
+  }
 
   <button
     type="button"

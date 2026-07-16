@@ -12,6 +12,7 @@ namespace LearningLab.Services.CampaignSettingsService;
 public sealed class CampaignSettingsService : ICampaignSettingsService
 {
     private const int DefaultMaxNumberOfPlayers = 1;
+    private const PassiveSkillsCheck DefaultPassiveSkillsCheck = PassiveSkillsCheck.Manual;
     private const int MaxMemberNicknameLength = 128;
 
     private readonly ICampaignParticipationInviteRepository _campaignParticipationInviteRepository;
@@ -89,7 +90,8 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
         UpdateCampaignSettingsRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request.MaxNumberOfPlayers < DefaultMaxNumberOfPlayers)
+        if (request.MaxNumberOfPlayers < DefaultMaxNumberOfPlayers
+            || !Enum.IsDefined(request.PassiveSkillsCheck))
         {
             return new ServiceResult<CampaignSettingsResponse>(
                 ApplicationStatusCode.InvalidCampaignSettings);
@@ -110,6 +112,7 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
             cancellationToken);
 
         settings.MaxNumberOfPlayers = request.MaxNumberOfPlayers;
+        settings.PassiveSkillsCheck = request.PassiveSkillsCheck;
         settings.CampaignDescription = request.CampaignDescription;
         _campaignSettingsRepository.Update(settings);
         await _campaignSettingsRepository.SaveChangesAsync(cancellationToken);
@@ -222,7 +225,8 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
         settings = new CampaignSettings
         {
             CampaignId = campaignId,
-            MaxNumberOfPlayers = DefaultMaxNumberOfPlayers
+            MaxNumberOfPlayers = DefaultMaxNumberOfPlayers,
+            PassiveSkillsCheck = DefaultPassiveSkillsCheck
         };
 
         await _campaignSettingsRepository.AddAsync(settings, cancellationToken);
@@ -245,7 +249,8 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
         return new CampaignSettingsResponse
         {
             CampaignId = settings.CampaignId,
-            MaxNumberOfPlayers = settings.MaxNumberOfPlayers
+            MaxNumberOfPlayers = settings.MaxNumberOfPlayers,
+            PassiveSkillsCheck = settings.PassiveSkillsCheck
         };
     }
 }

@@ -24,6 +24,10 @@ public interface ICampaignRepository
         Guid campaignId,
         CancellationToken cancellationToken = default);
 
+    Task<int> CountByIdsAsync(
+        IReadOnlyCollection<Guid> campaignIds,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(
         Campaign campaign,
         CancellationToken cancellationToken = default);

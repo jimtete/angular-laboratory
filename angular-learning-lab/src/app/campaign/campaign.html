@@ -36,6 +36,30 @@
       <button
         type="button"
         class="campaign-side-nav-item"
+        [class.campaign-side-nav-item-active]="isCampaignContent()"
+        aria-label="Campaign Content"
+        title="Campaign Content"
+        (click)="goToCampaignContent()"
+      >
+        <svg class="campaign-side-nav-icon" lucideBookOpen aria-hidden="true"></svg>
+        <span class="campaign-side-nav-label">Campaign Content</span>
+      </button>
+
+      <button
+        type="button"
+        class="campaign-side-nav-item"
+        [class.campaign-side-nav-item-active]="isCampaignSessions()"
+        aria-label="Campaign Sessions"
+        title="Campaign Sessions"
+        (click)="goToCampaignSessions()"
+      >
+        <svg class="campaign-side-nav-icon" lucideCalendarDays aria-hidden="true"></svg>
+        <span class="campaign-side-nav-label">Campaign Sessions</span>
+      </button>
+
+      <button
+        type="button"
+        class="campaign-side-nav-item"
         [class.campaign-side-nav-item-active]="isCampaignSettings()"
         aria-label="Campaign Settings"
         title="Campaign Settings"
@@ -61,18 +85,25 @@
     </button>
   </aside>
 
-  <section class="campaign-content" aria-label="Campaign content">
+  <section
+    class="campaign-content"
+    [class.campaign-content-flush]="isCampaignContent()"
+    aria-label="Campaign content"
+  >
     <button
       type="button"
       class="campaign-reload-button"
-      [disabled]="isReloadingCampaignInformation()"
-      [attr.aria-label]="isReloadingCampaignInformation() ? 'Reloading campaign information' : 'Reload campaign information'"
-      [attr.title]="isReloadingCampaignInformation() ? 'Reloading campaign information' : 'Reload campaign information'"
+      [disabled]="isReloading()"
+      [attr.aria-label]="isReloading() ? 'Reloading campaign information' : 'Reload campaign information'"
+      [attr.title]="isReloading() ? 'Reloading campaign information' : 'Reload campaign information'"
       (click)="reloadCampaignInformation()"
     >
       <svg lucideRefreshCw aria-hidden="true"></svg>
     </button>
 
-    <router-outlet />
+    <router-outlet
+      (activate)="setActiveCampaignPage($event)"
+      (deactivate)="clearActiveCampaignPage()"
+    />
   </section>
 </section>
