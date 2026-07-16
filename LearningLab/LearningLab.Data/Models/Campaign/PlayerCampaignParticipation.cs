@@ -1,4 +1,5 @@
 using LearningLab.Data.Models;
+using LearningLab.Data.Models.Character;
 
 namespace LearningLab.Data.Models.Campaign;
 
@@ -13,6 +14,12 @@ public class PlayerCampaignParticipation
     public User User { get; set; } = null!;
 
     public string? Nickname { get; set; }
+
+    public List<Skill> HalfProficientSkills { get; set; } = [];
+
+    public List<Skill> ProficientSkills { get; set; } = [];
+
+    public List<Skill> ExpertiseSkills { get; set; } = [];
 
     public DateTimeOffset DateJoined { get; set; }
 }

@@ -53,9 +53,19 @@
         <article
           class="campaign-session-note"
           [class.campaign-session-note-milestone]="isCampaignMilestoneNote(note)"
+          [class.campaign-session-note-item-found]="isItemFoundNote(note)"
           (contextmenu)="openNoteContextMenu($event, note)"
         >
-          <p>{{ note.content }}</p>
+          @if (isItemFoundNote(note)) {
+            <svg lucidePackage aria-hidden="true"></svg>
+            <strong>{{ getItemFoundTitle(note) }}</strong>
+            <span>{{ getItemFoundType(note) }}</span>
+            @if (getItemFoundDescription(note)) {
+              <p>{{ getItemFoundDescription(note) }}</p>
+            }
+          } @else {
+            <p>{{ note.content }}</p>
+          }
 
           @if (isImportantChoiceNote(note) && note.choices.length > 0) {
             <div class="campaign-session-note-choices">
@@ -201,6 +211,7 @@
         [class.campaign-session-note-type-dialog-editor]="isNoteEditorOpen()"
         [class.campaign-session-note-type-dialog-important-choice]="isImportantChoiceEditor()"
         [class.campaign-session-note-type-dialog-milestone]="isCampaignMilestonePicker()"
+        [class.campaign-session-note-type-dialog-item-found]="isItemFoundPicker()"
         role="dialog"
         aria-modal="true"
         aria-label="Note type"
@@ -253,6 +264,31 @@
                     } @empty {
                       <p class="campaign-session-milestone-picker-status">No unachieved milestones.</p>
                     }
+                  }
+                </div>
+              } @else if (isItemFoundPicker()) {
+                <div class="campaign-session-item-picker" aria-label="Available campaign items">
+                  @if (isLoadingAvailableItems()) {
+                    <p class="campaign-session-item-picker-status">Loading items...</p>
+                  } @else {
+                    <div class="campaign-session-item-picker-grid">
+                      @for (item of availableItems(); track item.id) {
+                        <button
+                          type="button"
+                          class="campaign-session-item-option"
+                          [class.campaign-session-item-option-selected]="selectedItemFoundAssetId() === item.id"
+                          (click)="selectItemFoundAsset(item)"
+                        >
+                          <strong>{{ item.name }}</strong>
+                          <span>{{ getAssetItemTypeLabel(item) }}</span>
+                          @if (item.description) {
+                            <p>{{ item.description }}</p>
+                          }
+                        </button>
+                      } @empty {
+                        <p class="campaign-session-item-picker-status">No available campaign items.</p>
+                      }
+                    </div>
                   }
                 </div>
               } @else {

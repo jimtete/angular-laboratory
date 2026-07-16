@@ -1,3 +1,5 @@
+using LearningLab.Data.Models.Character;
+
 namespace LearningLab.Data.Models.DTOs.Campaign;
 
 public sealed class CampaignMemberInformationResponse
@@ -9,4 +11,10 @@ public sealed class CampaignMemberInformationResponse
     public required string LastName { get; init; }
 
     public string? Nickname { get; init; }
+
+    public IReadOnlyList<Skill> HalfProficientSkills { get; init; } = [];
+
+    public IReadOnlyList<Skill> ProficientSkills { get; init; } = [];
+
+    public IReadOnlyList<Skill> ExpertiseSkills { get; init; } = [];
 }

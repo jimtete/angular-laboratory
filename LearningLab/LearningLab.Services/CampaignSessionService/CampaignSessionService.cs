@@ -319,6 +319,76 @@ public sealed class CampaignSessionService : ICampaignSessionService
             response);
     }
 
+    public async Task<ServiceResult<CampaignSessionResponse>> CreateItemFoundSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        string? content,
+        CancellationToken cancellationToken = default)
+    {
+        var trimmedContent = content?.Trim();
+
+        if (sessionId < 1 || string.IsNullOrWhiteSpace(trimmedContent))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                validationStatusCode.Value);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var latestOrder = await _sessionNoteRepository.GetLatestOrderBySessionIdAsync(
+            session.Id,
+            cancellationToken);
+        var nextOrder = (latestOrder ?? 0) + 1;
+        var dateCreated = DateTimeOffset.UtcNow;
+        var note = new SessionNote
+        {
+            SessionId = sessionId,
+            Order = nextOrder,
+            Type = SessionNoteType.ItemFound,
+            Content = trimmedContent,
+            CreatedAt = dateCreated,
+            UpdatedAt = dateCreated
+        };
+
+        session.UpdatedAt = dateCreated;
+        await _sessionNoteRepository.AddAsync(note, cancellationToken);
+        await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+        var notes = await _sessionNoteRepository.ListBySessionIdsAsync(
+            [session.Id],
+            cancellationToken);
+        var response = ToResponse(session, notes);
+
+        await _applicationEventHub.PublishAsync(
+            new CampaignSessionUpdatedEvent(response),
+            cancellationToken);
+
+        return new ServiceResult<CampaignSessionResponse>(
+            ApplicationStatusCode.Success,
+            response);
+    }
+
     public async Task<ServiceResult<CampaignSessionResponse>> CreateImportantChoiceSessionNoteAsync(
         Guid userId,
         Guid campaignId,

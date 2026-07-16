@@ -227,6 +227,18 @@ public class LearningLabContext : DbContext
                 .HasColumnName("nickname")
                 .HasMaxLength(128);
 
+            entity.PrimitiveCollection(participation => participation.HalfProficientSkills)
+                .HasColumnName("half_proficient_skills")
+                .HasColumnType("nvarchar(max)");
+
+            entity.PrimitiveCollection(participation => participation.ProficientSkills)
+                .HasColumnName("proficient_skills")
+                .HasColumnType("nvarchar(max)");
+
+            entity.PrimitiveCollection(participation => participation.ExpertiseSkills)
+                .HasColumnName("expertise_skills")
+                .HasColumnType("nvarchar(max)");
+
             entity.Property(participation => participation.DateJoined)
                 .HasColumnName("date_joined")
                 .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")

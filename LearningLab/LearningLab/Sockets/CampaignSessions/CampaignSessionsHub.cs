@@ -18,6 +18,7 @@ public sealed class CampaignSessionsHub : Hub
     private const string UpdateDescriptionOperation = "UpdateCampaignSessionDescription";
     private const string GetSessionNotesOperation = "GetSessionNotes";
     private const string CreateGenericNoteOperation = "CreateGenericSessionNote";
+    private const string CreateItemFoundNoteOperation = "CreateItemFoundSessionNote";
     private const string CreateImportantChoiceNoteOperation = "CreateImportantChoiceSessionNote";
     private const string CreateCampaignMilestoneNoteOperation = "CreateCampaignMilestoneSessionNote";
     private const string AchieveCampaignMilestoneOperation = "AchieveCampaignMilestone";
@@ -416,6 +417,55 @@ public sealed class CampaignSessionsHub : Hub
 
         return await HandleCampaignSessionUpdateResultAsync(
             CreateGenericNoteOperation,
+            campaignId,
+            sessionId,
+            userId.Value,
+            result,
+            cancellationToken);
+    }
+
+    public async Task<CampaignSessionResponse> CreateItemFoundSessionNote(
+        Guid campaignId,
+        int sessionId,
+        string? content)
+    {
+        var cancellationToken = Context.ConnectionAborted;
+        var userId = await GetUserIdOrAbortAsync(
+            CreateItemFoundNoteOperation,
+            campaignId,
+            cancellationToken);
+
+        if (userId is null)
+        {
+            throw new HubException("The access token does not contain a valid user identifier.");
+        }
+
+        ServiceResult<CampaignSessionResponse> result;
+
+        try
+        {
+            result = await _campaignSessionService.CreateItemFoundSessionNoteAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                content,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            await HandleUnexpectedUpdateExceptionAsync(
+                CreateItemFoundNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                exception,
+                cancellationToken);
+
+            throw new HubException("An unexpected error occurred while creating the item found note.");
+        }
+
+        return await HandleCampaignSessionUpdateResultAsync(
+            CreateItemFoundNoteOperation,
             campaignId,
             sessionId,
             userId.Value,

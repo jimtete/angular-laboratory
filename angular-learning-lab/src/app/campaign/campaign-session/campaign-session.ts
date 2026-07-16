@@ -1,11 +1,13 @@
 import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LucideCalendarDays } from '@lucide/angular';
+import { LucideCalendarDays, LucidePackage } from '@lucide/angular';
 import { finalize } from 'rxjs';
 
 import {
   ApiError,
   AchieveCampaignMilestoneRequest,
+  AssetItemType,
+  AssetModel,
   CampaignApiService,
   CampaignMilestoneModel,
   CampaignSessionModel,
@@ -32,7 +34,7 @@ interface ImportantChoiceDraft {
 
 @Component({
   selector: 'app-campaign-session',
-  imports: [LucideCalendarDays],
+  imports: [LucideCalendarDays, LucidePackage],
   templateUrl: './campaign-session.html',
   styleUrl: './campaign-session.css',
 })
@@ -50,6 +52,7 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected readonly isSavingNote = signal(false);
   protected readonly isDeletingNote = signal(false);
   protected readonly isLoadingAvailableMilestones = signal(false);
+  protected readonly isLoadingAvailableItems = signal(false);
   protected readonly isDatePickerOpen = signal(false);
   protected readonly selectedDate = signal('');
   protected readonly isNoteTypeDialogOpen = signal(false);
@@ -57,7 +60,9 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected readonly selectedNoteType = signal<SessionNoteType | null>(null);
   protected readonly noteDraft = signal('');
   protected readonly availableMilestones = signal<CampaignMilestoneModel[]>([]);
+  protected readonly availableItems = signal<AssetModel[]>([]);
   protected readonly selectedMilestoneId = signal<number | null>(null);
+  protected readonly selectedItemFoundAssetId = signal<number | null>(null);
   protected readonly importantChoiceDrafts = signal<ImportantChoiceDraft[]>([]);
   protected readonly descriptionDraft = signal('');
   protected readonly savedDescription = signal('');
@@ -106,6 +111,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     (
       !this.isCampaignMilestonePicker() ||
       this.selectedMilestoneId() !== null
+    ) &&
+    (
+      !this.isItemFoundPicker() ||
+      this.selectedItemFoundAssetId() !== null
     )
   ));
   protected readonly isImportantChoiceEditor = computed(() => (
@@ -116,6 +125,12 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   ));
   protected readonly isCampaignMilestonePicker = computed(() => (
     this.isCampaignMilestoneEditor() && !this.editingNote()
+  ));
+  protected readonly isItemFoundEditor = computed(() => (
+    this.selectedNoteType() === SessionNoteType.ItemFound
+  ));
+  protected readonly isItemFoundPicker = computed(() => (
+    this.isItemFoundEditor() && !this.editingNote()
   ));
   protected readonly noteEditorActionText = computed(() => {
     if (this.isSavingNote()) {
@@ -262,7 +277,9 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.editingNote.set(null);
     this.noteDraft.set('');
     this.selectedMilestoneId.set(null);
+    this.selectedItemFoundAssetId.set(null);
     this.availableMilestones.set([]);
+    this.availableItems.set([]);
     this.importantChoiceDrafts.set([]);
   }
 
@@ -272,15 +289,21 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     if (
       noteType === SessionNoteType.GeneralNotes ||
       noteType === SessionNoteType.ImportantChoice ||
-      noteType === SessionNoteType.CampaignMilestone
+      noteType === SessionNoteType.CampaignMilestone ||
+      noteType === SessionNoteType.ItemFound
     ) {
       this.noteDraft.set('');
       this.selectedMilestoneId.set(null);
+      this.selectedItemFoundAssetId.set(null);
       this.importantChoiceDrafts.set([]);
       this.isNoteEditorOpen.set(true);
 
       if (noteType === SessionNoteType.CampaignMilestone) {
         this.loadAvailableMilestones();
+      }
+
+      if (noteType === SessionNoteType.ItemFound) {
+        this.loadAvailableItems();
       }
 
       return;
@@ -299,6 +322,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
   protected isCampaignMilestoneNote(note: SessionNoteModel): boolean {
     return this.toSessionNoteType(note.type) === SessionNoteType.CampaignMilestone;
+  }
+
+  protected isItemFoundNote(note: SessionNoteModel): boolean {
+    return this.toSessionNoteType(note.type) === SessionNoteType.ItemFound;
   }
 
   protected addImportantChoiceOption(): void {
@@ -337,6 +364,37 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.noteDraft.set(milestone.title);
   }
 
+  protected selectItemFoundAsset(item: AssetModel): void {
+    this.selectedItemFoundAssetId.set(item.id);
+    const itemType = this.getAssetItemTypeLabel(item);
+
+    this.noteDraft.set(item.description ? `${item.name}\n${itemType}\n${item.description}` : `${item.name}\n${itemType}`);
+  }
+
+  protected getAssetItemTypeLabel(item: AssetModel): string {
+    const itemType = this.toAssetItemType(item.itemType);
+
+    return itemType === null
+      ? 'Item'
+      : AssetItemType[itemType] ?? 'Item';
+  }
+
+  protected getItemFoundTitle(note: SessionNoteModel): string {
+    return this.getItemFoundLines(note)[0] ?? note.content;
+  }
+
+  protected getItemFoundType(note: SessionNoteModel): string {
+    const lines = this.getItemFoundLines(note);
+
+    return lines.length > 2 ? lines[1] : 'Item';
+  }
+
+  protected getItemFoundDescription(note: SessionNoteModel): string {
+    const lines = this.getItemFoundLines(note);
+
+    return lines.length > 2 ? lines.slice(2).join('\n') : lines.slice(1).join('\n');
+  }
+
   protected addNote(): void {
     const campaignId = this.getCampaignId();
     const session = this.session();
@@ -351,6 +409,8 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
     const saveNote = this.isCampaignMilestonePicker()
       ? this.saveCampaignMilestoneNote(campaignId, session.id, content)
+      : this.isItemFoundPicker()
+      ? this.campaignSessionSocket.createItemFoundSessionNote(campaignId, session.id, content)
       : this.isImportantChoiceEditor()
       ? this.saveImportantChoiceNote(campaignId, session.id, content, editingNote)
       : editingNote
@@ -397,7 +457,9 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.selectedNoteType.set(this.toSessionNoteType(note.type));
     this.noteDraft.set(note.content);
     this.selectedMilestoneId.set(null);
+    this.selectedItemFoundAssetId.set(null);
     this.availableMilestones.set([]);
+    this.availableItems.set([]);
     this.importantChoiceDrafts.set(this.toImportantChoiceDrafts(note.choices ?? []));
     this.isNoteTypeDialogOpen.set(true);
     this.isNoteEditorOpen.set(true);
@@ -580,6 +642,31 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       });
   }
 
+  private loadAvailableItems(): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingAvailableItems()) {
+      return;
+    }
+
+    this.isLoadingAvailableItems.set(true);
+
+    this.campaignApiService
+      .fetchAvailableCampaignItems(campaignId)
+      .pipe(finalize(() => this.isLoadingAvailableItems.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.availableItems.set(response.data ?? []);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign items could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   private setSessionNotes(sessionId: number, notes: SessionNoteModel[]): void {
     const session = this.sessions().find((existingSession) => existingSession.id === sessionId);
 
@@ -676,6 +763,25 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     }
 
     return SessionNoteType[noteType as keyof typeof SessionNoteType] ?? null;
+  }
+
+  private getItemFoundLines(note: SessionNoteModel): string[] {
+    return note.content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+  }
+
+  private toAssetItemType(itemType: AssetModel['itemType']): AssetItemType | null {
+    if (itemType === null) {
+      return null;
+    }
+
+    if (typeof itemType === 'number') {
+      return itemType in AssetItemType ? itemType as AssetItemType : null;
+    }
+
+    return AssetItemType[itemType as keyof typeof AssetItemType] ?? null;
   }
 
   private getCampaignId(): string | null {

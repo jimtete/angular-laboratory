@@ -163,6 +163,14 @@ export class CampaignApiService {
     );
   }
 
+  fetchAvailableCampaignItems(
+    campaignId: string,
+  ): Observable<ApiResponse<AssetModel[]>> {
+    return this.apiClient.get<ApiResponse<AssetModel[]>>(
+      `/api/campaigns/${campaignId}/assets/items`,
+    );
+  }
+
   createAssetFolder(
     request: CreateAssetFolderRequest,
   ): Observable<ApiResponse<AssetModel>> {

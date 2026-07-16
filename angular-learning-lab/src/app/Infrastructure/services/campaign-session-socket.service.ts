@@ -26,6 +26,7 @@ const getSessionNotesMethod = 'GetSessionNotes';
 const updateDateMethod = 'UpdateCampaignSessionDate';
 const updateDescriptionMethod = 'UpdateCampaignSessionDescription';
 const createGenericNoteMethod = 'CreateGenericSessionNote';
+const createItemFoundNoteMethod = 'CreateItemFoundSessionNote';
 const createImportantChoiceNoteMethod = 'CreateImportantChoiceSessionNote';
 const achieveCampaignMilestoneMethod = 'AchieveCampaignMilestone';
 const updateSessionNoteMethod = 'UpdateSessionNote';
@@ -152,6 +153,27 @@ export class CampaignSessionSocketService {
     const connection = await this.getReadyConnection(campaignId);
     const updatedSession = await connection.invoke<CampaignSessionModel | null>(
       createGenericNoteMethod,
+      campaignId,
+      sessionId,
+      content,
+    );
+
+    if (updatedSession) {
+      this.upsertSession(updatedSession);
+      this.setActiveSessionNotes(updatedSession);
+    }
+
+    return updatedSession ?? null;
+  }
+
+  async createItemFoundSessionNote(
+    campaignId: string,
+    sessionId: number,
+    content: string,
+  ): Promise<CampaignSessionModel | null> {
+    const connection = await this.getReadyConnection(campaignId);
+    const updatedSession = await connection.invoke<CampaignSessionModel | null>(
+      createItemFoundNoteMethod,
       campaignId,
       sessionId,
       content,

@@ -48,7 +48,10 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
                 Username = participation.User.Username,
                 FirstName = participation.User.FirstName,
                 LastName = participation.User.LastName,
-                Nickname = participation.Nickname
+                Nickname = participation.Nickname,
+                HalfProficientSkills = participation.HalfProficientSkills,
+                ProficientSkills = participation.ProficientSkills,
+                ExpertiseSkills = participation.ExpertiseSkills
             })
             .ToListAsync(cancellationToken);
     }

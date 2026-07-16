@@ -49,6 +49,13 @@ public interface ICampaignSessionService
         string? content,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<CampaignSessionResponse>> CreateItemFoundSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        string? content,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<CampaignSessionResponse>> CreateImportantChoiceSessionNoteAsync(
         Guid userId,
         Guid campaignId,
