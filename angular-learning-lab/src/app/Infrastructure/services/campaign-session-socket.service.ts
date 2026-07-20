@@ -12,6 +12,7 @@ import {
   AchieveCampaignMilestoneRequest,
   CampaignSessionModel,
   ImportantChoiceSessionNoteRequest,
+  LevelUpOrMechanicsChangeSessionNoteRequest,
   SessionNoteModel,
 } from '../models';
 import { TokenStorageService } from './token-storage.service';
@@ -28,9 +29,11 @@ const updateDescriptionMethod = 'UpdateCampaignSessionDescription';
 const createGenericNoteMethod = 'CreateGenericSessionNote';
 const createItemFoundNoteMethod = 'CreateItemFoundSessionNote';
 const createImportantChoiceNoteMethod = 'CreateImportantChoiceSessionNote';
+const createLevelUpOrMechanicsChangeNoteMethod = 'CreateLevelUpOrMechanicsChangeSessionNote';
 const achieveCampaignMilestoneMethod = 'AchieveCampaignMilestone';
 const updateSessionNoteMethod = 'UpdateSessionNote';
 const updateImportantChoiceNoteMethod = 'UpdateImportantChoiceSessionNote';
+const updateLevelUpOrMechanicsChangeNoteMethod = 'UpdateLevelUpOrMechanicsChangeSessionNote';
 const deleteSessionNoteMethod = 'DeleteSessionNote';
 
 @Injectable({
@@ -229,6 +232,27 @@ export class CampaignSessionSocketService {
     return updatedSession ?? null;
   }
 
+  async createLevelUpOrMechanicsChangeSessionNote(
+    campaignId: string,
+    sessionId: number,
+    request: LevelUpOrMechanicsChangeSessionNoteRequest,
+  ): Promise<CampaignSessionModel | null> {
+    const connection = await this.getReadyConnection(campaignId);
+    const updatedSession = await connection.invoke<CampaignSessionModel | null>(
+      createLevelUpOrMechanicsChangeNoteMethod,
+      campaignId,
+      sessionId,
+      request,
+    );
+
+    if (updatedSession) {
+      this.upsertSession(updatedSession);
+      this.setActiveSessionNotes(updatedSession);
+    }
+
+    return updatedSession ?? null;
+  }
+
   async updateSessionNote(
     campaignId: string,
     sessionId: number,
@@ -261,6 +285,29 @@ export class CampaignSessionSocketService {
     const connection = await this.getReadyConnection(campaignId);
     const updatedSession = await connection.invoke<CampaignSessionModel | null>(
       updateImportantChoiceNoteMethod,
+      campaignId,
+      sessionId,
+      noteId,
+      request,
+    );
+
+    if (updatedSession) {
+      this.upsertSession(updatedSession);
+      this.setActiveSessionNotes(updatedSession);
+    }
+
+    return updatedSession ?? null;
+  }
+
+  async updateLevelUpOrMechanicsChangeSessionNote(
+    campaignId: string,
+    sessionId: number,
+    noteId: number,
+    request: LevelUpOrMechanicsChangeSessionNoteRequest,
+  ): Promise<CampaignSessionModel | null> {
+    const connection = await this.getReadyConnection(campaignId);
+    const updatedSession = await connection.invoke<CampaignSessionModel | null>(
+      updateLevelUpOrMechanicsChangeNoteMethod,
       campaignId,
       sessionId,
       noteId,

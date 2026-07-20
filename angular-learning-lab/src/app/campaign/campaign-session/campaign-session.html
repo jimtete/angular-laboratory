@@ -54,6 +54,7 @@
           class="campaign-session-note"
           [class.campaign-session-note-milestone]="isCampaignMilestoneNote(note)"
           [class.campaign-session-note-item-found]="isItemFoundNote(note)"
+          [class.campaign-session-note-mechanics-change]="isMechanicsChangeNote(note)"
           (contextmenu)="openNoteContextMenu($event, note)"
         >
           @if (isItemFoundNote(note)) {
@@ -63,6 +64,15 @@
             @if (getItemFoundDescription(note)) {
               <p>{{ getItemFoundDescription(note) }}</p>
             }
+          } @else if (isMechanicsChangeNote(note) && note.mechanicsChanges.length > 0) {
+            <ul class="campaign-session-note-mechanics-list">
+              @for (change of note.mechanicsChanges; track change.id) {
+                <li>
+                  <strong>{{ getMechanicsChangePlayerName(change.playerId) }}</strong>
+                  <span>{{ change.changeText || 'Mechanics changed' }}</span>
+                </li>
+              }
+            </ul>
           } @else {
             <p>{{ note.content }}</p>
           }
@@ -212,6 +222,7 @@
         [class.campaign-session-note-type-dialog-important-choice]="isImportantChoiceEditor()"
         [class.campaign-session-note-type-dialog-milestone]="isCampaignMilestonePicker()"
         [class.campaign-session-note-type-dialog-item-found]="isItemFoundPicker()"
+        [class.campaign-session-note-type-dialog-mechanics-change]="isMechanicsChangeEditor()"
         role="dialog"
         aria-modal="true"
         aria-label="Note type"
@@ -289,6 +300,43 @@
                         <p class="campaign-session-item-picker-status">No available campaign items.</p>
                       }
                     </div>
+                  }
+                </div>
+              } @else if (isMechanicsChangeEditor()) {
+                <div class="campaign-session-mechanics-picker" aria-label="Mechanics change options">
+                  @if (isLoadingCampaignMembers()) {
+                    <p class="campaign-session-mechanics-picker-status">Loading members...</p>
+                  } @else {
+                    @for (member of campaignMembers(); track member.userId) {
+                      <section class="campaign-session-mechanics-row">
+                        <div class="campaign-session-mechanics-member">
+                          <strong>{{ getMemberDisplayName(member) }}</strong>
+                          <span>{{ member.username }}</span>
+                        </div>
+
+                        <select
+                          [value]="getMechanicsChangeSelection(member)"
+                          [attr.aria-label]="'Mechanics change for ' + getMemberDisplayName(member)"
+                          (change)="setMechanicsChangeOption(member, $event)"
+                        >
+                          <option value="">No change</option>
+                          @for (option of levelUpMechanicsOptions; track option) {
+                            <option [value]="option">{{ option }}</option>
+                          }
+                          <option [value]="mechanicsChangeOtherOption">{{ mechanicsChangeOtherOption }}</option>
+                        </select>
+
+                        @if (isMechanicsChangeOtherSelected(member)) {
+                          <textarea
+                            [value]="getMechanicsChangeCustomText(member)"
+                            [attr.aria-label]="'Other mechanics change for ' + getMemberDisplayName(member)"
+                            (input)="setMechanicsChangeCustomText(member, $event)"
+                          ></textarea>
+                        }
+                      </section>
+                    } @empty {
+                      <p class="campaign-session-mechanics-picker-status">No campaign members.</p>
+                    }
                   }
                 </div>
               } @else {

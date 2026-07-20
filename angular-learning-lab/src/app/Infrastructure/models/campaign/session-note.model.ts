@@ -24,6 +24,24 @@ export interface ImportantChoiceSessionNoteRequest {
   choices: SessionNoteChoiceRequest[];
 }
 
+export interface SessionNoteMechanicsChangeModel {
+  id: number;
+  sessionNoteId: number;
+  order: number;
+  playerId: string;
+  changeText: string | null;
+}
+
+export interface SessionNoteMechanicsChangeRequest {
+  playerId: string;
+  changeText: string | null;
+}
+
+export interface LevelUpOrMechanicsChangeSessionNoteRequest {
+  content: string;
+  mechanicsChanges: SessionNoteMechanicsChangeRequest[];
+}
+
 export interface AchieveCampaignMilestoneRequest {
   milestoneId: number;
   content?: string | null;
@@ -36,6 +54,7 @@ export interface SessionNoteModel {
   type: SessionNoteType | keyof typeof SessionNoteType | string | number;
   content: string;
   choices: SessionNoteChoiceModel[];
+  mechanicsChanges: SessionNoteMechanicsChangeModel[];
   createdAt: string;
   updatedAt: string;
 }

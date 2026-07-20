@@ -9,10 +9,21 @@ import {
   CampaignMilestoneImportance,
   CampaignMilestoneModel,
   CampaignMilestoneRequest,
+  CampaignQuestModel,
+  CampaignQuestType,
+  CreateCampaignQuestRequest,
 } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 
-type CampaignContentTab = 'main-story' | 'campaign-milestones';
+type CampaignContentTab = 'main-story' | 'campaign-milestones' | 'quests';
+type QuestCarouselItem = CampaignQuestModel | 'add-quest';
+type QuestFormStep = 'details' | 'tasks';
+
+interface QuestTaskDraft {
+  draftId: number;
+  title: string;
+  description: string;
+}
 
 @Component({
   selector: 'app-campaign-content',
@@ -27,20 +38,56 @@ export class CampaignContent implements OnInit {
 
   protected readonly selectedTab = signal<CampaignContentTab>('main-story');
   protected readonly milestones = signal<CampaignMilestoneModel[]>([]);
+  protected readonly quests = signal<CampaignQuestModel[]>([]);
   protected readonly isLoadingMilestones = signal(false);
+  protected readonly isLoadingQuests = signal(false);
   protected readonly isCreateMilestoneDialogOpen = signal(false);
+  protected readonly isCreateQuestDialogOpen = signal(false);
   protected readonly isCreatingMilestone = signal(false);
+  protected readonly isCreatingQuest = signal(false);
   protected readonly isDeletingMilestone = signal(false);
   protected readonly editingMilestone = signal<CampaignMilestoneModel | null>(null);
   protected readonly deleteConfirmationMilestone = signal<CampaignMilestoneModel | null>(null);
+  protected readonly questCarouselIndex = signal(0);
   protected readonly milestoneTitleDraft = signal('');
   protected readonly milestoneDescriptionDraft = signal('');
+  protected readonly questTypeDraft = signal<CampaignQuestType>(CampaignQuestType.MainQuest);
+  protected readonly questTitleDraft = signal('');
+  protected readonly questDescriptionDraft = signal('');
+  protected readonly questGivenByDraft = signal('');
+  protected readonly questRewardDraft = signal('');
+  protected readonly questTaskDrafts = signal<QuestTaskDraft[]>([]);
+  protected readonly questFormStep = signal<QuestFormStep>('details');
   protected readonly milestoneImportanceDraft = signal<CampaignMilestoneImportance>(
     CampaignMilestoneImportance.Low,
   );
+  protected readonly questCarouselItems = computed<QuestCarouselItem[]>(() => [
+    ...this.quests(),
+    'add-quest',
+  ]);
+  protected readonly activeQuestCarouselItem = computed(() => (
+    this.questCarouselItems()[this.questCarouselIndex()] ?? 'add-quest'
+  ));
+  protected readonly canMoveQuestCarousel = computed(() => this.questCarouselItems().length > 1);
+  protected readonly canContinueQuestDetails = computed(() => (
+    this.normalizeText(this.questTitleDraft()).length > 0 &&
+    this.normalizeText(this.questDescriptionDraft()).length > 0 &&
+    this.normalizeText(this.questGivenByDraft()).length > 0 &&
+    this.normalizeText(this.questRewardDraft()).length > 0 &&
+    !this.isCreatingQuest()
+  ));
   protected readonly canCreateMilestone = computed(() => (
     this.normalizeText(this.milestoneTitleDraft()).length > 0 &&
     !this.isCreatingMilestone()
+  ));
+  protected readonly canCreateQuest = computed(() => (
+    this.canContinueQuestDetails() &&
+    !this.isCreatingQuest() &&
+    this.questTaskDrafts()
+      .some((task) => (
+        this.normalizeText(task.title).length > 0 &&
+        this.normalizeText(task.description).length > 0
+      ))
   ));
   protected readonly milestoneDialogActionText = computed(() => {
     if (this.isCreatingMilestone()) {
@@ -63,10 +110,31 @@ export class CampaignContent implements OnInit {
       label: 'Optional',
     },
   ];
+  protected readonly questTypeOptions = [
+    {
+      value: CampaignQuestType.MainQuest,
+      label: 'Main Quest',
+    },
+    {
+      value: CampaignQuestType.SideQuest,
+      label: 'Side Quest',
+    },
+    {
+      value: CampaignQuestType.PersonalQuest,
+      label: 'Personal Quest',
+    },
+    {
+      value: CampaignQuestType.CollectibleHunt,
+      label: 'Collectible Hunt',
+    },
+  ];
+  private nextQuestTaskDraftId = 1;
 
   ngOnInit(): void {
     if (this.selectedTab() === 'campaign-milestones') {
       this.loadMilestones();
+    } else if (this.selectedTab() === 'quests') {
+      this.loadQuests();
     }
   }
 
@@ -76,11 +144,16 @@ export class CampaignContent implements OnInit {
       return true;
     }
 
+    if (this.selectedTab() === 'quests') {
+      this.loadQuests();
+      return true;
+    }
+
     return false;
   }
 
   isRefreshingCampaignPage(): boolean {
-    return this.isLoadingMilestones();
+    return this.isLoadingMilestones() || this.isLoadingQuests();
   }
 
   protected selectTab(tab: CampaignContentTab): void {
@@ -88,7 +161,188 @@ export class CampaignContent implements OnInit {
 
     if (tab === 'campaign-milestones') {
       this.loadMilestones();
+      return;
     }
+
+    if (tab === 'quests') {
+      this.loadQuests();
+    }
+  }
+
+  protected previousQuestCard(viewport?: HTMLElement): void {
+    const itemCount = this.questCarouselItems().length;
+
+    if (itemCount < 2) {
+      return;
+    }
+
+    this.questCarouselIndex.update((index) => (index - 1 + itemCount) % itemCount);
+    this.scrollQuestCards(viewport, -1);
+  }
+
+  protected nextQuestCard(viewport?: HTMLElement): void {
+    const itemCount = this.questCarouselItems().length;
+
+    if (itemCount < 2) {
+      return;
+    }
+
+    this.questCarouselIndex.update((index) => (index + 1) % itemCount);
+    this.scrollQuestCards(viewport, 1);
+  }
+
+  protected isAddQuestItem(item: QuestCarouselItem): item is 'add-quest' {
+    return item === 'add-quest';
+  }
+
+  protected getQuestTypeColor(quest: CampaignQuestModel): string {
+    switch (this.toQuestType(quest.type)) {
+      case CampaignQuestType.MainQuest:
+        return '#dc2626';
+      case CampaignQuestType.SideQuest:
+        return '#16a34a';
+      case CampaignQuestType.PersonalQuest:
+        return '#eab308';
+      case CampaignQuestType.CollectibleHunt:
+        return '#9333ea';
+      default:
+        return 'transparent';
+    }
+  }
+
+  private scrollQuestCards(viewport: HTMLElement | undefined, direction: -1 | 1): void {
+    viewport?.scrollBy({
+      left: direction * viewport.clientWidth * 0.75,
+      behavior: 'smooth',
+    });
+  }
+
+  protected openCreateQuestDialog(): void {
+    this.questTypeDraft.set(CampaignQuestType.MainQuest);
+    this.questTitleDraft.set('');
+    this.questDescriptionDraft.set('');
+    this.questGivenByDraft.set('');
+    this.questRewardDraft.set('');
+    this.questTaskDrafts.set([this.createEmptyQuestTaskDraft()]);
+    this.questFormStep.set('details');
+    this.isCreateQuestDialogOpen.set(true);
+  }
+
+  protected closeCreateQuestDialog(): void {
+    if (this.isCreatingQuest()) {
+      return;
+    }
+
+    this.isCreateQuestDialogOpen.set(false);
+  }
+
+  protected showQuestDetailsStep(): void {
+    if (this.isCreatingQuest()) {
+      return;
+    }
+
+    this.questFormStep.set('details');
+  }
+
+  protected showQuestTasksStep(): void {
+    if (!this.canContinueQuestDetails()) {
+      return;
+    }
+
+    this.questFormStep.set('tasks');
+  }
+
+  protected setQuestTypeDraft(event: Event): void {
+    this.questTypeDraft.set(Number((event.target as HTMLSelectElement).value));
+  }
+
+  protected setQuestTitleDraft(event: Event): void {
+    this.questTitleDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setQuestDescriptionDraft(event: Event): void {
+    this.questDescriptionDraft.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  protected setQuestGivenByDraft(event: Event): void {
+    this.questGivenByDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setQuestRewardDraft(event: Event): void {
+    this.questRewardDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setQuestTaskTitleDraft(taskId: number, event: Event): void {
+    const title = (event.target as HTMLInputElement).value;
+
+    this.questTaskDrafts.update((tasks) => tasks.map((task) => (
+      task.draftId === taskId ? { ...task, title } : task
+    )));
+  }
+
+  protected setQuestTaskDescriptionDraft(taskId: number, event: Event): void {
+    const description = (event.target as HTMLTextAreaElement).value;
+
+    this.questTaskDrafts.update((tasks) => tasks.map((task) => (
+      task.draftId === taskId ? { ...task, description } : task
+    )));
+  }
+
+  protected addQuestTaskDraft(): void {
+    this.questTaskDrafts.update((tasks) => [
+      ...tasks,
+      this.createEmptyQuestTaskDraft(),
+    ]);
+  }
+
+  protected removeQuestTaskDraft(taskId: number): void {
+    this.questTaskDrafts.update((tasks) => {
+      const nextTasks = tasks.filter((task) => task.draftId !== taskId);
+
+      return nextTasks.length > 0 ? nextTasks : [this.createEmptyQuestTaskDraft()];
+    });
+  }
+
+  protected createQuest(): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || !this.canCreateQuest()) {
+      return;
+    }
+
+    const request: CreateCampaignQuestRequest = {
+      type: this.questTypeDraft(),
+      title: this.normalizeText(this.questTitleDraft()),
+      description: this.normalizeText(this.questDescriptionDraft()),
+      givenBy: this.normalizeText(this.questGivenByDraft()),
+      reward: this.normalizeText(this.questRewardDraft()),
+      completedAt: null,
+      tasks: this.questTaskDrafts()
+        .map((task) => ({
+          title: this.normalizeText(task.title),
+          description: this.normalizeText(task.description),
+          dateCompleted: null,
+        }))
+        .filter((task) => task.title.length > 0 && task.description.length > 0),
+    };
+
+    this.isCreatingQuest.set(true);
+
+    this.campaignApiService
+      .createCampaignQuest(campaignId, request)
+      .pipe(finalize(() => this.isCreatingQuest.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.isCreateQuestDialogOpen.set(false);
+          this.loadQuests(response.data?.questId ?? null);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign quest could not be saved.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
   }
 
   protected openCreateMilestoneDialog(): void {
@@ -229,6 +483,43 @@ export class CampaignContent implements OnInit {
       });
   }
 
+  private loadQuests(focusQuestId: string | null = null): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingQuests()) {
+      return;
+    }
+
+    this.isLoadingQuests.set(true);
+
+    this.campaignApiService
+      .fetchCampaignQuests(campaignId)
+      .pipe(finalize(() => this.isLoadingQuests.set(false)))
+      .subscribe({
+        next: (response) => {
+          const quests = response.data ?? [];
+
+          this.quests.set(quests);
+
+          if (focusQuestId) {
+            const questIndex = quests.findIndex((quest) => quest.questId === focusQuestId);
+            this.questCarouselIndex.set(questIndex >= 0 ? questIndex : 0);
+            return;
+          }
+
+          if (this.questCarouselIndex() >= quests.length + 1) {
+            this.questCarouselIndex.set(0);
+          }
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign quests could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   private getCampaignId(): string | null {
     return this.route.parent?.snapshot.paramMap.get('campaignId') ?? null;
   }
@@ -258,6 +549,28 @@ export class CampaignContent implements OnInit {
 
     return CampaignMilestoneImportance[importance as keyof typeof CampaignMilestoneImportance] ??
       CampaignMilestoneImportance.Low;
+  }
+
+  private createEmptyQuestTaskDraft(): QuestTaskDraft {
+    return {
+      draftId: this.nextQuestTaskDraftId++,
+      title: '',
+      description: '',
+    };
+  }
+
+  private toQuestType(type: CampaignQuestModel['type']): CampaignQuestType {
+    if (typeof type === 'number') {
+      return type as CampaignQuestType;
+    }
+
+    const parsedType = Number(type);
+
+    if (Number.isFinite(parsedType)) {
+      return parsedType as CampaignQuestType;
+    }
+
+    return CampaignQuestType[type as keyof typeof CampaignQuestType] ?? CampaignQuestType.MainQuest;
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

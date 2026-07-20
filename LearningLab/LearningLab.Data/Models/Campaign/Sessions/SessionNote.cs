@@ -11,4 +11,5 @@ public class SessionNote
     public DateTimeOffset UpdatedAt { get; set; }
     public CampaignSession Session { get; set; } = null!;
     public ICollection<SessionNoteChoice> Choices { get; set; } = [];
+    public ICollection<SessionNoteMechanicsChange> MechanicsChanges { get; set; } = [];
 }

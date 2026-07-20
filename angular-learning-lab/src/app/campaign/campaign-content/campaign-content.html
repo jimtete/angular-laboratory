@@ -17,6 +17,15 @@
     >
       Campaign Milestones
     </button>
+
+    <button
+      type="button"
+      class="campaign-content-tab"
+      [class.campaign-content-tab-active]="selectedTab() === 'quests'"
+      (click)="selectTab('quests')"
+    >
+      Quests
+    </button>
   </nav>
 
   @if (selectedTab() === 'campaign-milestones') {
@@ -77,6 +86,76 @@
           }
         }
       </div>
+    </section>
+  }
+
+  @if (selectedTab() === 'quests') {
+    <section class="campaign-quests-page" aria-label="Quests">
+      <button
+        type="button"
+        class="campaign-quest-carousel-button campaign-quest-carousel-previous"
+        aria-label="Show previous quest"
+        [disabled]="!canMoveQuestCarousel()"
+        (click)="previousQuestCard(questCarouselViewport)"
+      >
+        <span class="campaign-quest-arrow campaign-quest-arrow-left" aria-hidden="true"></span>
+      </button>
+
+      <div class="campaign-quest-carousel-viewport" #questCarouselViewport>
+        @if (isLoadingQuests()) {
+          <p class="campaign-quest-status">Loading quests...</p>
+        } @else {
+          @for (item of questCarouselItems(); track item) {
+            @if (isAddQuestItem(item)) {
+              <button
+                type="button"
+                class="campaign-quest-card campaign-quest-add-card"
+                aria-label="Add new quest"
+                (click)="openCreateQuestDialog()"
+              >
+                <span aria-hidden="true">+</span>
+                <strong>Add Quest</strong>
+              </button>
+            } @else {
+              <article
+                class="campaign-quest-card"
+                [style.--qt]="getQuestTypeColor(item)"
+              >
+                <header class="campaign-quest-card-header">
+                  <h2>{{ item.title }}</h2>
+                  <p>{{ item.description }}</p>
+                </header>
+
+                <div class="campaign-quest-meta">
+                  <span>Given by {{ item.givenBy }}</span>
+                  <span>Reward {{ item.reward }}</span>
+                </div>
+
+                <div class="campaign-quest-task-scroll" aria-label="Quest tasks">
+                  <ol class="campaign-quest-task-list">
+                    @for (task of item.tasks; track task.questTaskId) {
+                      <li>
+                        <strong>{{ task.title }}</strong>
+                        <span>{{ task.description }}</span>
+                      </li>
+                    }
+                  </ol>
+                </div>
+              </article>
+            }
+          }
+        }
+      </div>
+
+      <button
+        type="button"
+        class="campaign-quest-carousel-button campaign-quest-carousel-next"
+        aria-label="Show next quest"
+        [disabled]="!canMoveQuestCarousel()"
+        (click)="nextQuestCard(questCarouselViewport)"
+      >
+        <span class="campaign-quest-arrow campaign-quest-arrow-right" aria-hidden="true"></span>
+      </button>
     </section>
   }
 
@@ -173,6 +252,171 @@
           >
             {{ isDeletingMilestone() ? 'Deleting...' : 'Delete' }}
           </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (isCreateQuestDialogOpen()) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-quest-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Create quest"
+      >
+        <div class="campaign-quest-step-tabs" aria-label="Quest form steps">
+          <button
+            type="button"
+            [class.campaign-quest-step-active]="questFormStep() === 'details'"
+            [disabled]="isCreatingQuest()"
+            (click)="showQuestDetailsStep()"
+          >
+            Quest Details
+          </button>
+
+          <button
+            type="button"
+            [class.campaign-quest-step-active]="questFormStep() === 'tasks'"
+            [disabled]="!canContinueQuestDetails()"
+            (click)="showQuestTasksStep()"
+          >
+            Quest Tasks
+          </button>
+        </div>
+
+        @if (questFormStep() === 'details') {
+          <div class="campaign-quest-details-step">
+            <label class="campaign-milestone-field">
+              <span>Type</span>
+              <select
+                [value]="questTypeDraft()"
+                (change)="setQuestTypeDraft($event)"
+              >
+                @for (option of questTypeOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="campaign-milestone-field">
+              <span>Title</span>
+              <input
+                type="text"
+                [value]="questTitleDraft()"
+                (input)="setQuestTitleDraft($event)"
+              />
+            </label>
+
+            <label class="campaign-milestone-field campaign-milestone-description-field">
+              <span>Description</span>
+              <textarea
+                [value]="questDescriptionDraft()"
+                (input)="setQuestDescriptionDraft($event)"
+              ></textarea>
+            </label>
+
+            <label class="campaign-milestone-field">
+              <span>Given By</span>
+              <input
+                type="text"
+                [value]="questGivenByDraft()"
+                (input)="setQuestGivenByDraft($event)"
+              />
+            </label>
+
+            <label class="campaign-milestone-field">
+              <span>Reward</span>
+              <input
+                type="text"
+                [value]="questRewardDraft()"
+                (input)="setQuestRewardDraft($event)"
+              />
+            </label>
+          </div>
+        } @else {
+          <div class="campaign-quest-task-fields campaign-quest-task-fields-horizontal" aria-label="Quest task fields">
+            @for (task of questTaskDrafts(); track task.draftId) {
+              <section class="campaign-quest-task-field">
+                <label class="campaign-milestone-field">
+                  <span>Task Title</span>
+                  <input
+                    type="text"
+                    [value]="task.title"
+                    (input)="setQuestTaskTitleDraft(task.draftId, $event)"
+                  />
+                </label>
+
+                <label class="campaign-milestone-field campaign-milestone-description-field">
+                  <span>Task Description</span>
+                  <textarea
+                    [value]="task.description"
+                    (input)="setQuestTaskDescriptionDraft(task.draftId, $event)"
+                  ></textarea>
+                </label>
+
+                <button
+                  type="button"
+                  class="campaign-quest-task-remove"
+                  aria-label="Remove quest task"
+                  title="Remove task"
+                  (click)="removeQuestTaskDraft(task.draftId)"
+                >
+                  X
+                </button>
+              </section>
+            }
+
+            <button
+              type="button"
+              class="campaign-quest-task-add"
+              aria-label="Add quest task"
+              title="Add quest task"
+              (click)="addQuestTaskDraft()"
+            >
+              +
+            </button>
+          </div>
+        }
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="isCreatingQuest()"
+            (click)="closeCreateQuestDialog()"
+          >
+            Close
+          </button>
+
+          @if (questFormStep() === 'details') {
+            <button
+              type="button"
+              class="campaign-milestone-create"
+              [disabled]="!canContinueQuestDetails()"
+              (click)="showQuestTasksStep()"
+            >
+              Next
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="campaign-milestone-close"
+              [disabled]="isCreatingQuest()"
+              (click)="showQuestDetailsStep()"
+            >
+              Back
+            </button>
+
+            <button
+              type="button"
+              class="campaign-milestone-create"
+              [disabled]="!canCreateQuest()"
+              (click)="createQuest()"
+            >
+              {{ isCreatingQuest() ? 'Creating...' : 'Create' }}
+            </button>
+          }
         </div>
       </section>
     </div>

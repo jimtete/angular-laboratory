@@ -2,6 +2,7 @@ using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Assets;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Campaign.Quests;
 using LearningLab.Data.Models.Campaign.Sessions;
 using LearningLab.Data.Models.Character;
 using LearningLab.Data.Models.Notifications;
@@ -18,9 +19,12 @@ public class LearningLabContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<CharacterSheet> CharacterSheets { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
+    public DbSet<CampaignQuest> CampaignQuests { get; set; }
+    public DbSet<CampaignQuestTask> CampaignQuestTasks { get; set; }
     public DbSet<CampaignSession> CampaignSessions { get; set; }
     public DbSet<SessionNote> SessionNotes { get; set; }
     public DbSet<SessionNoteChoice> SessionNoteChoices { get; set; }
+    public DbSet<SessionNoteMechanicsChange> SessionNoteMechanicsChanges { get; set; }
     public DbSet<CampaignMilestone> CampaignMilestones { get; set; }
     public DbSet<Asset> Assets { get; set; }
     public DbSet<CampaignSettings> CampaignSettings { get; set; }
@@ -177,6 +181,11 @@ public class LearningLabContext : DbContext
             entity.HasMany(campaign => campaign.Milestones)
                 .WithOne(milestone => milestone.Campaign)
                 .HasForeignKey(milestone => milestone.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(campaign => campaign.Quests)
+                .WithOne(quest => quest.Campaign)
+                .HasForeignKey(quest => quest.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
 
         });
@@ -358,6 +367,11 @@ public class LearningLabContext : DbContext
                 .HasForeignKey(choice => choice.SessionNoteId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasMany(note => note.MechanicsChanges)
+                .WithOne(change => change.SessionNote)
+                .HasForeignKey(change => change.SessionNoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(note => new
             {
                 note.SessionId,
@@ -397,13 +411,170 @@ public class LearningLabContext : DbContext
             })
             .IsUnique();
 
-            entity.HasIndex(choice => new
+        });
+
+        modelBuilder.Entity<SessionNoteMechanicsChange>(entity =>
+        {
+            entity.ToTable("SessionNoteMechanicsChanges");
+
+            entity.HasKey(change => change.Id);
+
+            entity.Property(change => change.Id)
+                .HasColumnName("session_note_mechanics_change_id");
+
+            entity.Property(change => change.SessionNoteId)
+                .HasColumnName("session_note_id");
+
+            entity.Property(change => change.Order)
+                .HasColumnName("change_order")
+                .IsRequired();
+
+            entity.Property(change => change.PlayerId)
+                .HasColumnName("player_id");
+
+            entity.Property(change => change.ChangeText)
+                .HasColumnName("change_text");
+
+            entity.HasOne(change => change.Player)
+                .WithMany()
+                .HasForeignKey(change => change.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(change => new
             {
-                choice.SessionNoteId,
-                choice.IsChosen
+                change.SessionNoteId,
+                change.Order
             })
-            .IsUnique()
-            .HasFilter("[is_chosen] = 1");
+            .IsUnique();
+
+            entity.HasIndex(change => new
+            {
+                change.SessionNoteId,
+                change.PlayerId
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<CampaignQuest>(entity =>
+        {
+            entity.ToTable("CampaignQuests");
+
+            entity.HasKey(quest => quest.QuestId);
+
+            entity.Property(quest => quest.QuestId)
+                .HasColumnName("quest_id");
+
+            entity.Property(quest => quest.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(quest => quest.Type)
+                .HasColumnName("quest_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(quest => quest.Title)
+                .HasColumnName("title")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(quest => quest.Description)
+                .HasColumnName("description")
+                .HasMaxLength(2048)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(quest => quest.GivenBy)
+                .HasColumnName("given_by")
+                .HasMaxLength(256)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(quest => quest.Reward)
+                .HasColumnName("reward")
+                .HasMaxLength(2048)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(quest => quest.CompletedAt)
+                .HasColumnName("completed_at");
+
+            entity.Property(quest => quest.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(quest => quest.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasMany(quest => quest.Tasks)
+                .WithOne(task => task.CampaignQuest)
+                .HasForeignKey(task => task.QuestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(quest => new
+            {
+                quest.CampaignId,
+                quest.Type,
+                quest.CompletedAt
+            });
+
+            entity.HasIndex(quest => new
+            {
+                quest.CampaignId,
+                quest.Title
+            });
+        });
+
+        modelBuilder.Entity<CampaignQuestTask>(entity =>
+        {
+            entity.ToTable("CampaignQuestTasks");
+
+            entity.HasKey(task => task.QuestTaskId);
+
+            entity.Property(task => task.QuestTaskId)
+                .HasColumnName("quest_task_id");
+
+            entity.Property(task => task.QuestId)
+                .HasColumnName("quest_id");
+
+            entity.Property(task => task.Title)
+                .HasColumnName("title")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(task => task.Description)
+                .HasColumnName("description")
+                .HasMaxLength(2048)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(task => task.DateCompleted)
+                .HasColumnName("date_completed");
+
+            entity.Property(task => task.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(task => task.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasIndex(task => new
+            {
+                task.QuestId,
+                task.DateCompleted
+            });
+
+            entity.HasIndex(task => new
+            {
+                task.QuestId,
+                task.Title
+            });
         });
 
         modelBuilder.Entity<CampaignMilestone>(entity =>

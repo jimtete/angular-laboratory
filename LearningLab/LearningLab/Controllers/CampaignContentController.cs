@@ -1,8 +1,10 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.DTOs;
+using LearningLab.Data.Models.DTOs.Campaign.Quests;
 using LearningLab.Data.Models.DTOs.Campaign.Sessions;
 using LearningLab.Services.CampaignContentService;
+using LearningLab.Services.CampaignQuestService;
 using LearningLab.Services.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +17,14 @@ namespace LearningLab.Controllers;
 public sealed class CampaignContentController : ControllerBase
 {
     private readonly ICampaignContentService _campaignContentService;
+    private readonly ICampaignQuestService _campaignQuestService;
 
-    public CampaignContentController(ICampaignContentService campaignContentService)
+    public CampaignContentController(
+        ICampaignContentService campaignContentService,
+        ICampaignQuestService campaignQuestService)
     {
         _campaignContentService = campaignContentService;
+        _campaignQuestService = campaignQuestService;
     }
 
     [HttpGet("milestones")]
@@ -73,6 +79,61 @@ public sealed class CampaignContentController : ControllerBase
             _ => MapMilestoneResponse(
                 result,
                 "Campaign milestone created successfully.")
+        };
+    }
+
+    [HttpGet("quests")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<CampaignQuestResponse>>>> FetchCampaignQuests(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<CampaignQuestResponse>>();
+        }
+
+        var result = await _campaignQuestService.GetCampaignQuestsAsync(
+            userId.Value,
+            campaignId,
+            cancellationToken);
+
+        return MapQuestListResponse(
+            result,
+            "Campaign quests fetched successfully.");
+    }
+
+    [HttpPost("quests")]
+    public async Task<ActionResult<ApiResponse<CampaignQuestResponse>>> CreateCampaignQuest(
+        Guid campaignId,
+        CreateCampaignQuestRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignQuestResponse>();
+        }
+
+        var result = await _campaignQuestService.CreateCampaignQuestAsync(
+            userId.Value,
+            campaignId,
+            request,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Created(string.Empty, new ApiResponse<CampaignQuestResponse>
+            {
+                StatusCode = StatusCodes.Status201Created,
+                Message = "Campaign quest created successfully.",
+                Data = result.Data
+            }),
+            _ => MapQuestResponse(
+                result,
+                "Campaign quest created successfully.")
         };
     }
 
@@ -284,6 +345,98 @@ public sealed class CampaignContentController : ControllerBase
             _ => StatusCode(
                 StatusCodes.Status500InternalServerError,
                 new ApiResponse<CampaignMilestoneResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private ActionResult<ApiResponse<IReadOnlyList<CampaignQuestResponse>>> MapQuestListResponse(
+        ServiceResult<IReadOnlyList<CampaignQuestResponse>> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<IReadOnlyList<CampaignQuestResponse>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = result.Data
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<IReadOnlyList<CampaignQuestResponse>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<IReadOnlyList<CampaignQuestResponse>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<IReadOnlyList<CampaignQuestResponse>>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign content.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<IReadOnlyList<CampaignQuestResponse>>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private ActionResult<ApiResponse<CampaignQuestResponse>> MapQuestResponse(
+        ServiceResult<CampaignQuestResponse> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<CampaignQuestResponse>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = result.Data
+            }),
+            ApplicationStatusCode.InvalidCampaignQuest => BadRequest(new ApiResponse<CampaignQuestResponse>
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Campaign quest request is invalid.",
+                Data = null
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<CampaignQuestResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<CampaignQuestResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<CampaignQuestResponse>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign content.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<CampaignQuestResponse>
                 {
                     StatusCode = StatusCodes.Status500InternalServerError,
                     Message = "An unexpected error occurred.",

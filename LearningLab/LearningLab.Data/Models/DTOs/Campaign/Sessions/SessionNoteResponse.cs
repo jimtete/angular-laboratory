@@ -16,6 +16,8 @@ public sealed class SessionNoteResponse
 
     public IReadOnlyList<SessionNoteChoiceResponse> Choices { get; init; } = [];
 
+    public IReadOnlyList<SessionNoteMechanicsChangeResponse> MechanicsChanges { get; init; } = [];
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset UpdatedAt { get; init; }

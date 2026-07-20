@@ -1,0 +1,201 @@
+.campaign-member-proficiencies-page {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 1.25rem;
+  padding: 2rem;
+  box-sizing: border-box;
+  color: #1f1235;
+}
+
+.campaign-member-proficiencies-header p,
+.campaign-member-proficiencies-header h1 {
+  margin: 0;
+}
+
+.campaign-member-proficiencies-header p {
+  font: 800 0.85rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-member-proficiencies-header h1 {
+  font: 900 clamp(2rem, 5vw, 4.5rem)/0.95 'Cotemporary', 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-member-proficiencies-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(16rem, 1fr));
+  gap: 1.5rem;
+  align-content: start;
+}
+
+.campaign-member-proficiencies-column {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.campaign-member-proficiency-group {
+  --ability-color: #0e7490;
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+.campaign-member-proficiency-group-right {
+  grid-template-columns: minmax(0, 1fr) 2.4rem;
+}
+
+.campaign-member-proficiency-group-rows {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.campaign-member-proficiency-ability {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ability-color) 45%, transparent);
+  background: color-mix(in srgb, var(--ability-color) 10%, #fffdf4);
+  color: var(--ability-color);
+  font: 900 1rem/1 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  writing-mode: vertical-rl;
+}
+
+.campaign-member-proficiency-ability-left {
+  transform: rotate(180deg);
+}
+
+.campaign-member-proficiency-row {
+  min-height: 3.4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--ability-color) 38%, #d1d5db);
+  border-left: 4px solid var(--ability-color);
+  background: rgba(255, 253, 244, 0.92);
+  box-sizing: border-box;
+}
+
+.campaign-member-proficiency-row-reversed {
+  grid-template-columns: 3rem minmax(0, 1fr);
+  border-right: 4px solid var(--ability-color);
+  border-left-width: 1px;
+}
+
+.campaign-member-proficiency-row span {
+  min-width: 0;
+  font: 800 1.1rem/1.25 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+}
+
+.campaign-member-proficiency-row-reversed span {
+  text-align: right;
+}
+
+.campaign-member-proficiency-toggle {
+  position: relative;
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid #0e7490;
+  border-radius: 50%;
+  background: #ffffff;
+  color: transparent;
+  cursor: pointer;
+}
+
+.campaign-member-proficiency-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 0;
+  background: #0e7490;
+}
+
+.campaign-member-proficiency-half::before {
+  width: 50%;
+}
+
+.campaign-member-proficiency-full::before,
+.campaign-member-proficiency-expertise::before {
+  width: 100%;
+}
+
+.campaign-member-proficiency-expertise {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.campaign-member-proficiency-expertise::before {
+  background: #d97706;
+}
+
+.campaign-member-proficiency-toggle > span {
+  position: relative;
+  z-index: 1;
+  color: transparent;
+  font: 900 1rem/1 Arial, sans-serif;
+}
+
+.campaign-member-proficiency-expertise > span {
+  color: #ffffff;
+}
+
+.campaign-member-proficiencies-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.campaign-member-proficiencies-actions button {
+  min-width: 6.5rem;
+  min-height: 2.75rem;
+  border-radius: 6px;
+  font: 800 0.95rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-member-proficiencies-back,
+.campaign-member-proficiencies-discard {
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #1f1235;
+}
+
+.campaign-member-proficiencies-save {
+  border: 1px solid #0e7490;
+  background: #0e7490;
+  color: #ffffff;
+}
+
+.campaign-member-proficiencies-empty {
+  margin: 0;
+  align-self: center;
+  text-align: center;
+  font: 800 1.4rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+@media (max-width: 760px) {
+  .campaign-member-proficiencies-page {
+    padding: 1rem;
+  }
+
+  .campaign-member-proficiencies-board {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-member-proficiencies-actions {
+    justify-content: stretch;
+  }
+
+  .campaign-member-proficiencies-actions button {
+    flex: 1;
+    min-width: 0;
+  }
+}

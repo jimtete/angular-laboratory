@@ -9,12 +9,16 @@ import {
   AssetItemType,
   AssetModel,
   CampaignApiService,
+  CampaignMemberInformationModel,
   CampaignMilestoneModel,
   CampaignSessionModel,
   CampaignSessionSocketService,
   ImportantChoiceSessionNoteRequest,
+  LevelUpOrMechanicsChangeSessionNoteRequest,
   PendingChangesComponent,
   SessionNoteChoiceModel,
+  SessionNoteMechanicsChangeModel,
+  SessionNoteMechanicsChangeRequest,
   SessionNoteModel,
   SessionNoteType,
 } from '../../Infrastructure';
@@ -30,6 +34,11 @@ interface ImportantChoiceDraft {
   draftId: number;
   choiceText: string;
   isChosen: boolean;
+}
+
+interface MechanicsChangeDraft {
+  selectedChange: string;
+  customText: string;
 }
 
 @Component({
@@ -53,6 +62,7 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected readonly isDeletingNote = signal(false);
   protected readonly isLoadingAvailableMilestones = signal(false);
   protected readonly isLoadingAvailableItems = signal(false);
+  protected readonly isLoadingCampaignMembers = signal(false);
   protected readonly isDatePickerOpen = signal(false);
   protected readonly selectedDate = signal('');
   protected readonly isNoteTypeDialogOpen = signal(false);
@@ -61,9 +71,11 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected readonly noteDraft = signal('');
   protected readonly availableMilestones = signal<CampaignMilestoneModel[]>([]);
   protected readonly availableItems = signal<AssetModel[]>([]);
+  protected readonly campaignMembers = signal<CampaignMemberInformationModel[]>([]);
   protected readonly selectedMilestoneId = signal<number | null>(null);
   protected readonly selectedItemFoundAssetId = signal<number | null>(null);
   protected readonly importantChoiceDrafts = signal<ImportantChoiceDraft[]>([]);
+  protected readonly mechanicsChangeDrafts = signal<Record<string, MechanicsChangeDraft>>({});
   protected readonly descriptionDraft = signal('');
   protected readonly savedDescription = signal('');
   protected readonly isUnsavedChangesDialogOpen = signal(false);
@@ -82,6 +94,7 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     return this.sessions().find((session) => session.sessionNumber === sessionNumber) ?? null;
   });
   protected readonly orderedNotes = computed(() => this.orderNotes(this.campaignSessionSocket.sessionNotes()));
+  protected readonly selectedMechanicsChanges = computed(() => this.toMechanicsChangeRequests());
   protected readonly headerText = computed(() => {
     const session = this.session();
 
@@ -100,7 +113,11 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.normalizeDescription(this.savedDescription())
   ));
   protected readonly canAddNote = computed(() => (
-    this.normalizeDescription(this.noteDraft()).length > 0 &&
+    (
+      this.isMechanicsChangeEditor()
+        ? this.selectedMechanicsChanges().length > 0
+        : this.normalizeDescription(this.noteDraft()).length > 0
+    ) &&
     !this.isSavingNote() &&
     (
       !this.isImportantChoiceEditor() ||
@@ -115,6 +132,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     (
       !this.isItemFoundPicker() ||
       this.selectedItemFoundAssetId() !== null
+    ) &&
+    (
+      !this.isMechanicsChangeEditor() ||
+      this.selectedMechanicsChanges().length > 0
     )
   ));
   protected readonly isImportantChoiceEditor = computed(() => (
@@ -131,6 +152,9 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   ));
   protected readonly isItemFoundPicker = computed(() => (
     this.isItemFoundEditor() && !this.editingNote()
+  ));
+  protected readonly isMechanicsChangeEditor = computed(() => (
+    this.selectedNoteType() === SessionNoteType.LevelUpOrMechanicsChange
   ));
   protected readonly noteEditorActionText = computed(() => {
     if (this.isSavingNote()) {
@@ -161,6 +185,11 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       label: 'Level Up / Mechanics Change',
     },
   ];
+  protected readonly mechanicsChangeOtherOption = 'Other';
+  protected readonly levelUpMechanicsOptions = Array.from(
+    { length: 19 },
+    (_, index) => `Level Up ${index + 1} -> ${index + 2}`,
+  );
   private nextChoiceDraftId = 1;
 
   ngOnInit(): void {
@@ -281,6 +310,7 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.availableMilestones.set([]);
     this.availableItems.set([]);
     this.importantChoiceDrafts.set([]);
+    this.mechanicsChangeDrafts.set({});
   }
 
   protected selectNoteType(noteType: SessionNoteType): void {
@@ -290,12 +320,14 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       noteType === SessionNoteType.GeneralNotes ||
       noteType === SessionNoteType.ImportantChoice ||
       noteType === SessionNoteType.CampaignMilestone ||
-      noteType === SessionNoteType.ItemFound
+      noteType === SessionNoteType.ItemFound ||
+      noteType === SessionNoteType.LevelUpOrMechanicsChange
     ) {
       this.noteDraft.set('');
       this.selectedMilestoneId.set(null);
       this.selectedItemFoundAssetId.set(null);
       this.importantChoiceDrafts.set([]);
+      this.mechanicsChangeDrafts.set({});
       this.isNoteEditorOpen.set(true);
 
       if (noteType === SessionNoteType.CampaignMilestone) {
@@ -304,6 +336,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
       if (noteType === SessionNoteType.ItemFound) {
         this.loadAvailableItems();
+      }
+
+      if (noteType === SessionNoteType.LevelUpOrMechanicsChange) {
+        this.loadCampaignMembers();
       }
 
       return;
@@ -326,6 +362,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
   protected isItemFoundNote(note: SessionNoteModel): boolean {
     return this.toSessionNoteType(note.type) === SessionNoteType.ItemFound;
+  }
+
+  protected isMechanicsChangeNote(note: SessionNoteModel): boolean {
+    return this.toSessionNoteType(note.type) === SessionNoteType.LevelUpOrMechanicsChange;
   }
 
   protected addImportantChoiceOption(): void {
@@ -371,6 +411,64 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.noteDraft.set(item.description ? `${item.name}\n${itemType}\n${item.description}` : `${item.name}\n${itemType}`);
   }
 
+  protected getMemberDisplayName(member: CampaignMemberInformationModel): string {
+    const fullName = `${member.firstName} ${member.lastName}`.trim();
+
+    return member.nickname || fullName || member.username;
+  }
+
+  protected getMechanicsChangeSelection(member: CampaignMemberInformationModel): string {
+    return this.mechanicsChangeDrafts()[member.userId]?.selectedChange ?? '';
+  }
+
+  protected isMechanicsChangeOtherSelected(member: CampaignMemberInformationModel): boolean {
+    return this.getMechanicsChangeSelection(member) === this.mechanicsChangeOtherOption;
+  }
+
+  protected getMechanicsChangeCustomText(member: CampaignMemberInformationModel): string {
+    return this.mechanicsChangeDrafts()[member.userId]?.customText ?? '';
+  }
+
+  protected setMechanicsChangeOption(member: CampaignMemberInformationModel, event: Event): void {
+    const selectedChange = (event.target as HTMLSelectElement).value;
+
+    this.mechanicsChangeDrafts.update((drafts) => {
+      const nextDrafts = { ...drafts };
+
+      if (!selectedChange) {
+        delete nextDrafts[member.userId];
+        return nextDrafts;
+      }
+
+      nextDrafts[member.userId] = {
+        selectedChange,
+        customText: drafts[member.userId]?.customText ?? '',
+      };
+
+      return nextDrafts;
+    });
+    this.syncMechanicsChangeNoteDraft();
+  }
+
+  protected setMechanicsChangeCustomText(member: CampaignMemberInformationModel, event: Event): void {
+    const customText = (event.target as HTMLTextAreaElement).value;
+
+    this.mechanicsChangeDrafts.update((drafts) => ({
+      ...drafts,
+      [member.userId]: {
+        selectedChange: this.mechanicsChangeOtherOption,
+        customText,
+      },
+    }));
+    this.syncMechanicsChangeNoteDraft();
+  }
+
+  protected getMechanicsChangePlayerName(playerId: string): string {
+    const member = this.campaignMembers().find((campaignMember) => campaignMember.userId === playerId);
+
+    return member ? this.getMemberDisplayName(member) : playerId;
+  }
+
   protected getAssetItemTypeLabel(item: AssetModel): string {
     const itemType = this.toAssetItemType(item.itemType);
 
@@ -398,7 +496,9 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected addNote(): void {
     const campaignId = this.getCampaignId();
     const session = this.session();
-    const content = this.normalizeDescription(this.noteDraft());
+    const content = this.isMechanicsChangeEditor()
+      ? this.buildMechanicsChangeContent()
+      : this.normalizeDescription(this.noteDraft());
     const editingNote = this.editingNote();
 
     if (!campaignId || !session || !content || this.isSavingNote()) {
@@ -411,6 +511,8 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       ? this.saveCampaignMilestoneNote(campaignId, session.id, content)
       : this.isItemFoundPicker()
       ? this.campaignSessionSocket.createItemFoundSessionNote(campaignId, session.id, content)
+      : this.isMechanicsChangeEditor()
+      ? this.saveMechanicsChangeNote(campaignId, session.id, content, editingNote)
       : this.isImportantChoiceEditor()
       ? this.saveImportantChoiceNote(campaignId, session.id, content, editingNote)
       : editingNote
@@ -461,6 +563,11 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.availableMilestones.set([]);
     this.availableItems.set([]);
     this.importantChoiceDrafts.set(this.toImportantChoiceDrafts(note.choices ?? []));
+    this.mechanicsChangeDrafts.set(this.toMechanicsChangeDrafts(note.mechanicsChanges ?? []));
+    if (this.isMechanicsChangeEditor()) {
+      this.loadCampaignMembers();
+      this.syncMechanicsChangeNoteDraft();
+    }
     this.isNoteTypeDialogOpen.set(true);
     this.isNoteEditorOpen.set(true);
   }
@@ -535,6 +642,7 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
         next: (response) => {
           this.sessions.set(response.data ?? []);
           this.syncDraftFromSession();
+          this.loadCampaignMembers();
           void this.campaignSessionSocket
             .connect(campaignId)
             .then(() => this.loadSessionNotes(campaignId))
@@ -667,6 +775,33 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       });
   }
 
+  private loadCampaignMembers(): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingCampaignMembers()) {
+      return;
+    }
+
+    this.isLoadingCampaignMembers.set(true);
+
+    this.campaignApiService
+      .fetchCampaignUsernames(campaignId)
+      .pipe(finalize(() => this.isLoadingCampaignMembers.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.campaignMembers.set((response.data?.joinedMembers ?? [])
+            .filter((member) => Boolean(member.userId)));
+          this.syncMechanicsChangeNoteDraft();
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign members could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   private setSessionNotes(sessionId: number, notes: SessionNoteModel[]): void {
     const session = this.sessions().find((existingSession) => existingSession.id === sessionId);
 
@@ -747,6 +882,31 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     );
   }
 
+  private saveMechanicsChangeNote(
+    campaignId: string,
+    sessionId: number,
+    content: string,
+    editingNote: SessionNoteModel | null,
+  ): Promise<CampaignSessionModel | null> {
+    const request: LevelUpOrMechanicsChangeSessionNoteRequest = {
+      content,
+      mechanicsChanges: this.selectedMechanicsChanges(),
+    };
+
+    return editingNote
+      ? this.campaignSessionSocket.updateLevelUpOrMechanicsChangeSessionNote(
+        campaignId,
+        sessionId,
+        editingNote.id,
+        request,
+      )
+      : this.campaignSessionSocket.createLevelUpOrMechanicsChangeSessionNote(
+        campaignId,
+        sessionId,
+        request,
+      );
+  }
+
   private toImportantChoiceDrafts(choices: SessionNoteChoiceModel[]): ImportantChoiceDraft[] {
     return [...choices]
       .sort((first, second) => first.order - second.order || first.id - second.id)
@@ -755,6 +915,44 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
         choiceText: choice.choiceText,
         isChosen: choice.isChosen,
       }));
+  }
+
+  private toMechanicsChangeDrafts(changes: SessionNoteMechanicsChangeModel[]): Record<string, MechanicsChangeDraft> {
+    return changes.reduce<Record<string, MechanicsChangeDraft>>((drafts, change) => {
+      const changeText = change.changeText?.trim() ?? '';
+      const isLevelUpOption = this.levelUpMechanicsOptions.includes(changeText);
+
+      return {
+        ...drafts,
+        [change.playerId]: {
+          selectedChange: isLevelUpOption ? changeText : this.mechanicsChangeOtherOption,
+          customText: isLevelUpOption ? '' : changeText,
+        },
+      };
+    }, {});
+  }
+
+  private toMechanicsChangeRequests(): SessionNoteMechanicsChangeRequest[] {
+    return Object.entries(this.mechanicsChangeDrafts())
+      .map(([playerId, draft]) => ({
+        playerId,
+        changeText: draft.selectedChange === this.mechanicsChangeOtherOption
+          ? this.normalizeDescription(draft.customText)
+          : draft.selectedChange,
+      }))
+      .filter((change) => change.changeText.length > 0);
+  }
+
+  private buildMechanicsChangeContent(): string {
+    return this.selectedMechanicsChanges()
+      .map((change) => `${this.getMechanicsChangePlayerName(change.playerId)}: ${change.changeText}`)
+      .join('\n');
+  }
+
+  private syncMechanicsChangeNoteDraft(): void {
+    if (this.isMechanicsChangeEditor()) {
+      this.noteDraft.set(this.buildMechanicsChangeContent());
+    }
   }
 
   private toSessionNoteType(noteType: SessionNoteModel['type']): SessionNoteType | null {

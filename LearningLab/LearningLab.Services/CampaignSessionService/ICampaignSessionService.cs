@@ -70,6 +70,13 @@ public interface ICampaignSessionService
         CreateCampaignMilestoneSessionNoteRequest request,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<CampaignSessionResponse>> CreateLevelUpOrMechanicsChangeSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        CreateLevelUpOrMechanicsChangeSessionNoteRequest request,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<CampaignSessionResponse>> AchieveCampaignMilestoneAsync(
         Guid userId,
         Guid campaignId,
@@ -99,6 +106,14 @@ public interface ICampaignSessionService
         int sessionId,
         int noteId,
         UpdateCampaignMilestoneSessionNoteRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignSessionResponse>> UpdateLevelUpOrMechanicsChangeSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        int noteId,
+        UpdateLevelUpOrMechanicsChangeSessionNoteRequest request,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<CampaignSessionResponse>> DeleteSessionNoteAsync(

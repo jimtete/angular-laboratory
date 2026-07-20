@@ -27,4 +27,11 @@ public interface ICampaignSettingsService
         string username,
         UpdateCampaignMemberNicknameRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignMemberInformationResponse>> UpdateCampaignMemberSkillsAsync(
+        Guid userId,
+        Guid campaignId,
+        string username,
+        UpdateCampaignMemberSkillsRequest request,
+        CancellationToken cancellationToken = default);
 }

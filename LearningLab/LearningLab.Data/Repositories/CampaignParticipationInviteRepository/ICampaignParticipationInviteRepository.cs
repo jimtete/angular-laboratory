@@ -45,6 +45,11 @@ public interface ICampaignParticipationInviteRepository
         Guid userId,
         CancellationToken cancellationToken = default);
 
+    Task<int> CountParticipationsByUserIdsAsync(
+        Guid campaignId,
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(
         CampaignParticipationInvite invite,
         CancellationToken cancellationToken = default);

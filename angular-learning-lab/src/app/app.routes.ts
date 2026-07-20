@@ -5,6 +5,7 @@ import { Campaign } from './campaign/campaign';
 import { CampaignAssets } from './campaign/campaign-assets/campaign-assets';
 import { CampaignContent } from './campaign/campaign-content/campaign-content';
 import { CampaignHome } from './campaign/campaign-home/campaign-home';
+import { CampaignMemberProficiencies } from './campaign/campaign-members/campaign-member-proficiencies/campaign-member-proficiencies';
 import { CampaignMembers } from './campaign/campaign-members/campaign-members';
 import { CampaignSession } from './campaign/campaign-session/campaign-session';
 import { CampaignSessions } from './campaign/campaign-sessions/campaign-sessions';
@@ -77,6 +78,11 @@ export const routes: Routes = [
       {
         path: 'campaign-members',
         component: CampaignMembers
+      },
+      {
+        path: 'campaign-members/:userId/proficiencies',
+        component: CampaignMemberProficiencies,
+        canActivate: [masterRoleGuard]
       },
       {
         path: 'campaign-content',

@@ -1,0 +1,91 @@
+<section class="campaign-member-proficiencies-page" aria-label="Campaign member proficiencies">
+  <header class="campaign-member-proficiencies-header">
+    <div>
+      <p>Proficiencies</p>
+      <h1>{{ memberName() }}</h1>
+    </div>
+  </header>
+
+  @if (member()) {
+    <div class="campaign-member-proficiencies-board">
+      <div class="campaign-member-proficiencies-column">
+        @for (group of leftSkillGroups; track group.ability) {
+          <div class="campaign-member-proficiency-group" [style.--ability-color]="group.color">
+            <span class="campaign-member-proficiency-ability campaign-member-proficiency-ability-left">
+              {{ group.shortLabel ?? group.ability }}
+            </span>
+
+            <div class="campaign-member-proficiency-group-rows">
+              @for (skill of group.skills; track skill.skill) {
+                <div class="campaign-member-proficiency-row">
+                  <span>{{ skill.label }}</span>
+                  <button
+                    type="button"
+                    class="campaign-member-proficiency-toggle"
+                    [class.campaign-member-proficiency-half]="levelFor(skill.skill) === 'half'"
+                    [class.campaign-member-proficiency-full]="levelFor(skill.skill) === 'full'"
+                    [class.campaign-member-proficiency-expertise]="levelFor(skill.skill) === 'expertise'"
+                    [attr.aria-label]="skill.label + ' proficiency: ' + levelFor(skill.skill)"
+                    [attr.title]="levelFor(skill.skill)"
+                    [disabled]="isSaving()"
+                    (click)="cycleSkill(skill.skill)"
+                  >
+                    <span aria-hidden="true">*</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="campaign-member-proficiencies-column">
+        @for (group of rightSkillGroups; track group.ability) {
+          <div
+            class="campaign-member-proficiency-group campaign-member-proficiency-group-right"
+            [style.--ability-color]="group.color"
+          >
+            <div class="campaign-member-proficiency-group-rows">
+              @for (skill of group.skills; track skill.skill) {
+                <div class="campaign-member-proficiency-row campaign-member-proficiency-row-reversed">
+                  <button
+                    type="button"
+                    class="campaign-member-proficiency-toggle"
+                    [class.campaign-member-proficiency-half]="levelFor(skill.skill) === 'half'"
+                    [class.campaign-member-proficiency-full]="levelFor(skill.skill) === 'full'"
+                    [class.campaign-member-proficiency-expertise]="levelFor(skill.skill) === 'expertise'"
+                    [attr.aria-label]="skill.label + ' proficiency: ' + levelFor(skill.skill)"
+                    [attr.title]="levelFor(skill.skill)"
+                    [disabled]="isSaving()"
+                    (click)="cycleSkill(skill.skill)"
+                  >
+                    <span aria-hidden="true">*</span>
+                  </button>
+                  <span>{{ skill.label }}</span>
+                </div>
+              }
+            </div>
+
+            <span class="campaign-member-proficiency-ability campaign-member-proficiency-ability-right">
+              {{ group.shortLabel ?? group.ability }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="campaign-member-proficiencies-empty">Campaign member could not be found.</p>
+  }
+
+  <footer class="campaign-member-proficiencies-actions">
+    <button type="button" class="campaign-member-proficiencies-back" [disabled]="isSaving()" (click)="goBack()">
+      Back
+    </button>
+    <button type="button" class="campaign-member-proficiencies-discard" [disabled]="isSaving()" (click)="discardChanges()">
+      Discard
+    </button>
+    <button type="button" class="campaign-member-proficiencies-save" [disabled]="isSaving() || !member()" (click)="saveChanges()">
+      {{ isSaving() ? 'Saving...' : 'Save' }}
+    </button>
+  </footer>
+</section>

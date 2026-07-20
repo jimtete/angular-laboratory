@@ -1,6 +1,7 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
 using LearningLab.Data.Repositories.CampaignMilestoneRepository;
 using LearningLab.Data.Models.Campaign.Sessions;
 using LearningLab.Data.Models.DTOs.Campaign.Sessions;
@@ -16,6 +17,7 @@ namespace LearningLab.Services.CampaignSessionService;
 public sealed class CampaignSessionService : ICampaignSessionService
 {
     private readonly ICampaignRepository _campaignRepository;
+    private readonly ICampaignParticipationInviteRepository _campaignParticipationInviteRepository;
     private readonly ICampaignMilestoneRepository _campaignMilestoneRepository;
     private readonly ICampaignSessionRepository _campaignSessionRepository;
     private readonly IApplicationEventHub _applicationEventHub;
@@ -24,6 +26,7 @@ public sealed class CampaignSessionService : ICampaignSessionService
 
     public CampaignSessionService(
         ICampaignRepository campaignRepository,
+        ICampaignParticipationInviteRepository campaignParticipationInviteRepository,
         ICampaignMilestoneRepository campaignMilestoneRepository,
         ICampaignSessionRepository campaignSessionRepository,
         IApplicationEventHub applicationEventHub,
@@ -31,6 +34,7 @@ public sealed class CampaignSessionService : ICampaignSessionService
         IUserRepository userRepository)
     {
         _campaignRepository = campaignRepository;
+        _campaignParticipationInviteRepository = campaignParticipationInviteRepository;
         _campaignMilestoneRepository = campaignMilestoneRepository;
         _campaignSessionRepository = campaignSessionRepository;
         _applicationEventHub = applicationEventHub;
@@ -607,6 +611,82 @@ public sealed class CampaignSessionService : ICampaignSessionService
             cancellationToken);
     }
 
+    public async Task<ServiceResult<CampaignSessionResponse>> CreateLevelUpOrMechanicsChangeSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        CreateLevelUpOrMechanicsChangeSessionNoteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request is null
+            || sessionId < 1
+            || !TryBuildLevelUpOrMechanicsChangeNote(
+                request.Content,
+                request.MechanicsChanges,
+                out var trimmedContent,
+                out var mechanicsChanges,
+                out var playerIds))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                validationStatusCode.Value);
+        }
+
+        if (!await AllPlayersParticipateInCampaignAsync(
+                campaignId,
+                playerIds,
+                cancellationToken))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignParticipantNotFound);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var latestOrder = await _sessionNoteRepository.GetLatestOrderBySessionIdAsync(
+            session.Id,
+            cancellationToken);
+        var nextOrder = (latestOrder ?? 0) + 1;
+        var dateCreated = DateTimeOffset.UtcNow;
+        var note = new SessionNote
+        {
+            SessionId = session.Id,
+            Order = nextOrder,
+            Type = SessionNoteType.LevelUpOrMechanicsChange,
+            Content = trimmedContent,
+            CreatedAt = dateCreated,
+            UpdatedAt = dateCreated,
+            MechanicsChanges = mechanicsChanges.ToList()
+        };
+
+        session.UpdatedAt = dateCreated;
+        await _sessionNoteRepository.AddAsync(note, cancellationToken);
+        await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+        return await BuildAndPublishUpdatedSessionResponseAsync(
+            session,
+            cancellationToken);
+    }
+
     public async Task<ServiceResult<CampaignSessionResponse>> UpdateSessionNoteAsync(
         Guid userId,
         Guid campaignId,
@@ -837,6 +917,95 @@ public sealed class CampaignSessionService : ICampaignSessionService
             cancellationToken);
     }
 
+    public async Task<ServiceResult<CampaignSessionResponse>> UpdateLevelUpOrMechanicsChangeSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        int noteId,
+        UpdateLevelUpOrMechanicsChangeSessionNoteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request is null
+            || sessionId < 1
+            || noteId < 1
+            || !TryBuildLevelUpOrMechanicsChangeNote(
+                request.Content,
+                request.MechanicsChanges,
+                out var trimmedContent,
+                out var mechanicsChanges,
+                out var playerIds))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                validationStatusCode.Value);
+        }
+
+        if (!await AllPlayersParticipateInCampaignAsync(
+                campaignId,
+                playerIds,
+                cancellationToken))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignParticipantNotFound);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var note = await _sessionNoteRepository.GetBySessionIdAndNoteIdAsync(
+            session.Id,
+            noteId,
+            cancellationToken);
+
+        if (note is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.SessionNoteNotFound);
+        }
+
+        if (note.Type != SessionNoteType.LevelUpOrMechanicsChange)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var updatedAt = DateTimeOffset.UtcNow;
+        note.Content = trimmedContent;
+        note.UpdatedAt = updatedAt;
+        note.MechanicsChanges.Clear();
+
+        foreach (var mechanicsChange in mechanicsChanges)
+        {
+            note.MechanicsChanges.Add(mechanicsChange);
+        }
+
+        session.UpdatedAt = updatedAt;
+
+        await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+        return await BuildAndPublishUpdatedSessionResponseAsync(
+            session,
+            cancellationToken);
+    }
+
     public async Task<ServiceResult<CampaignSessionResponse>> DeleteSessionNoteAsync(
         Guid userId,
         Guid campaignId,
@@ -1006,6 +1175,19 @@ public sealed class CampaignSessionService : ICampaignSessionService
             response);
     }
 
+    private async Task<bool> AllPlayersParticipateInCampaignAsync(
+        Guid campaignId,
+        IReadOnlyCollection<Guid> playerIds,
+        CancellationToken cancellationToken)
+    {
+        var participantCount = await _campaignParticipationInviteRepository.CountParticipationsByUserIdsAsync(
+            campaignId,
+            playerIds,
+            cancellationToken);
+
+        return participantCount == playerIds.Count;
+    }
+
     private static bool TryBuildImportantChoiceNote(
         string? content,
         IReadOnlyList<SessionNoteChoiceRequest>? choices,
@@ -1044,6 +1226,64 @@ public sealed class CampaignSessionService : ICampaignSessionService
                 Order = choice.Order,
                 ChoiceText = choice.ChoiceText!,
                 IsChosen = choice.IsChosen
+            })
+            .ToList();
+
+        return true;
+    }
+
+    private static bool TryBuildLevelUpOrMechanicsChangeNote(
+        string? content,
+        IReadOnlyList<SessionNoteMechanicsChangeRequest>? changes,
+        out string trimmedContent,
+        out IReadOnlyList<SessionNoteMechanicsChange> mechanicsChanges,
+        out IReadOnlyList<Guid> playerIds)
+    {
+        trimmedContent = string.Empty;
+        mechanicsChanges = [];
+        playerIds = [];
+
+        if (string.IsNullOrWhiteSpace(content)
+            || changes is null
+            || changes.Count == 0
+            || changes.Any(change => change is null))
+        {
+            return false;
+        }
+
+        var normalizedChanges = changes
+            .Select((change, index) => new
+            {
+                Order = index + 1,
+                change.PlayerId,
+                ChangeText = string.IsNullOrWhiteSpace(change.ChangeText)
+                    ? null
+                    : change.ChangeText.Trim()
+            })
+            .ToArray();
+
+        if (normalizedChanges.Any(change => change.PlayerId == Guid.Empty))
+        {
+            return false;
+        }
+
+        playerIds = normalizedChanges
+            .Select(change => change.PlayerId)
+            .Distinct()
+            .ToArray();
+
+        if (playerIds.Count != normalizedChanges.Length)
+        {
+            return false;
+        }
+
+        trimmedContent = content.Trim();
+        mechanicsChanges = normalizedChanges
+            .Select(change => new SessionNoteMechanicsChange
+            {
+                Order = change.Order,
+                PlayerId = change.PlayerId,
+                ChangeText = change.ChangeText
             })
             .ToList();
 
@@ -1115,6 +1355,11 @@ public sealed class CampaignSessionService : ICampaignSessionService
                 .ThenBy(choice => choice.Id)
                 .Select(ToResponse)
                 .ToList(),
+            MechanicsChanges = note.MechanicsChanges
+                .OrderBy(change => change.Order)
+                .ThenBy(change => change.Id)
+                .Select(ToResponse)
+                .ToList(),
             CreatedAt = note.CreatedAt,
             UpdatedAt = note.UpdatedAt
         };
@@ -1129,6 +1374,18 @@ public sealed class CampaignSessionService : ICampaignSessionService
             Order = choice.Order,
             ChoiceText = choice.ChoiceText,
             IsChosen = choice.IsChosen
+        };
+    }
+
+    private static SessionNoteMechanicsChangeResponse ToResponse(SessionNoteMechanicsChange change)
+    {
+        return new SessionNoteMechanicsChangeResponse
+        {
+            Id = change.Id,
+            SessionNoteId = change.SessionNoteId,
+            Order = change.Order,
+            PlayerId = change.PlayerId,
+            ChangeText = change.ChangeText
         };
     }
 

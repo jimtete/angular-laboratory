@@ -14,6 +14,11 @@ public interface ICampaignParticipationInviteService
         Guid campaignId,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>> GetCampaignMemberInformationAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<IReadOnlyList<string>>> GetCampaignInviteUsernamesAsync(
         Guid userId,
         Guid campaignId,

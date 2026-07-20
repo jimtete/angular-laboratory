@@ -45,6 +45,7 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
             .OrderBy(participation => participation.User.Username)
             .Select(participation => new CampaignMemberInformationResponse
             {
+                UserId = participation.UserId,
                 Username = participation.User.Username,
                 FirstName = participation.User.FirstName,
                 LastName = participation.User.LastName,
@@ -130,6 +131,23 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
             .AnyAsync(
                 participation => participation.CampaignId == campaignId
                     && participation.UserId == userId,
+                cancellationToken);
+    }
+
+    public Task<int> CountParticipationsByUserIdsAsync(
+        Guid campaignId,
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (userIds.Count == 0)
+        {
+            return Task.FromResult(0);
+        }
+
+        return _context.PlayerCampaignParticipations
+            .CountAsync(
+                participation => participation.CampaignId == campaignId
+                    && userIds.Contains(participation.UserId),
                 cancellationToken);
     }
 

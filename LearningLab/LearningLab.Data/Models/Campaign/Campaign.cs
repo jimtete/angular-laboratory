@@ -1,4 +1,5 @@
 using LearningLab.Data.Models;
+using LearningLab.Data.Models.Campaign.Quests;
 namespace LearningLab.Data.Models.Campaign;
 
 public class Campaign
@@ -14,4 +15,5 @@ public class Campaign
     public List<PlayerCampaignParticipation> PlayerParticipations { get; set; } = [];
     public List<CampaignParticipationInvite> ParticipationInvites { get; set; } = [];
     public List<CampaignMilestone> Milestones { get; set; } = [];
+    public List<CampaignQuest> Quests { get; set; } = [];
 }

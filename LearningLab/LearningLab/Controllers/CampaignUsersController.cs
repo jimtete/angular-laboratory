@@ -3,6 +3,7 @@ using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.DTOs;
 using LearningLab.Data.Models.DTOs.Campaign;
 using LearningLab.Services.CampaignParticipationInviteService;
+using LearningLab.Services.CampaignSettingsService;
 using LearningLab.Services.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,14 @@ namespace LearningLab.Controllers;
 public sealed class CampaignUsersController : ControllerBase
 {
     private readonly ICampaignParticipationInviteService _campaignParticipationInviteService;
+    private readonly ICampaignSettingsService _campaignSettingsService;
 
-    public CampaignUsersController(ICampaignParticipationInviteService campaignParticipationInviteService)
+    public CampaignUsersController(
+        ICampaignParticipationInviteService campaignParticipationInviteService,
+        ICampaignSettingsService campaignSettingsService)
     {
         _campaignParticipationInviteService = campaignParticipationInviteService;
+        _campaignSettingsService = campaignSettingsService;
     }
 
     [HttpGet]
@@ -30,17 +35,17 @@ public sealed class CampaignUsersController : ControllerBase
 
         if (userId is null)
         {
-            return InvalidUserClaimResponse();
+            return InvalidUserClaimResponse<CampaignUsernamesResponse>();
         }
 
-        var joinedUsernamesResult = await _campaignParticipationInviteService.GetCampaignMemberUsernamesAsync(
+        var joinedMembersResult = await _campaignParticipationInviteService.GetCampaignMemberInformationAsync(
             userId.Value,
             campaignId,
             cancellationToken);
 
-        if (joinedUsernamesResult.StatusCode != ApplicationStatusCode.Success)
+        if (joinedMembersResult.StatusCode != ApplicationStatusCode.Success)
         {
-            return MapCampaignUsernamesResponse(joinedUsernamesResult.StatusCode);
+            return MapCampaignUsernamesResponse(joinedMembersResult.StatusCode);
         }
 
         var invitedUsernamesResult = await _campaignParticipationInviteService.GetCampaignInviteUsernamesAsync(
@@ -60,10 +65,85 @@ public sealed class CampaignUsersController : ControllerBase
             Data = new CampaignUsernamesResponse
             {
                 CampaignId = campaignId,
-                JoinedUsernames = joinedUsernamesResult.Data ?? [],
+                JoinedMembers = joinedMembersResult.Data ?? [],
+                JoinedUsernames = joinedMembersResult.Data?.Select(member => member.Username).ToList() ?? [],
                 InvitedUsernames = invitedUsernamesResult.Data ?? []
             }
         });
+    }
+
+    [HttpPut("{username}/skills")]
+    public async Task<ActionResult<ApiResponse<CampaignMemberInformationResponse>>> UpdateCampaignMemberSkills(
+        Guid campaignId,
+        string username,
+        UpdateCampaignMemberSkillsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignMemberInformationResponse>();
+        }
+
+        var result = await _campaignSettingsService.UpdateCampaignMemberSkillsAsync(
+            userId.Value,
+            campaignId,
+            username,
+            request,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<CampaignMemberInformationResponse>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Campaign member skills updated successfully.",
+                Data = result.Data
+            }),
+            ApplicationStatusCode.InvalidCampaignMemberSkills => BadRequest(
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Campaign member skills are invalid.",
+                    Data = null
+                }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<CampaignMemberInformationResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<CampaignMemberInformationResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignParticipantNotFound => NotFound(
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Campaign member was not found.",
+                    Data = null
+                }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign users.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<CampaignMemberInformationResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
     }
 
     private ActionResult<ApiResponse<CampaignUsernamesResponse>> MapCampaignUsernamesResponse(
@@ -102,13 +182,13 @@ public sealed class CampaignUsersController : ControllerBase
         };
     }
 
-    private UnauthorizedObjectResult InvalidUserClaimResponse()
+    private UnauthorizedObjectResult InvalidUserClaimResponse<T>()
     {
-        return Unauthorized(new ApiResponse<CampaignUsernamesResponse>
+        return Unauthorized(new ApiResponse<T>
         {
             StatusCode = StatusCodes.Status401Unauthorized,
             Message = "The access token does not contain a valid user identifier.",
-            Data = null
+            Data = default
         });
     }
 }

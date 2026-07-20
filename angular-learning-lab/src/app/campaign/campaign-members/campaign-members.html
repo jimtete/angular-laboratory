@@ -6,6 +6,7 @@
         <th scope="col">First Name</th>
         <th scope="col">Last Name</th>
         <th scope="col">Nickname</th>
+        <th scope="col">Proficiencies</th>
       </tr>
     </thead>
     <tbody>
@@ -56,16 +57,98 @@
               </div>
             </div>
           </td>
+          <td
+            class="campaign-members-proficiencies-cell"
+            [class.campaign-members-proficiencies-editable]="isMaster()"
+            [attr.title]="isMaster() ? 'Edit proficiencies' : null"
+            [attr.role]="isMaster() ? 'button' : null"
+            [attr.tabindex]="isMaster() ? 0 : null"
+            [attr.aria-label]="isMaster() ? 'Edit proficiencies for ' + member.username : null"
+            (click)="openProficiencies(member)"
+            (keydown)="handleProficienciesKeydown(member, $event)"
+          >
+            <div class="campaign-members-proficiencies">
+              @for (proficiency of memberProficiencies(member); track proficiency.skill) {
+                <span
+                  class="campaign-members-proficiency-icon"
+                  [class.campaign-members-proficiency-half]="proficiency.level === 'half'"
+                  [class.campaign-members-proficiency-full]="proficiency.level === 'full'"
+                  [class.campaign-members-proficiency-expertise]="proficiency.level === 'expertise'"
+                  [attr.title]="proficiency.label + ' - ' + proficiency.levelLabel"
+                  [attr.aria-label]="proficiency.label + ' - ' + proficiency.levelLabel"
+                >
+                  @switch (proficiency.icon) {
+                    @case ('acrobatics') {
+                      <svg lucideFootprints aria-hidden="true"></svg>
+                    }
+                    @case ('animalHandling') {
+                      <svg lucideDog aria-hidden="true"></svg>
+                    }
+                    @case ('arcana') {
+                      <svg lucideSparkles aria-hidden="true"></svg>
+                    }
+                    @case ('athletics') {
+                      <svg lucideDumbbell aria-hidden="true"></svg>
+                    }
+                    @case ('deception') {
+                      <svg lucideTheater aria-hidden="true"></svg>
+                    }
+                    @case ('history') {
+                      <svg lucideScrollText aria-hidden="true"></svg>
+                    }
+                    @case ('insight') {
+                      <svg lucideBrain aria-hidden="true"></svg>
+                    }
+                    @case ('intimidation') {
+                      <svg lucideAngry aria-hidden="true"></svg>
+                    }
+                    @case ('investigation') {
+                      <svg lucideSearch aria-hidden="true"></svg>
+                    }
+                    @case ('medicine') {
+                      <svg lucideHeartPulse aria-hidden="true"></svg>
+                    }
+                    @case ('nature') {
+                      <svg lucideTrees aria-hidden="true"></svg>
+                    }
+                    @case ('perception') {
+                      <svg lucideEye aria-hidden="true"></svg>
+                    }
+                    @case ('performance') {
+                      <svg lucideMicVocal aria-hidden="true"></svg>
+                    }
+                    @case ('persuasion') {
+                      <svg lucideHandshake aria-hidden="true"></svg>
+                    }
+                    @case ('religion') {
+                      <svg lucideChurch aria-hidden="true"></svg>
+                    }
+                    @case ('sleightOfHand') {
+                      <svg lucideHandCoins aria-hidden="true"></svg>
+                    }
+                    @case ('stealth') {
+                      <svg lucideFingerprint aria-hidden="true"></svg>
+                    }
+                    @case ('survival') {
+                      <svg lucideMountain aria-hidden="true"></svg>
+                    }
+                  }
+                </span>
+              } @empty {
+                <span class="campaign-members-proficiencies-empty">None</span>
+              }
+            </div>
+          </td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="4" class="campaign-members-empty-row">No members yet.</td>
+          <td colspan="5" class="campaign-members-empty-row">No members yet.</td>
         </tr>
       }
 
       @if (isMaster()) {
         <tr class="campaign-members-invite-row">
-          <td colspan="4">
+          <td colspan="5">
             <button
               type="button"
               class="campaign-members-invite-button"

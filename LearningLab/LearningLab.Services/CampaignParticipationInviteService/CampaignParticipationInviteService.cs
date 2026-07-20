@@ -90,6 +90,30 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
             usernames);
     }
 
+    public async Task<ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>> GetCampaignMemberInformationAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>(validationStatusCode.Value);
+        }
+
+        var members = await _campaignParticipationInviteRepository.ListParticipantInformationByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>(
+            ApplicationStatusCode.Success,
+            members);
+    }
+
     public async Task<ServiceResult<IReadOnlyList<string>>> GetCampaignInviteUsernamesAsync(
         Guid userId,
         Guid campaignId,

@@ -1,6 +1,28 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { LucideCheck, LucideUserPlus, LucideX } from '@lucide/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  LucideAngry,
+  LucideBrain,
+  LucideCheck,
+  LucideChurch,
+  LucideDog,
+  LucideDumbbell,
+  LucideEye,
+  LucideFingerprint,
+  LucideFootprints,
+  LucideHandCoins,
+  LucideHandshake,
+  LucideHeartPulse,
+  LucideMicVocal,
+  LucideMountain,
+  LucideScrollText,
+  LucideSearch,
+  LucideSparkles,
+  LucideTheater,
+  LucideTrees,
+  LucideUserPlus,
+  LucideX,
+} from '@lucide/angular';
 import { finalize, forkJoin } from 'rxjs';
 
 import {
@@ -8,19 +30,76 @@ import {
   CampaignApiService,
   CampaignInformationCacheService,
   CampaignMemberInformationModel,
+  Skill,
+  SkillValue,
   TokenStorageService,
   UserApiService,
 } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 
+type ProficiencyLevel = 'half' | 'full' | 'expertise';
+type SkillIconKey =
+  | 'acrobatics'
+  | 'animalHandling'
+  | 'arcana'
+  | 'athletics'
+  | 'deception'
+  | 'history'
+  | 'insight'
+  | 'intimidation'
+  | 'investigation'
+  | 'medicine'
+  | 'nature'
+  | 'perception'
+  | 'performance'
+  | 'persuasion'
+  | 'religion'
+  | 'sleightOfHand'
+  | 'stealth'
+  | 'survival';
+
+interface SkillDefinition {
+  skill: Skill;
+  label: string;
+  icon: SkillIconKey;
+}
+
+interface MemberProficiencyIcon extends SkillDefinition {
+  level: ProficiencyLevel;
+  levelLabel: string;
+}
+
 @Component({
   selector: 'app-campaign-members',
-  imports: [LucideCheck, LucideUserPlus, LucideX],
+  imports: [
+    LucideAngry,
+    LucideBrain,
+    LucideCheck,
+    LucideChurch,
+    LucideDog,
+    LucideDumbbell,
+    LucideEye,
+    LucideFingerprint,
+    LucideFootprints,
+    LucideHandCoins,
+    LucideHandshake,
+    LucideHeartPulse,
+    LucideMicVocal,
+    LucideMountain,
+    LucideScrollText,
+    LucideSearch,
+    LucideSparkles,
+    LucideTheater,
+    LucideTrees,
+    LucideUserPlus,
+    LucideX,
+  ],
   templateUrl: './campaign-members.html',
   styleUrl: './campaign-members.css',
 })
 export class CampaignMembers {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly userApiService = inject(UserApiService);
   private readonly campaignApiService = inject(CampaignApiService);
@@ -35,6 +114,26 @@ export class CampaignMembers {
   protected readonly nicknameDrafts = signal<Record<string, string>>({});
   protected readonly savingNicknameUsername = signal<string | null>(null);
   private readonly unavailableUsernames = signal<ReadonlySet<string>>(new Set<string>());
+  protected readonly skillDefinitions: SkillDefinition[] = [
+    { skill: Skill.Acrobatics, label: 'Acrobatics', icon: 'acrobatics' },
+    { skill: Skill.AnimalHandling, label: 'Animal Handling', icon: 'animalHandling' },
+    { skill: Skill.Arcana, label: 'Arcana', icon: 'arcana' },
+    { skill: Skill.Athletics, label: 'Athletics', icon: 'athletics' },
+    { skill: Skill.Deception, label: 'Deception', icon: 'deception' },
+    { skill: Skill.History, label: 'History', icon: 'history' },
+    { skill: Skill.Insight, label: 'Insight', icon: 'insight' },
+    { skill: Skill.Intimidation, label: 'Intimidation', icon: 'intimidation' },
+    { skill: Skill.Investigation, label: 'Investigation', icon: 'investigation' },
+    { skill: Skill.Medicine, label: 'Medicine', icon: 'medicine' },
+    { skill: Skill.Nature, label: 'Nature', icon: 'nature' },
+    { skill: Skill.Perception, label: 'Perception', icon: 'perception' },
+    { skill: Skill.Performance, label: 'Performance', icon: 'performance' },
+    { skill: Skill.Persuasion, label: 'Persuasion', icon: 'persuasion' },
+    { skill: Skill.Religion, label: 'Religion', icon: 'religion' },
+    { skill: Skill.SleightOfHand, label: 'Sleight of Hand', icon: 'sleightOfHand' },
+    { skill: Skill.Stealth, label: 'Stealth', icon: 'stealth' },
+    { skill: Skill.Survival, label: 'Survival', icon: 'survival' },
+  ];
 
   protected openInvitePopup(): void {
     const campaignId = this.getCampaignId();
@@ -177,6 +276,58 @@ export class CampaignMembers {
       });
   }
 
+  protected openProficiencies(member: CampaignMemberInformationModel): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || !this.isMaster()) {
+      return;
+    }
+
+    void this.router.navigate([
+      '/campaigns',
+      campaignId,
+      'campaign-members',
+      member.userId,
+      'proficiencies',
+    ]);
+  }
+
+  protected handleProficienciesKeydown(
+    member: CampaignMemberInformationModel,
+    event: KeyboardEvent,
+  ): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    this.openProficiencies(member);
+  }
+
+  protected memberProficiencies(member: CampaignMemberInformationModel): MemberProficiencyIcon[] {
+    const halfProficientSkills = this.toSkillSet(member.halfProficientSkills);
+    const proficientSkills = this.toSkillSet(member.proficientSkills);
+    const expertiseSkills = this.toSkillSet(member.expertiseSkills);
+
+    return this.skillDefinitions
+      .map((definition): MemberProficiencyIcon | null => {
+        if (expertiseSkills.has(definition.skill)) {
+          return { ...definition, level: 'expertise', levelLabel: 'Expertise' };
+        }
+
+        if (proficientSkills.has(definition.skill)) {
+          return { ...definition, level: 'full', levelLabel: 'Proficient' };
+        }
+
+        if (halfProficientSkills.has(definition.skill)) {
+          return { ...definition, level: 'half', levelLabel: 'Half proficient' };
+        }
+
+        return null;
+      })
+      .filter((proficiency): proficiency is MemberProficiencyIcon => proficiency !== null);
+  }
+
   private getCampaignId(): string | null {
     return (
       this.route.parent?.snapshot.paramMap.get('campaignId') ??
@@ -219,5 +370,27 @@ export class CampaignMembers {
     const trimmedNickname = nickname.trim();
 
     return trimmedNickname ? trimmedNickname : null;
+  }
+
+  private toSkillSet(skills: SkillValue[] | null | undefined): ReadonlySet<Skill> {
+    return new Set(
+      (skills ?? [])
+        .map((skill) => this.toSkill(skill))
+        .filter((skill): skill is Skill => skill !== null),
+    );
+  }
+
+  private toSkill(skill: SkillValue): Skill | null {
+    if (typeof skill === 'number') {
+      return skill as Skill;
+    }
+
+    const parsedSkill = Number(skill);
+
+    if (Number.isFinite(parsedSkill)) {
+      return parsedSkill as Skill;
+    }
+
+    return Skill[skill as keyof typeof Skill] ?? null;
   }
 }

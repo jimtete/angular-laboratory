@@ -1,6 +1,7 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Character;
 using LearningLab.Data.Models.DTOs.Campaign;
 using LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
@@ -171,13 +172,57 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
 
         return new ServiceResult<CampaignMemberInformationResponse>(
             ApplicationStatusCode.Success,
-            new CampaignMemberInformationResponse
-            {
-                Username = participation.User.Username,
-                FirstName = participation.User.FirstName,
-                LastName = participation.User.LastName,
-                Nickname = participation.Nickname
-            });
+            ToMemberInformationResponse(participation));
+    }
+
+    public async Task<ServiceResult<CampaignMemberInformationResponse>> UpdateCampaignMemberSkillsAsync(
+        Guid userId,
+        Guid campaignId,
+        string username,
+        UpdateCampaignMemberSkillsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(username)
+            || !TryBuildSkillAdjustments(
+                request,
+                out var halfProficientSkills,
+                out var proficientSkills,
+                out var expertiseSkills))
+        {
+            return new ServiceResult<CampaignMemberInformationResponse>(
+                ApplicationStatusCode.InvalidCampaignMemberSkills);
+        }
+
+        var validationResult = await ValidateCampaignAccessAsync<CampaignMemberInformationResponse>(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationResult is not null)
+        {
+            return validationResult;
+        }
+
+        var participation = await _campaignParticipationInviteRepository.GetParticipationByUsernameAsync(
+            campaignId,
+            username.Trim(),
+            cancellationToken);
+
+        if (participation is null)
+        {
+            return new ServiceResult<CampaignMemberInformationResponse>(
+                ApplicationStatusCode.CampaignParticipantNotFound);
+        }
+
+        participation.HalfProficientSkills = halfProficientSkills;
+        participation.ProficientSkills = proficientSkills;
+        participation.ExpertiseSkills = expertiseSkills;
+
+        await _campaignParticipationInviteRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<CampaignMemberInformationResponse>(
+            ApplicationStatusCode.Success,
+            ToMemberInformationResponse(participation));
     }
 
     private async Task<ServiceResult<T>?> ValidateCampaignAccessAsync<T>(
@@ -244,6 +289,42 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
                 StringComparison.OrdinalIgnoreCase));
     }
 
+    private static bool TryBuildSkillAdjustments(
+        UpdateCampaignMemberSkillsRequest? request,
+        out List<Skill> halfProficientSkills,
+        out List<Skill> proficientSkills,
+        out List<Skill> expertiseSkills)
+    {
+        halfProficientSkills = [];
+        proficientSkills = [];
+        expertiseSkills = [];
+
+        if (request is null
+            || request.HalfProficientSkills is null
+            || request.ProficientSkills is null
+            || request.ExpertiseSkills is null)
+        {
+            return false;
+        }
+
+        halfProficientSkills = request.HalfProficientSkills.ToList();
+        proficientSkills = request.ProficientSkills.ToList();
+        expertiseSkills = request.ExpertiseSkills.ToList();
+
+        return AreValidSkillList(halfProficientSkills)
+            && AreValidSkillList(proficientSkills)
+            && AreValidSkillList(expertiseSkills)
+            && !halfProficientSkills.Intersect(proficientSkills).Any()
+            && !halfProficientSkills.Intersect(expertiseSkills).Any()
+            && !proficientSkills.Intersect(expertiseSkills).Any();
+    }
+
+    private static bool AreValidSkillList(IReadOnlyCollection<Skill> skills)
+    {
+        return skills.All(Enum.IsDefined)
+            && skills.Distinct().Count() == skills.Count;
+    }
+
     private static CampaignSettingsResponse ToResponse(CampaignSettings settings)
     {
         return new CampaignSettingsResponse
@@ -251,6 +332,22 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
             CampaignId = settings.CampaignId,
             MaxNumberOfPlayers = settings.MaxNumberOfPlayers,
             PassiveSkillsCheck = settings.PassiveSkillsCheck
+        };
+    }
+
+    private static CampaignMemberInformationResponse ToMemberInformationResponse(
+        PlayerCampaignParticipation participation)
+    {
+        return new CampaignMemberInformationResponse
+        {
+            UserId = participation.UserId,
+            Username = participation.User.Username,
+            FirstName = participation.User.FirstName,
+            LastName = participation.User.LastName,
+            Nickname = participation.Nickname,
+            HalfProficientSkills = participation.HalfProficientSkills,
+            ProficientSkills = participation.ProficientSkills,
+            ExpertiseSkills = participation.ExpertiseSkills
         };
     }
 }

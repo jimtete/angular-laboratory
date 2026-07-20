@@ -12,6 +12,7 @@ import {
   CampaignModel,
   CampaignPendingInviteModel,
   CampaignParticipationInviteModel,
+  CampaignQuestModel,
   CampaignSessionModel,
   CampaignSettingsModel,
   CampaignUsernamesModel,
@@ -19,7 +20,9 @@ import {
   CreateCampaignRequest,
   CreateAssetFolderRequest,
   CreateItemAssetRequest,
+  CreateCampaignQuestRequest,
   UpdateCampaignMemberNicknameRequest,
+  UpdateCampaignMemberSkillsRequest,
   UpdateCampaignSettingsRequest,
   UpdateItemAssetRequest,
 } from '../models';
@@ -156,6 +159,24 @@ export class CampaignApiService {
     );
   }
 
+  fetchCampaignQuests(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignQuestModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignQuestModel[]>>(
+      `/api/campaigns/${campaignId}/content/quests`,
+    );
+  }
+
+  createCampaignQuest(
+    campaignId: string,
+    request: CreateCampaignQuestRequest,
+  ): Observable<ApiResponse<CampaignQuestModel>> {
+    return this.apiClient.post<
+      ApiResponse<CampaignQuestModel>,
+      CreateCampaignQuestRequest
+    >(`/api/campaigns/${campaignId}/content/quests`, request);
+  }
+
   fetchAssets(parentAssetId: number | null = null): Observable<ApiResponse<AssetModel[]>> {
     return this.apiClient.get<ApiResponse<AssetModel[]>>(
       '/api/assets',
@@ -219,6 +240,20 @@ export class CampaignApiService {
       UpdateCampaignMemberNicknameRequest
     >(
       `/api/campaigns/${campaignId}/settings/members/${encodeURIComponent(username)}/nickname`,
+      request,
+    );
+  }
+
+  updateCampaignMemberSkills(
+    campaignId: string,
+    username: string,
+    request: UpdateCampaignMemberSkillsRequest,
+  ): Observable<ApiResponse<CampaignMemberInformationModel>> {
+    return this.apiClient.put<
+      ApiResponse<CampaignMemberInformationModel>,
+      UpdateCampaignMemberSkillsRequest
+    >(
+      `/api/campaigns/${campaignId}/users/${encodeURIComponent(username)}/skills`,
       request,
     );
   }

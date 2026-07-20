@@ -24,6 +24,7 @@ public sealed class SessionNoteRepository : ISessionNoteRepository
         return await _context.SessionNotes
             .AsNoTracking()
             .Include(note => note.Choices)
+            .Include(note => note.MechanicsChanges)
             .Where(note => sessionIds.Contains(note.SessionId))
             .OrderBy(note => note.SessionId)
             .ThenBy(note => note.Order)
@@ -38,6 +39,7 @@ public sealed class SessionNoteRepository : ISessionNoteRepository
         return await _context.SessionNotes
             .AsNoTracking()
             .Include(note => note.Choices)
+            .Include(note => note.MechanicsChanges)
             .Where(note => note.SessionId == sessionId)
             .OrderBy(note => note.Order)
             .ThenBy(note => note.Id)
@@ -51,6 +53,7 @@ public sealed class SessionNoteRepository : ISessionNoteRepository
     {
         return _context.SessionNotes
             .Include(note => note.Choices)
+            .Include(note => note.MechanicsChanges)
             .SingleOrDefaultAsync(
                 note => note.SessionId == sessionId
                     && note.Id == noteId,

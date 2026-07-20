@@ -45,6 +45,318 @@
   box-sizing: border-box;
 }
 
+.campaign-quests-page {
+  position: relative;
+  min-height: calc(100dvh - 7.25rem);
+  height: calc(100dvh - 7.25rem);
+  display: grid;
+  align-items: center;
+  justify-items: stretch;
+  padding: 2rem 5rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.campaign-quest-carousel-viewport {
+  width: 100%;
+  height: min(calc(100dvh - 11.25rem), 52rem);
+  min-height: 18rem;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.campaign-quest-card {
+  flex: 0 0 auto;
+  width: min(calc((100dvh - 11.25rem) / 2), 26rem);
+  height: 100%;
+  aspect-ratio: 1 / 2;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.85rem;
+  padding: 1.4rem;
+  border: 3px double #0891b2;
+  outline: 4px solid var(--qt, transparent);
+  border-radius: 0;
+  background: #fffdf4;
+  color: #164e63;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 1rem 2rem rgba(8, 145, 178, 0.16);
+  box-sizing: border-box;
+  overflow: hidden;
+  justify-items: center;
+  text-align: center;
+}
+
+.campaign-quest-card-header {
+  width: 100%;
+  display: grid;
+  gap: 0.55rem;
+  align-items: center;
+  justify-items: center;
+  border-bottom: 1px solid rgba(8, 145, 178, 0.28);
+  padding-bottom: 0.85rem;
+}
+
+.campaign-quest-card h2 {
+  margin: 0;
+  color: #083344;
+  font: 900 clamp(2rem, 4vw, 3.6rem)/0.9 'Cotemporary', Arial, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.campaign-quest-card-header p,
+.campaign-quest-meta {
+  margin: 0;
+  color: #164e63;
+  font: 700 0.98rem/1.35 Palatino, Georgia, serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.campaign-quest-meta {
+  width: 100%;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(8, 145, 178, 0.2);
+  color: #0e7490;
+  font-size: 0.9rem;
+}
+
+.campaign-quest-task-scroll {
+  width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.6rem;
+  scrollbar-color: #06b6d4 rgba(207, 250, 254, 0.65);
+}
+
+.campaign-quest-task-list {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style-position: inside;
+  color: #164e63;
+  font: 700 clamp(1rem, 1.35vw, 1.45rem)/1.35 Palatino, Georgia, serif;
+}
+
+.campaign-quest-task-list li {
+  padding-left: 0.25rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.campaign-quest-task-list strong,
+.campaign-quest-task-list span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.campaign-quest-task-list strong {
+  color: #083344;
+}
+
+.campaign-quest-task-list span {
+  margin-top: 0.25rem;
+  color: #164e63;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.campaign-quest-add-card {
+  justify-items: center;
+  align-items: center;
+  grid-template-rows: auto auto;
+  align-content: center;
+  gap: 1rem;
+  border-style: dashed;
+  background: #fffdf4;
+  cursor: pointer;
+}
+
+.campaign-quest-add-card span {
+  width: min(5rem, 52%);
+  aspect-ratio: 1;
+  height: auto;
+  display: grid;
+  place-items: center;
+  border: 2px solid #0891b2;
+  border-radius: 50%;
+  color: #0e7490;
+  font: 700 4rem/1 'Cotemporary', Arial, sans-serif;
+}
+
+.campaign-quest-add-card strong {
+  color: #083344;
+  font: 900 clamp(2rem, 4vw, 3.4rem)/0.95 'Cotemporary', Arial, sans-serif;
+  text-align: center;
+}
+
+.campaign-quest-carousel-button {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #0891b2;
+  border-radius: 50%;
+  background: #ecfeff;
+  color: #083344;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.campaign-quest-carousel-button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.campaign-quest-carousel-button:hover:not(:disabled),
+.campaign-quest-carousel-button:focus-visible:not(:disabled) {
+  background: #cffafe;
+  outline: 2px solid rgba(6, 182, 212, 0.34);
+  outline-offset: 2px;
+}
+
+.campaign-quest-carousel-previous {
+  left: 1.25rem;
+}
+
+.campaign-quest-carousel-next {
+  right: 1.25rem;
+}
+
+.campaign-quest-arrow {
+  width: 0;
+  height: 0;
+}
+
+.campaign-quest-arrow-left {
+  margin-right: 0.15rem;
+  border-top: 0.45rem solid transparent;
+  border-bottom: 0.45rem solid transparent;
+  border-right: 0.7rem solid #083344;
+}
+
+.campaign-quest-arrow-right {
+  margin-left: 0.15rem;
+  border-top: 0.45rem solid transparent;
+  border-bottom: 0.45rem solid transparent;
+  border-left: 0.7rem solid #083344;
+}
+
+.campaign-quest-dialog {
+  width: min(100%, 72rem);
+  max-height: calc(100dvh - 2rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 2px solid #0891b2;
+  border-radius: 8px;
+  background: #f8feff;
+  box-shadow: 0 1rem 2rem rgba(8, 145, 178, 0.22);
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.campaign-quest-step-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.campaign-quest-step-tabs button {
+  min-height: 2.75rem;
+  border: 2px solid rgba(8, 145, 178, 0.42);
+  background: #ffffff;
+  color: #164e63;
+  font: 900 0.92rem/1 Arial, sans-serif;
+}
+
+.campaign-quest-step-tabs .campaign-quest-step-active {
+  border-color: #0891b2;
+  background: #ecfeff;
+  color: #083344;
+}
+
+.campaign-quest-details-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: start;
+}
+
+.campaign-quest-details-step .campaign-milestone-description-field {
+  grid-column: 1 / -1;
+}
+
+.campaign-quest-task-fields {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.campaign-quest-task-fields-horizontal {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  min-height: 25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.65rem;
+  scrollbar-color: #06b6d4 rgba(207, 250, 254, 0.65);
+}
+
+.campaign-quest-task-field {
+  flex: 0 0 min(26rem, 78vw);
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid rgba(8, 145, 178, 0.28);
+  background: rgba(236, 254, 255, 0.45);
+  box-sizing: border-box;
+}
+
+.campaign-quest-task-field textarea {
+  min-height: 15rem;
+}
+
+.campaign-quest-task-remove {
+  position: absolute;
+  top: 1.45rem;
+  right: 0.45rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #64748b;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.campaign-quest-task-add {
+  flex: 0 0 min(12rem, 45vw);
+  min-height: 100%;
+  border: 2px dashed #0891b2;
+  border-radius: 8px;
+  background: #ecfeff;
+  color: #0e7490;
+  font: 700 2.25rem/1 'Cotemporary', Arial, sans-serif;
+  cursor: pointer;
+}
+
 .campaign-milestone-create-button {
   position: absolute;
   top: 4.25rem;
@@ -336,4 +648,48 @@
 .campaign-milestone-dialog-actions button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .campaign-quests-page {
+    height: auto;
+    min-height: calc(100dvh - 7.25rem);
+    padding: 5rem 1rem;
+  }
+
+  .campaign-quest-carousel-viewport {
+    width: 100%;
+    height: auto;
+  }
+
+  .campaign-quest-card {
+    min-height: 24rem;
+    aspect-ratio: auto;
+  }
+
+  .campaign-quest-details-step {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-quest-task-fields-horizontal {
+    min-height: 24rem;
+  }
+
+  .campaign-quest-task-field {
+    flex-basis: min(22rem, 84vw);
+  }
+
+  .campaign-quest-carousel-button {
+    top: auto;
+    bottom: 1rem;
+    transform: none;
+  }
+
+  .campaign-quest-carousel-previous {
+    left: calc(50% - 4rem);
+  }
+
+  .campaign-quest-carousel-next {
+    right: calc(50% - 4rem);
+  }
 }

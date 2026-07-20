@@ -28,6 +28,64 @@
   text-align: left;
 }
 
+.campaign-members-proficiencies-cell {
+  min-width: 16rem;
+}
+
+.campaign-members-proficiencies-editable {
+  cursor: pointer;
+}
+
+.campaign-members-proficiencies-editable:hover {
+  background: rgba(14, 116, 144, 0.06);
+}
+
+.campaign-members-proficiencies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.campaign-members-proficiency-icon {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(14, 116, 144, 0.26);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0e7490;
+}
+
+.campaign-members-proficiency-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 2.35;
+}
+
+.campaign-members-proficiency-half {
+  opacity: 0.5;
+}
+
+.campaign-members-proficiency-full {
+  opacity: 1;
+}
+
+.campaign-members-proficiency-expertise {
+  border-color: #d97706;
+  color: #92400e;
+  box-shadow:
+    0 0 0 2px rgba(245, 158, 11, 0.24),
+    0 0 0.75rem rgba(245, 158, 11, 0.38);
+  opacity: 1;
+}
+
+.campaign-members-proficiencies-empty {
+  color: rgba(31, 18, 53, 0.5);
+  font-weight: 700;
+}
+
 .campaign-members-nickname-cell {
   display: grid;
   grid-template-columns: minmax(10rem, 1fr) 4.85rem;

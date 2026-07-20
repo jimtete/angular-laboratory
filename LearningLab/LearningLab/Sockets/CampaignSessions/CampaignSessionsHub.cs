@@ -21,10 +21,12 @@ public sealed class CampaignSessionsHub : Hub
     private const string CreateItemFoundNoteOperation = "CreateItemFoundSessionNote";
     private const string CreateImportantChoiceNoteOperation = "CreateImportantChoiceSessionNote";
     private const string CreateCampaignMilestoneNoteOperation = "CreateCampaignMilestoneSessionNote";
+    private const string CreateLevelUpOrMechanicsChangeNoteOperation = "CreateLevelUpOrMechanicsChangeSessionNote";
     private const string AchieveCampaignMilestoneOperation = "AchieveCampaignMilestone";
     private const string UpdateSessionNoteOperation = "UpdateSessionNote";
     private const string UpdateImportantChoiceNoteOperation = "UpdateImportantChoiceSessionNote";
     private const string UpdateCampaignMilestoneNoteOperation = "UpdateCampaignMilestoneSessionNote";
+    private const string UpdateLevelUpOrMechanicsChangeNoteOperation = "UpdateLevelUpOrMechanicsChangeSessionNote";
     private const string DeleteSessionNoteOperation = "DeleteSessionNote";
 
     private readonly ICampaignSessionService _campaignSessionService;
@@ -620,6 +622,55 @@ public sealed class CampaignSessionsHub : Hub
             cancellationToken);
     }
 
+    public async Task<CampaignSessionResponse> CreateLevelUpOrMechanicsChangeSessionNote(
+        Guid campaignId,
+        int sessionId,
+        CreateLevelUpOrMechanicsChangeSessionNoteRequest request)
+    {
+        var cancellationToken = Context.ConnectionAborted;
+        var userId = await GetUserIdOrAbortAsync(
+            CreateLevelUpOrMechanicsChangeNoteOperation,
+            campaignId,
+            cancellationToken);
+
+        if (userId is null)
+        {
+            throw new HubException("The access token does not contain a valid user identifier.");
+        }
+
+        ServiceResult<CampaignSessionResponse> result;
+
+        try
+        {
+            result = await _campaignSessionService.CreateLevelUpOrMechanicsChangeSessionNoteAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                request,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            await HandleUnexpectedUpdateExceptionAsync(
+                CreateLevelUpOrMechanicsChangeNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                exception,
+                cancellationToken);
+
+            throw new HubException("An unexpected error occurred while creating the level up or mechanics change note.");
+        }
+
+        return await HandleCampaignSessionUpdateResultAsync(
+            CreateLevelUpOrMechanicsChangeNoteOperation,
+            campaignId,
+            sessionId,
+            userId.Value,
+            result,
+            cancellationToken);
+    }
+
     public async Task<CampaignSessionResponse> UpdateSessionNote(
         Guid campaignId,
         int sessionId,
@@ -773,6 +824,57 @@ public sealed class CampaignSessionsHub : Hub
             cancellationToken);
     }
 
+    public async Task<CampaignSessionResponse> UpdateLevelUpOrMechanicsChangeSessionNote(
+        Guid campaignId,
+        int sessionId,
+        int noteId,
+        UpdateLevelUpOrMechanicsChangeSessionNoteRequest request)
+    {
+        var cancellationToken = Context.ConnectionAborted;
+        var userId = await GetUserIdOrAbortAsync(
+            UpdateLevelUpOrMechanicsChangeNoteOperation,
+            campaignId,
+            cancellationToken);
+
+        if (userId is null)
+        {
+            throw new HubException("The access token does not contain a valid user identifier.");
+        }
+
+        ServiceResult<CampaignSessionResponse> result;
+
+        try
+        {
+            result = await _campaignSessionService.UpdateLevelUpOrMechanicsChangeSessionNoteAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                noteId,
+                request,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            await HandleUnexpectedUpdateExceptionAsync(
+                UpdateLevelUpOrMechanicsChangeNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                exception,
+                cancellationToken);
+
+            throw new HubException("An unexpected error occurred while updating the level up or mechanics change note.");
+        }
+
+        return await HandleCampaignSessionUpdateResultAsync(
+            UpdateLevelUpOrMechanicsChangeNoteOperation,
+            campaignId,
+            sessionId,
+            userId.Value,
+            result,
+            cancellationToken);
+    }
+
     public async Task<CampaignSessionResponse> DeleteSessionNote(
         Guid campaignId,
         int sessionId,
@@ -832,6 +934,7 @@ public sealed class CampaignSessionsHub : Hub
             ApplicationStatusCode.CampaignSessionNotFound => "Campaign session was not found.",
             ApplicationStatusCode.InvalidSessionNote => "Session note is invalid.",
             ApplicationStatusCode.SessionNoteNotFound => "Session note was not found.",
+            ApplicationStatusCode.CampaignParticipantNotFound => "Campaign participant was not found.",
             ApplicationStatusCode.InvalidCampaignMilestone => "Campaign milestone is invalid.",
             ApplicationStatusCode.CampaignMilestoneNotFound => "Campaign milestone was not found.",
             ApplicationStatusCode.CampaignMasterRoleRequired => "Only users with the Master role can view campaign sessions.",
