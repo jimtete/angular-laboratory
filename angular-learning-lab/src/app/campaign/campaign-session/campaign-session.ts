@@ -1,6 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { LucideCalendarDays, LucidePackage } from '@lucide/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { LucideArrowLeft, LucideCalendarDays, LucidePackage } from '@lucide/angular';
 import { finalize } from 'rxjs';
 
 import {
@@ -13,6 +13,8 @@ import {
   CampaignMilestoneModel,
   CampaignSessionModel,
   CampaignSessionSocketService,
+  getCampaignMilestoneImportanceLabel,
+  getCampaignMilestoneImportanceSlug,
   ImportantChoiceSessionNoteRequest,
   LevelUpOrMechanicsChangeSessionNoteRequest,
   PendingChangesComponent,
@@ -43,12 +45,13 @@ interface MechanicsChangeDraft {
 
 @Component({
   selector: 'app-campaign-session',
-  imports: [LucideCalendarDays, LucidePackage],
+  imports: [LucideArrowLeft, LucideCalendarDays, LucidePackage],
   templateUrl: './campaign-session.html',
   styleUrl: './campaign-session.css',
 })
 export class CampaignSession implements OnInit, OnDestroy, PendingChangesComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly campaignApiService = inject(CampaignApiService);
   private readonly campaignSessionSocket = inject(CampaignSessionSocketService);
   private readonly modalHelper = inject(ModalHelper);
@@ -88,6 +91,9 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
     return Number.isInteger(sessionNumber) && sessionNumber > 0 ? sessionNumber : null;
   });
+  protected readonly campaignId = computed(() => (
+    this.route.parent?.snapshot.paramMap.get('campaignId') ?? null
+  ));
   protected readonly session = computed(() => {
     const sessionNumber = this.sessionNumber();
 
@@ -230,6 +236,16 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   @HostListener('document:keydown.escape')
   protected closeNoteContextMenuWithEscape(): void {
     this.noteContextMenu.set(null);
+  }
+
+  protected goToSessionsPage(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId) {
+      return;
+    }
+
+    void this.router.navigate(['/campaigns', campaignId, 'campaign-sessions']);
   }
 
   protected openDatePicker(): void {
@@ -402,6 +418,14 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected selectCampaignMilestone(milestone: CampaignMilestoneModel): void {
     this.selectedMilestoneId.set(milestone.id);
     this.noteDraft.set(milestone.title);
+  }
+
+  protected milestoneImportanceLabel(milestone: CampaignMilestoneModel): string {
+    return getCampaignMilestoneImportanceLabel(milestone.importance);
+  }
+
+  protected campaignMilestoneImportanceClass(milestone: CampaignMilestoneModel): string {
+    return `campaign-milestone-importance-${getCampaignMilestoneImportanceSlug(milestone.importance)}`;
   }
 
   protected selectItemFoundAsset(item: AssetModel): void {

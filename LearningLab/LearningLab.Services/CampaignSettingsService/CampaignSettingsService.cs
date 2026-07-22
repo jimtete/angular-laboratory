@@ -187,7 +187,9 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
                 request,
                 out var halfProficientSkills,
                 out var proficientSkills,
-                out var expertiseSkills))
+                out var expertiseSkills,
+                out var abilityValues,
+                out var skillValues))
         {
             return new ServiceResult<CampaignMemberInformationResponse>(
                 ApplicationStatusCode.InvalidCampaignMemberSkills);
@@ -217,6 +219,8 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
         participation.HalfProficientSkills = halfProficientSkills;
         participation.ProficientSkills = proficientSkills;
         participation.ExpertiseSkills = expertiseSkills;
+        participation.AbilityValues = abilityValues;
+        participation.SkillValues = skillValues;
 
         await _campaignParticipationInviteRepository.SaveChangesAsync(cancellationToken);
 
@@ -293,16 +297,24 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
         UpdateCampaignMemberSkillsRequest? request,
         out List<Skill> halfProficientSkills,
         out List<Skill> proficientSkills,
-        out List<Skill> expertiseSkills)
+        out List<Skill> expertiseSkills,
+        out List<PlayerCampaignParticipationAbilityValue> abilityValues,
+        out List<PlayerCampaignParticipationSkillValue> skillValues)
     {
         halfProficientSkills = [];
         proficientSkills = [];
         expertiseSkills = [];
+        abilityValues = [];
+        skillValues = [];
 
         if (request is null
             || request.HalfProficientSkills is null
             || request.ProficientSkills is null
-            || request.ExpertiseSkills is null)
+            || request.ExpertiseSkills is null
+            || request.AbilityValues is null
+            || request.SkillValues is null
+            || request.AbilityValues.Any(item => item is null)
+            || request.SkillValues.Any(item => item is null))
         {
             return false;
         }
@@ -310,10 +322,26 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
         halfProficientSkills = request.HalfProficientSkills.ToList();
         proficientSkills = request.ProficientSkills.ToList();
         expertiseSkills = request.ExpertiseSkills.ToList();
+        abilityValues = request.AbilityValues
+            .Select(item => new PlayerCampaignParticipationAbilityValue
+            {
+                Ability = item.Ability,
+                Value = item.Value
+            })
+            .ToList();
+        skillValues = request.SkillValues
+            .Select(item => new PlayerCampaignParticipationSkillValue
+            {
+                Skill = item.Skill,
+                Value = item.Value
+            })
+            .ToList();
 
         return AreValidSkillList(halfProficientSkills)
             && AreValidSkillList(proficientSkills)
             && AreValidSkillList(expertiseSkills)
+            && AreValidAbilityValueList(abilityValues)
+            && AreValidSkillValueList(skillValues)
             && !halfProficientSkills.Intersect(proficientSkills).Any()
             && !halfProficientSkills.Intersect(expertiseSkills).Any()
             && !proficientSkills.Intersect(expertiseSkills).Any();
@@ -323,6 +351,26 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
     {
         return skills.All(Enum.IsDefined)
             && skills.Distinct().Count() == skills.Count;
+    }
+
+    private static bool AreValidAbilityValueList(
+        IReadOnlyCollection<PlayerCampaignParticipationAbilityValue> abilityValues)
+    {
+        return abilityValues.All(value => Enum.IsDefined(value.Ability))
+            && abilityValues
+                .Select(value => value.Ability)
+                .Distinct()
+                .Count() == abilityValues.Count;
+    }
+
+    private static bool AreValidSkillValueList(
+        IReadOnlyCollection<PlayerCampaignParticipationSkillValue> skillValues)
+    {
+        return skillValues.All(value => Enum.IsDefined(value.Skill))
+            && skillValues
+                .Select(value => value.Skill)
+                .Distinct()
+                .Count() == skillValues.Count;
     }
 
     private static CampaignSettingsResponse ToResponse(CampaignSettings settings)
@@ -347,7 +395,33 @@ public sealed class CampaignSettingsService : ICampaignSettingsService
             Nickname = participation.Nickname,
             HalfProficientSkills = participation.HalfProficientSkills,
             ProficientSkills = participation.ProficientSkills,
-            ExpertiseSkills = participation.ExpertiseSkills
+            ExpertiseSkills = participation.ExpertiseSkills,
+            AbilityValues = participation.AbilityValues
+                .Select(ToResponse)
+                .ToList(),
+            SkillValues = participation.SkillValues
+                .Select(ToResponse)
+                .ToList()
+        };
+    }
+
+    private static CampaignMemberAbilityValueResponse ToResponse(
+        PlayerCampaignParticipationAbilityValue abilityValue)
+    {
+        return new CampaignMemberAbilityValueResponse
+        {
+            Ability = abilityValue.Ability,
+            Value = abilityValue.Value
+        };
+    }
+
+    private static CampaignMemberSkillValueResponse ToResponse(
+        PlayerCampaignParticipationSkillValue skillValue)
+    {
+        return new CampaignMemberSkillValueResponse
+        {
+            Skill = skillValue.Skill,
+            Value = skillValue.Value
         };
     }
 }

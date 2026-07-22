@@ -12,6 +12,10 @@ public interface ICampaignMilestoneRepository
         Guid campaignId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<CampaignMilestone>> ListUnlinkedByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
     Task<CampaignMilestone?> GetByCampaignIdAndMilestoneIdAsync(
         Guid campaignId,
         int milestoneId,

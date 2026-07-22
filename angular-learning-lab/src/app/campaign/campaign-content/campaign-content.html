@@ -26,7 +26,790 @@
     >
       Quests
     </button>
+
+    <button
+      type="button"
+      class="campaign-content-tab"
+      [class.campaign-content-tab-active]="selectedTab() === 'roleplaying-npcs'"
+      (click)="selectTab('roleplaying-npcs')"
+    >
+      Roleplaying NPCs
+    </button>
+
+    <button
+      type="button"
+      class="campaign-content-tab"
+      [class.campaign-content-tab-active]="selectedTab() === 'combat-npcs'"
+      (click)="selectTab('combat-npcs')"
+    >
+      Combat Npcs
+    </button>
   </nav>
+
+  @if (selectedTab() === 'main-story') {
+    <section class="main-story-page" aria-label="Main story">
+      <section class="main-story-column story-block-column" aria-labelledby="story-block-column-title">
+        <header class="main-story-column-header">
+          <div>
+            <p>Story Blocks</p>
+            <h2 id="story-block-column-title">Main Arc</h2>
+          </div>
+
+          <span>{{ storyBlocks().length }}</span>
+        </header>
+
+        <div class="story-block-list" aria-label="Story blocks">
+          @if (isLoadingStoryContent()) {
+            <p class="main-story-empty">Loading story blocks...</p>
+          } @else {
+            @for (storyBlock of storyBlocks(); track storyBlock.storyBlockId) {
+              <article
+                class="story-block-card"
+                [class.story-block-card-selected]="isSelectedStoryBlock(storyBlock)"
+              >
+                <button
+                  type="button"
+                  class="story-block-select-button"
+                  [attr.aria-label]="'Select ' + storyBlockTitle(storyBlock)"
+                  [attr.aria-pressed]="isSelectedStoryBlock(storyBlock)"
+                  (click)="selectStoryBlock(storyBlock)"
+                >
+                  <span class="story-block-order">Block {{ storyBlock.displayIndex }}</span>
+                  <h3>{{ storyBlockTitle(storyBlock) }}</h3>
+                  <p>{{ storyBlockSummary(storyBlock) }}</p>
+                  <span class="story-block-beat-count">
+                    {{ storyBlock.beats.length }} {{ storyBlock.beats.length === 1 ? 'beat' : 'beats' }}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="story-block-edit-button"
+                  [attr.aria-label]="'Edit ' + storyBlockTitle(storyBlock)"
+                  title="Edit story block"
+                  (click)="openEditStoryBlockDialog(storyBlock)"
+                >
+                  <svg lucidePencil aria-hidden="true"></svg>
+                </button>
+
+                <button
+                  type="button"
+                  class="story-block-delete-button"
+                  [attr.aria-label]="'Delete ' + storyBlockTitle(storyBlock)"
+                  title="Delete story block"
+                  [disabled]="deletingStoryBlockId() !== null"
+                  (click)="confirmDeleteStoryBlock(storyBlock)"
+                >
+                  <svg lucideTrash2 aria-hidden="true"></svg>
+                </button>
+              </article>
+            } @empty {
+              <p class="main-story-empty">No story blocks yet.</p>
+            }
+          }
+
+          <button
+            type="button"
+            class="story-block-add-placeholder"
+            aria-label="Add new story block"
+            (click)="openCreateStoryBlockDialog()"
+          >
+            <svg lucidePlus aria-hidden="true"></svg>
+            <strong>Add Story Block</strong>
+          </button>
+        </div>
+      </section>
+
+      <section
+        class="main-story-column story-beat-column"
+        [class.story-beat-column-empty]="!selectedStoryBlock()"
+        aria-label="Story beats"
+      >
+        @if (selectedStoryBlock(); as storyBlock) {
+          <header class="main-story-column-header">
+            <div>
+              <p>Story Beats</p>
+              <h2 id="story-beat-column-title">{{ storyBlockTitle(storyBlock) }}</h2>
+            </div>
+          </header>
+
+          <div class="story-beat-groups" [attr.aria-label]="storyBlockTitle(storyBlock) + ' story beats'">
+            <section class="story-beat-group">
+              <header class="story-beat-group-header">
+                <span>Block {{ storyBlock.displayIndex }}</span>
+                <h3>{{ storyBlockTitle(storyBlock) }}</h3>
+              </header>
+
+              <div class="story-beat-list">
+                @for (storyBeat of storyBlock.beats; track storyBeat.storyBeatId) {
+                  <article [class]="'story-beat-card ' + storyBeatTypeClass(storyBeat) + ' ' + storyBeatMilestoneImportanceClass(storyBeat)">
+                    <header class="story-beat-card-header">
+                      <span class="story-beat-type">{{ storyBeatTypeLabel(storyBeat) }}</span>
+                      <h4>{{ storyBeatTitle(storyBeat) }}</h4>
+                    </header>
+
+                    <div class="story-beat-card-body">
+                      @if (isMilestoneStoryBeat(storyBeat)) {
+                        <div class="story-beat-linked-milestone">
+                          @if (storyBeat.milestone; as milestone) {
+                            <span [class]="'story-beat-linked-milestone-importance ' + campaignMilestoneImportanceClass(milestone)">
+                              {{ milestoneImportanceLabel(milestone) }}
+                            </span>
+                            <strong>{{ milestone.title }}</strong>
+                            <p>{{ milestone.description || 'No description.' }}</p>
+                          } @else {
+                            <p>No linked milestone.</p>
+                          }
+                        </div>
+                      } @else if (isNarrativeStoryBeat(storyBeat)) {
+                        <div class="story-beat-narrative-paragraphs">
+                          @for (paragraph of storyBeatNarrativeParagraphs(storyBeat); track $index) {
+                            <p>{{ paragraph }}</p>
+                          } @empty {
+                            <p>No narrative yet.</p>
+                          }
+                        </div>
+                      } @else if (isRoleplayingStoryBeat(storyBeat)) {
+                        <div class="story-beat-roleplaying-text">
+                          @for (part of storyBeatRoleplayingPreviewPartsFor(storyBeat); track $index) {
+                            @if (part.className) {
+                              <span [class]="part.className">{{ part.text }}</span>
+                            } @else {
+                              <span>{{ part.text }}</span>
+                            }
+                          }
+                        </div>
+                      } @else if (isDecisionStoryBeat(storyBeat)) {
+                        <div class="story-beat-decision">
+                          <p class="story-beat-decision-description">
+                            {{ storyBeatNarrative(storyBeat) }}
+                          </p>
+
+                          <div class="story-beat-decision-choice-grid" aria-label="Decision choices">
+                            @for (choice of storyBeatDecisionChoices(storyBeat); track choice.draftId) {
+                              <section class="story-beat-decision-choice">
+                                <strong>{{ choice.title }}</strong>
+                                <p>{{ choice.description }}</p>
+                              </section>
+                            }
+                          </div>
+                        </div>
+                      } @else {
+                        <p class="story-beat-narrative">
+                          @for (part of storyBeatPreviewParts(storyBeat); track $index) {
+                            @if (part.className) {
+                              <span [class]="'story-skill-token ' + part.className">{{ part.text }}</span>
+                            } @else {
+                              <span>{{ part.text }}</span>
+                            }
+                          }
+                        </p>
+                      }
+
+                      @if (isInformationStoryBeat(storyBeat) && appendedStoryBeatInformation(storyBeat).length > 0) {
+                        <div class="story-beat-appended-list" aria-label="Appended information">
+                          @for (information of appendedStoryBeatInformation(storyBeat); track $index) {
+                            <div class="story-beat-appended-item">
+                              <span [class]="'story-skill-token ' + optionalInformationTokenClass(information)">
+                                {{ optionalInformationSkillLabel(information) }}-{{ information.difficultyClass }}
+                              </span>
+                              <p>{{ information.information }}</p>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      @if (isRoleplayingStoryBeat(storyBeat) && roleplayingStoryBeatInformation(storyBeat).length > 0) {
+                        <div class="story-beat-roleplaying-information-list" aria-label="Discoverable information">
+                          @for (information of roleplayingStoryBeatInformation(storyBeat); track $index) {
+                            <div class="story-beat-roleplaying-information-item">
+                              <span>{{ roleplayingInformationNpcLabel(storyBeat, information) }}</span>
+                              <strong>{{ roleplayingInformationCheckLabel(information) }}</strong>
+                              <p>{{ information.information }}</p>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div class="story-beat-card-actions">
+                      <button
+                        type="button"
+                        class="story-beat-card-action"
+                        [attr.aria-label]="'Edit ' + storyBeatTitle(storyBeat)"
+                        title="Edit story beat"
+                        (click)="openEditStoryBeatDialog(storyBlock, storyBeat)"
+                      >
+                        <svg lucidePencil aria-hidden="true"></svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="story-beat-card-action story-beat-card-delete"
+                        [attr.aria-label]="'Delete ' + storyBeatTitle(storyBeat)"
+                        title="Delete story beat"
+                        [disabled]="deletingStoryBeatId() !== null"
+                        (click)="confirmDeleteStoryBeat(storyBlock, storyBeat)"
+                      >
+                        <svg lucideTrash2 aria-hidden="true"></svg>
+                      </button>
+                    </div>
+                  </article>
+                } @empty {
+                  <p class="main-story-empty">No story beats in this block yet.</p>
+                }
+
+                <button
+                  type="button"
+                  class="story-beat-add-placeholder"
+                  [attr.aria-label]="'Add story beat to ' + storyBlockTitle(storyBlock)"
+                  [disabled]="creatingStoryBeatBlockId() !== null"
+                  (click)="openCreateStoryBeatDialog(storyBlock)"
+                >
+                  <svg lucidePlus aria-hidden="true"></svg>
+                  <strong>Add Story Beat</strong>
+                </button>
+              </div>
+            </section>
+          </div>
+        }
+      </section>
+    </section>
+  }
+
+  @if (isCreateStoryBlockDialogOpen()) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="story-block-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="storyBlockDialogTitle()"
+      >
+        <h2>{{ storyBlockDialogTitle() }}</h2>
+
+        <label class="campaign-milestone-field">
+          <span>Title</span>
+          <input
+            type="text"
+            maxlength="256"
+            [value]="storyBlockTitleDraft()"
+            (input)="setStoryBlockTitleDraft($event)"
+          />
+        </label>
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="isCreatingStoryBlock()"
+            (click)="closeCreateStoryBlockDialog()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="campaign-milestone-create"
+            [disabled]="!canCreateStoryBlock()"
+            (click)="saveStoryBlockTitle()"
+          >
+            {{ storyBlockDialogActionText() }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (isCreateStoryBeatDialogOpen()) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="story-beat-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="storyBeatDialogTitle()"
+      >
+        <header class="story-beat-dialog-header">
+          <h2>{{ storyBeatDialogTitle() }}</h2>
+
+          @if (storyBeatDialogBlock(); as storyBlock) {
+            <span>{{ storyBlockTitle(storyBlock) }}</span>
+          }
+        </header>
+
+        <label class="campaign-milestone-field">
+          <span>Title</span>
+          <input
+            type="text"
+            maxlength="256"
+            [value]="storyBeatTitleDraft()"
+            (input)="setStoryBeatTitleDraft($event)"
+          />
+        </label>
+
+        <label class="campaign-milestone-field">
+          <span>Type</span>
+          <select
+            [value]="storyBeatTypeDraftValue()"
+            [disabled]="editingStoryBeat() !== null"
+            (change)="setStoryBeatTypeDraft($event)"
+          >
+            @for (option of storyBeatTypeOptions; track option.value) {
+              <option [value]="option.value.toString()" [disabled]="option.disabled">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+        </label>
+
+        @if (isInformationStoryBeatDraft()) {
+          <label class="campaign-milestone-field story-beat-main-text-field">
+            <span>Main Text</span>
+            <textarea
+              [value]="storyBeatNarrativeDraft()"
+              (input)="setStoryBeatNarrativeDraft($event)"
+            ></textarea>
+          </label>
+
+          @if (storyBeatSkillSuggestions().length > 0) {
+            <div class="story-beat-skill-suggestions" aria-label="Skill suggestions">
+              @for (option of storyBeatSkillSuggestions(); track option.skill) {
+                <button
+                  type="button"
+                  [class]="option.className"
+                  (click)="selectInlineSkillSuggestion(option.skill)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          }
+
+          <div class="story-beat-narrative-preview" aria-label="Main text preview">
+            @for (part of storyBeatNarrativePreviewParts(); track $index) {
+              @if (part.className) {
+                <span [class]="'story-skill-token ' + part.className">{{ part.text }}</span>
+              } @else {
+                <span>{{ part.text }}</span>
+              }
+            }
+          </div>
+
+          <section class="story-beat-appended-section" aria-label="Appended information">
+            @for (draft of storyBeatOptionalInformationDrafts(); track draft.draftId) {
+              <article class="story-beat-appended-card">
+                <label class="campaign-milestone-field">
+                  <span>Skill</span>
+                  <select
+                    [value]="draft.skill"
+                    (change)="setStoryBeatOptionalInformationSkill(draft.draftId, $event)"
+                  >
+                    @for (option of skillOptions; track option.skill) {
+                      <option [value]="option.skill">{{ option.label }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="campaign-milestone-field">
+                  <span>Difficulty</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    step="1"
+                    [value]="draft.difficultyClass"
+                    (input)="setStoryBeatOptionalInformationDifficulty(draft.draftId, $event)"
+                  />
+                </label>
+
+                <label class="campaign-milestone-field story-beat-appended-info-field">
+                  <span>Information</span>
+                  <textarea
+                    [value]="draft.information"
+                    (input)="setStoryBeatOptionalInformationText(draft.draftId, $event)"
+                  ></textarea>
+                </label>
+
+                <button
+                  type="button"
+                  class="story-beat-appended-remove"
+                  aria-label="Remove appended information"
+                  title="Remove appended information"
+                  (click)="removeStoryBeatOptionalInformationDraft(draft.draftId)"
+                >
+                  X
+                </button>
+              </article>
+            }
+
+            <button
+              type="button"
+              class="story-beat-appended-add"
+              aria-label="Add appended information"
+              (click)="addStoryBeatOptionalInformationDraft()"
+            >
+              <svg lucidePlus aria-hidden="true"></svg>
+              <strong>Add Appended Information</strong>
+            </button>
+          </section>
+        }
+
+        @if (isNarrativeStoryBeatDraft()) {
+          <section class="story-beat-paragraph-section" aria-label="Narrative paragraphs">
+            @for (draft of storyBeatNarrativeParagraphDrafts(); track draft.draftId) {
+              <article class="story-beat-paragraph-card">
+                <label class="campaign-milestone-field">
+                  <span>Paragraph {{ $index + 1 }}</span>
+                  <textarea
+                    [value]="draft.text"
+                    (input)="setStoryBeatNarrativeParagraphDraft(draft.draftId, $event)"
+                  ></textarea>
+                </label>
+
+                <button
+                  type="button"
+                  class="story-beat-appended-remove"
+                  aria-label="Remove paragraph"
+                  title="Remove paragraph"
+                  (click)="removeStoryBeatNarrativeParagraphDraft(draft.draftId)"
+                >
+                  X
+                </button>
+              </article>
+            }
+
+            <button
+              type="button"
+              class="story-beat-appended-add"
+              aria-label="Add narrative paragraph"
+              [disabled]="storyBeatNarrativeParagraphDrafts().length >= 10"
+              (click)="addStoryBeatNarrativeParagraphDraft()"
+            >
+              <svg lucidePlus aria-hidden="true"></svg>
+              <strong>Add Paragraph</strong>
+            </button>
+          </section>
+        }
+
+        @if (isRoleplayingStoryBeatDraft()) {
+          <section class="story-beat-roleplaying-editor" aria-label="Roleplaying beat">
+            <div class="story-beat-roleplaying-main-column">
+              <label class="campaign-milestone-field story-beat-main-text-field">
+                <span>Main Text</span>
+                <textarea
+                  [value]="storyBeatRoleplayingDraft()"
+                  (input)="setStoryBeatRoleplayingDraft($event)"
+                ></textarea>
+              </label>
+
+              <div class="story-beat-roleplaying-preview" aria-label="Main text preview">
+                @for (part of storyBeatRoleplayingPreviewParts(); track $index) {
+                  @if (part.className) {
+                    <span [class]="part.className">{{ part.text }}</span>
+                  } @else {
+                    <span>{{ part.text }}</span>
+                  }
+                }
+              </div>
+            </div>
+
+            <section class="story-beat-roleplaying-info-column" aria-label="Discoverable information">
+              @for (draft of storyBeatRoleplayingInformationDrafts(); track draft.draftId) {
+                <article class="story-beat-roleplaying-info-card">
+                  <label class="campaign-milestone-field">
+                    <span>NPC</span>
+                    <select
+                      [value]="draft.npcTag"
+                      [disabled]="roleplayingNpcOptions().length === 0"
+                      (change)="setStoryBeatRoleplayingInformationNpc(draft.draftId, $event)"
+                    >
+                      @for (npc of roleplayingNpcOptions(); track npc.key) {
+                        <option [value]="npc.key">{{ npc.name }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label class="campaign-milestone-field">
+                    <span>Check</span>
+                    <select
+                      [value]="draft.checkType"
+                      (change)="setStoryBeatRoleplayingInformationCheckType(draft.draftId, $event)"
+                    >
+                      @for (option of roleplayingCheckTypeOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  @if (isRoleplayingSkillCheck(draft)) {
+                    <label class="campaign-milestone-field">
+                      <span>Skill</span>
+                      <select
+                        [value]="draft.skill"
+                        (change)="setStoryBeatRoleplayingInformationSkill(draft.draftId, $event)"
+                      >
+                        @for (option of skillOptions; track option.skill) {
+                          <option [value]="option.skill">{{ option.label }}</option>
+                        }
+                      </select>
+                    </label>
+                  } @else if (isRoleplayingAbilityCheck(draft)) {
+                    <label class="campaign-milestone-field">
+                      <span>Ability</span>
+                      <select
+                        [value]="draft.ability"
+                        (change)="setStoryBeatRoleplayingInformationAbility(draft.draftId, $event)"
+                      >
+                        @for (option of abilityOptions; track option.ability) {
+                          <option [value]="option.ability">{{ option.label }}</option>
+                        }
+                      </select>
+                    </label>
+                  }
+
+                  @if (draft.checkType !== 0) {
+                    <label class="campaign-milestone-field">
+                      <span>Difficulty</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        step="1"
+                        [value]="draft.difficultyClass"
+                        (input)="setStoryBeatRoleplayingInformationDifficulty(draft.draftId, $event)"
+                      />
+                    </label>
+                  }
+
+                  <label class="campaign-milestone-field story-beat-roleplaying-info-text-field">
+                    <span>Information</span>
+                    <textarea
+                      [value]="draft.information"
+                      (input)="setStoryBeatRoleplayingInformationText(draft.draftId, $event)"
+                    ></textarea>
+                  </label>
+
+                  <button
+                    type="button"
+                    class="story-beat-appended-remove"
+                    aria-label="Remove discoverable information"
+                    title="Remove discoverable information"
+                    (click)="removeStoryBeatRoleplayingInformationDraft(draft.draftId)"
+                  >
+                    X
+                  </button>
+                </article>
+              }
+
+              <button
+                type="button"
+                class="story-beat-appended-add"
+                aria-label="Add discoverable information"
+                [disabled]="roleplayingNpcOptions().length === 0"
+                (click)="addStoryBeatRoleplayingInformationDraft()"
+              >
+                <svg lucidePlus aria-hidden="true"></svg>
+                <strong>Add Information</strong>
+              </button>
+            </section>
+          </section>
+        }
+
+        @if (isDecisionStoryBeatDraft()) {
+          <section class="story-beat-decision-editor" aria-label="Decision beat">
+            <div class="story-beat-decision-main-column">
+              <label class="campaign-milestone-field story-beat-main-text-field">
+                <span>Description</span>
+                <textarea
+                  maxlength="2048"
+                  [value]="storyBeatDecisionDescriptionDraft()"
+                  (input)="setStoryBeatDecisionDescriptionDraft($event)"
+                ></textarea>
+              </label>
+
+              <div class="story-beat-decision-preview-grid" aria-label="Decision choice preview">
+                @for (choice of storyBeatDecisionChoiceDrafts(); track choice.draftId) {
+                  <button
+                    type="button"
+                    [class]="'story-beat-decision-preview-choice ' + (isActiveStoryBeatDecisionChoiceDraft(choice.draftId) ? 'story-beat-decision-preview-choice-active' : '')"
+                    [attr.aria-label]="'Edit decision choice ' + ($index + 1)"
+                    (click)="selectStoryBeatDecisionChoiceDraft(choice.draftId)"
+                  >
+                    <strong>{{ choice.title || 'Choice title' }}</strong>
+                    <span class="story-beat-decision-preview-choice-description">
+                      {{ choice.description || 'Choice description' }}
+                    </span>
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  class="story-beat-decision-add-choice"
+                  aria-label="Add decision choice"
+                  title="Add decision choice"
+                  [disabled]="storyBeatDecisionChoiceDrafts().length >= 20"
+                  (click)="addStoryBeatDecisionChoiceDraft()"
+                >
+                  <svg lucidePlus aria-hidden="true"></svg>
+                </button>
+              </div>
+            </div>
+
+            <section class="story-beat-decision-choice-column" aria-label="Decision choice values">
+              @if (activeStoryBeatDecisionChoiceDraft(); as choice) {
+                <article class="story-beat-decision-choice-editor">
+                  <label class="campaign-milestone-field">
+                    <span>Choice {{ storyBeatDecisionChoiceDrafts().indexOf(choice) + 1 }} Title</span>
+                    <input
+                      type="text"
+                      maxlength="256"
+                      [value]="choice.title"
+                      (input)="setStoryBeatDecisionChoiceTitle(choice.draftId, $event)"
+                    />
+                  </label>
+
+                  <label class="campaign-milestone-field">
+                    <span>Choice {{ storyBeatDecisionChoiceDrafts().indexOf(choice) + 1 }} Description</span>
+                    <textarea
+                      maxlength="2048"
+                      [value]="choice.description"
+                      (input)="setStoryBeatDecisionChoiceDescription(choice.draftId, $event)"
+                    ></textarea>
+                  </label>
+
+                  <button
+                    type="button"
+                    class="story-beat-appended-remove"
+                    aria-label="Remove decision choice"
+                    title="Remove decision choice"
+                    (click)="removeStoryBeatDecisionChoiceDraft(choice.draftId)"
+                  >
+                    X
+                  </button>
+                </article>
+              }
+            </section>
+          </section>
+        }
+
+        @if (isMilestoneStoryBeatDraft()) {
+          <label class="campaign-milestone-field">
+            <span>Milestone</span>
+            <select
+              [value]="storyBeatMilestoneDraft() ?? ''"
+              (change)="setStoryBeatMilestoneDraft($event)"
+            >
+              <option value="">Select milestone</option>
+              @for (milestone of availableStoryBeatMilestoneOptions(); track milestone.id) {
+                <option [value]="milestone.id">{{ milestoneOptionLabel(milestone) }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (!hasValidStoryBeatTypeDraft()) {
+          <p class="story-beat-dialog-status">
+            Select a story beat type to continue.
+          </p>
+        }
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="creatingStoryBeatBlockId() !== null || updatingStoryBeatId() !== null"
+            (click)="closeCreateStoryBeatDialog()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="campaign-milestone-create"
+            [disabled]="!canCreateStoryBeat()"
+            (click)="saveStoryBeat()"
+          >
+            {{ storyBeatDialogActionText() }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (deleteConfirmationStoryBlock(); as storyBlock) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-milestone-delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete story block"
+      >
+        <h2>Delete Story Block</h2>
+        <p>This will permanently delete the story block and all of its story beats.</p>
+
+        <div class="campaign-milestone-delete-preview">
+          {{ storyBlockTitle(storyBlock) }}
+        </div>
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="deletingStoryBlockId() !== null"
+            (click)="cancelDeleteStoryBlock()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="campaign-milestone-delete-confirm"
+            [disabled]="deletingStoryBlockId() !== null"
+            (click)="deleteStoryBlock()"
+          >
+            {{ deletingStoryBlockId() ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (deleteConfirmationStoryBeat(); as confirmation) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-milestone-delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete story beat"
+      >
+        <h2>Delete Story Beat</h2>
+        <p>This story beat will be permanently deleted.</p>
+
+        <div class="campaign-milestone-delete-preview">
+          {{ storyBeatTitle(confirmation.storyBeat) }}
+        </div>
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="deletingStoryBeatId() !== null"
+            (click)="cancelDeleteStoryBeat()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="campaign-milestone-delete-confirm"
+            [disabled]="deletingStoryBeatId() !== null"
+            (click)="deleteStoryBeat()"
+          >
+            {{ deletingStoryBeatId() ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
 
   @if (selectedTab() === 'campaign-milestones') {
     <section class="campaign-milestones-page" aria-label="Campaign milestones">
@@ -45,12 +828,20 @@
           <p class="campaign-milestone-status">Loading milestones...</p>
         } @else {
           @for (milestone of milestones(); track milestone.id) {
-            <article class="campaign-milestone-card">
+            <article [class]="'campaign-milestone-card ' + campaignMilestoneImportanceClass(milestone)">
               <header class="campaign-milestone-card-header">
-                <h2>{{ milestone.title }}</h2>
+                <div class="campaign-milestone-card-title">
+                  <h2>{{ milestone.title }}</h2>
+                  <span [class]="'campaign-milestone-importance-badge ' + campaignMilestoneImportanceClass(milestone)">
+                    {{ milestoneImportanceLabel(milestone) }}
+                  </span>
+                </div>
                 <span class="campaign-milestone-info" aria-hidden="true">i</span>
                 <div class="campaign-milestone-info-panel" role="tooltip">
                   <strong>{{ milestone.title }}</strong>
+                  <span [class]="'campaign-milestone-info-panel-type ' + campaignMilestoneImportanceClass(milestone)">
+                    {{ milestoneImportanceLabel(milestone) }}
+                  </span>
                   <p>{{ milestone.description || 'No description.' }}</p>
                 </div>
               </header>
@@ -157,6 +948,110 @@
         <span class="campaign-quest-arrow campaign-quest-arrow-right" aria-hidden="true"></span>
       </button>
     </section>
+  }
+
+  @if (selectedTab() === 'roleplaying-npcs') {
+    <section class="campaign-roleplaying-npcs-page" aria-label="Roleplaying NPCs">
+      <header class="campaign-roleplaying-npcs-header">
+        <div>
+          <p>Roleplaying NPCs</p>
+          <h2>Available NPCs</h2>
+        </div>
+
+        <span>{{ roleplayingNpcRows().length }}</span>
+      </header>
+
+      <div class="campaign-roleplaying-npcs-table-shell">
+        @if (isLoadingRoleplayingNpcs()) {
+          <p class="campaign-roleplaying-npcs-status">Loading roleplaying NPCs...</p>
+        } @else if (roleplayingNpcsLoadError()) {
+          <p class="campaign-roleplaying-npcs-status campaign-roleplaying-npcs-error">
+            {{ roleplayingNpcsLoadError() }}
+          </p>
+        } @else if (roleplayingNpcRows().length > 0) {
+          <table class="campaign-roleplaying-npcs-table">
+            <thead>
+              <tr>
+                <th scope="col">Tag</th>
+                <th scope="col">Name</th>
+                <th scope="col">Display Name</th>
+                <th scope="col">Description</th>
+                <th scope="col">Created</th>
+                <th scope="col">Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (npc of roleplayingNpcRows(); track npc.key) {
+                <tr>
+                  <td>
+                    <code class="campaign-roleplaying-npc-tag">{{ npc.tag }}</code>
+                  </td>
+                  <td>{{ roleplayingNpcName(npc) }}</td>
+                  <td>
+                    <div class="campaign-roleplaying-npc-name-cell">
+                      @if (isEditingRoleplayingNpc(npc)) {
+                        <input
+                          type="text"
+                          class="campaign-roleplaying-npc-name-input"
+                          [value]="roleplayingNpcNameDraft(npc)"
+                          [disabled]="savingRoleplayingNpcTag() !== null"
+                          [attr.aria-label]="'Display name for NPC ' + npc.tag"
+                          (input)="setRoleplayingNpcNameDraft(npc, $event)"
+                        />
+
+                        <button
+                          type="button"
+                          class="campaign-roleplaying-npc-name-action campaign-roleplaying-npc-name-save"
+                          [disabled]="!canSaveRoleplayingNpc(npc)"
+                          [attr.aria-label]="'Save NPC display name for ' + npc.tag"
+                          title="Save NPC display name"
+                          (click)="saveRoleplayingNpcName(npc)"
+                        >
+                          <svg lucideCheck aria-hidden="true"></svg>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="campaign-roleplaying-npc-name-action campaign-roleplaying-npc-name-discard"
+                          [disabled]="savingRoleplayingNpcTag() !== null"
+                          [attr.aria-label]="'Discard NPC display name changes for ' + npc.tag"
+                          title="Discard NPC display name changes"
+                          (click)="discardRoleplayingNpcName(npc)"
+                        >
+                          <svg lucideX aria-hidden="true"></svg>
+                        </button>
+                      } @else {
+                        <strong>{{ roleplayingNpcDisplayName(npc) }}</strong>
+
+                        <button
+                          type="button"
+                          class="campaign-roleplaying-npc-name-action campaign-roleplaying-npc-name-edit"
+                          [disabled]="savingRoleplayingNpcTag() !== null"
+                          [attr.aria-label]="'Edit NPC display name for ' + npc.tag"
+                          title="Edit NPC display name"
+                          (click)="editRoleplayingNpcName(npc)"
+                        >
+                          <svg lucidePencil aria-hidden="true"></svg>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                  <td>{{ roleplayingNpcDescription(npc) }}</td>
+                  <td>{{ roleplayingNpcCreatedAt(npc) }}</td>
+                  <td>{{ roleplayingNpcUpdatedAt(npc) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="campaign-roleplaying-npcs-status">No roleplaying NPCs yet.</p>
+        }
+      </div>
+    </section>
+  }
+
+  @if (selectedTab() === 'combat-npcs') {
+    <section class="campaign-combat-npcs-page" aria-label="Combat Npcs"></section>
   }
 
   @if (isCreateMilestoneDialogOpen()) {

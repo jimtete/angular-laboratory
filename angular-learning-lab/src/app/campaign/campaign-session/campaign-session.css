@@ -14,6 +14,13 @@
   gap: 1rem;
 }
 
+.campaign-session-title-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
 .campaign-session-header h1 {
   margin: 0;
   color: #000000;
@@ -25,12 +32,17 @@
   text-transform: uppercase;
 }
 
+.campaign-session-back-button,
 .campaign-session-date-control {
   position: relative;
+}
+
+.campaign-session-date-control {
   display: flex;
   justify-content: flex-end;
 }
 
+.campaign-session-back-button,
 .campaign-session-calendar-button {
   width: 2.75rem;
   height: 2.75rem;
@@ -43,12 +55,15 @@
   cursor: pointer;
 }
 
+.campaign-session-back-button svg,
 .campaign-session-calendar-button svg {
   width: 1.35rem;
   height: 1.35rem;
   stroke-width: 2.2;
 }
 
+.campaign-session-back-button:hover,
+.campaign-session-back-button:focus-visible,
 .campaign-session-calendar-button:hover,
 .campaign-session-calendar-button:focus-visible {
   background: rgba(109, 40, 217, 0.08);
@@ -159,7 +174,7 @@
 
 .campaign-session-note-milestone p,
 .campaign-session-milestone-option strong,
-.campaign-session-milestone-option span {
+.campaign-session-milestone-option > span:not(.campaign-session-milestone-importance) {
   font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
 }
 
@@ -497,57 +512,6 @@
   margin: 0;
   color: #1f1235;
   font: 600 1rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
-}
-
-.campaign-session-milestone-option {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  display: grid;
-  align-content: start;
-  gap: 0.85rem;
-  padding: 1.1rem 1.25rem;
-  border: 4px double #9a4f16;
-  border-radius: 0;
-  background: #f3dfbd;
-  color: #2f1808;
-  text-align: left;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-.campaign-session-milestone-option strong {
-  display: block;
-  color: #2f1808;
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1.05;
-  overflow-wrap: anywhere;
-}
-
-.campaign-session-milestone-option span {
-  display: -webkit-box;
-  overflow: hidden;
-  color: #3f2410;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-}
-
-.campaign-session-milestone-option:hover,
-.campaign-session-milestone-option:focus-visible {
-  background: #f5dfbd;
-  outline: 2px solid rgba(154, 79, 22, 0.38);
-  outline-offset: 2px;
-}
-
-.campaign-session-milestone-option-selected {
-  background: #f5dfbd;
-  box-shadow:
-    inset 0 0 0 3px #6d28d9,
-    0 0 0 2px rgba(109, 40, 217, 0.22);
 }
 
 .campaign-session-note-editor-actions {

@@ -17,6 +17,1143 @@ body {
   outline-offset: 0.35rem;
 }
 
+.campaign-milestone-importance-low {
+  --milestone-rgb: 154, 79, 22;
+  --milestone-border: #9a4f16;
+  --milestone-text: #2f1808;
+  --milestone-copy: #3f2410;
+  --milestone-paper: #f3dfbd;
+  --milestone-panel: #fff8e7;
+  --milestone-hover: #f5dfbd;
+}
+
+.campaign-milestone-importance-high {
+  --milestone-rgb: 190, 24, 93;
+  --milestone-border: #be185d;
+  --milestone-text: #4a1027;
+  --milestone-copy: #6b1d3a;
+  --milestone-paper: #fde7d3;
+  --milestone-panel: #fff1e8;
+  --milestone-hover: #fbd4c0;
+}
+
+.campaign-milestone-importance-optional {
+  --milestone-rgb: 15, 118, 110;
+  --milestone-border: #0f766e;
+  --milestone-text: #123b36;
+  --milestone-copy: #18534d;
+  --milestone-paper: #dff4ec;
+  --milestone-panel: #f0fdfa;
+  --milestone-hover: #ccfbf1;
+}
+
+.campaign-milestone-card {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  padding: 1.1rem 1.25rem;
+  border: 4px double var(--milestone-border);
+  border-radius: 0;
+  background: var(--milestone-paper);
+  color: var(--milestone-text);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  box-shadow: inset 0.45rem 0 0 rgba(var(--milestone-rgb), 0.2);
+  box-sizing: border-box;
+}
+
+.campaign-milestone-card-actions {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.campaign-milestone-card-action {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--milestone-border);
+  border-radius: 6px;
+  background: var(--milestone-panel);
+  color: var(--milestone-border);
+  cursor: pointer;
+}
+
+.campaign-milestone-card-action svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 2.2;
+}
+
+.campaign-milestone-card-action:hover,
+.campaign-milestone-card-action:focus-visible {
+  background: var(--milestone-hover);
+  outline: 2px solid rgba(var(--milestone-rgb), 0.32);
+  outline-offset: 2px;
+}
+
+.campaign-milestone-card-delete {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.campaign-milestone-card-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.campaign-milestone-card-title {
+  min-width: 0;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.campaign-milestone-card h2 {
+  margin: 0;
+  color: var(--milestone-text);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.campaign-milestone-importance-badge,
+.campaign-milestone-info-panel-type {
+  width: fit-content;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(var(--milestone-rgb), 0.42);
+  border-radius: 999px;
+  background: rgba(var(--milestone-rgb), 0.14);
+  color: var(--milestone-text);
+  font: 900 0.68rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-milestone-description {
+  display: -webkit-box;
+  margin: 0.85rem 0 0;
+  overflow: hidden;
+  color: var(--milestone-copy);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.campaign-milestone-info {
+  width: 1.65rem;
+  height: 1.65rem;
+  flex: 0 0 auto;
+  display: none;
+  place-items: center;
+  border: 1px solid var(--milestone-border);
+  border-radius: 50%;
+  background: var(--milestone-panel);
+  color: var(--milestone-border);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.campaign-milestone-info-panel {
+  position: absolute;
+  top: 2rem;
+  right: 0;
+  z-index: 5;
+  width: min(32rem, 80vw);
+  max-height: 18rem;
+  display: none;
+  padding: 1rem;
+  border: 2px solid var(--milestone-border);
+  background: var(--milestone-panel);
+  box-shadow: 0 0.75rem 1.5rem rgba(var(--milestone-rgb), 0.22);
+  overflow: auto;
+  color: var(--milestone-text);
+  box-sizing: border-box;
+}
+
+.campaign-milestone-info-panel strong,
+.campaign-milestone-info-panel span,
+.campaign-milestone-info-panel p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.campaign-milestone-info-panel strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.campaign-milestone-info-panel-type {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+}
+
+.campaign-milestone-card:hover .campaign-milestone-info,
+.campaign-milestone-card:focus-within .campaign-milestone-info {
+  display: grid;
+}
+
+.campaign-milestone-card:hover .campaign-milestone-info-panel,
+.campaign-milestone-card:focus-within .campaign-milestone-info-panel {
+  display: block;
+}
+
+.campaign-milestone-status {
+  margin: 0;
+  color: #1f1235;
+  font: 700 1rem/1.3 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-session-milestone-option {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  padding: 1.1rem 1.25rem;
+  border: 4px double var(--milestone-border);
+  border-radius: 0;
+  background: var(--milestone-paper);
+  color: var(--milestone-text);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0.45rem 0 0 rgba(var(--milestone-rgb), 0.2);
+  box-sizing: border-box;
+}
+
+.campaign-session-milestone-option strong {
+  display: block;
+  color: var(--milestone-text);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.campaign-session-milestone-option > span:not(.campaign-session-milestone-importance) {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--milestone-copy);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.campaign-session-milestone-importance {
+  width: fit-content;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(var(--milestone-rgb), 0.42);
+  border-radius: 999px;
+  background: rgba(var(--milestone-rgb), 0.14);
+  color: var(--milestone-text);
+  font: 900 0.68rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-session-milestone-option:hover,
+.campaign-session-milestone-option:focus-visible {
+  background: var(--milestone-hover);
+  outline: 2px solid rgba(var(--milestone-rgb), 0.38);
+  outline-offset: 2px;
+}
+
+.campaign-session-milestone-option-selected {
+  background: var(--milestone-hover);
+  box-shadow:
+    inset 0 0 0 3px #6d28d9,
+    0 0 0 2px rgba(109, 40, 217, 0.22);
+}
+
+.main-story-page {
+  height: calc(100dvh - 7.25rem);
+  min-height: 32rem;
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.85fr) minmax(0, 1.45fr);
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.main-story-column {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid rgba(51, 65, 85, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 1rem 1.8rem rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.story-beat-column {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.main-story-column-header {
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.16);
+  background: rgba(248, 250, 252, 0.92);
+  box-sizing: border-box;
+}
+
+.main-story-column-header p,
+.main-story-column-header h2,
+.story-block-card h3,
+.story-block-card p,
+.story-beat-group-header h3,
+.story-beat-card h4,
+.story-beat-card p,
+.main-story-empty {
+  margin: 0;
+}
+
+.main-story-column-header p,
+.story-block-order,
+.story-block-beat-count,
+.story-beat-group-header span,
+.story-beat-type {
+  color: #475569;
+  font: 800 0.72rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.main-story-column-header h2 {
+  margin-top: 0.25rem;
+  color: #111827;
+  font: 900 1.35rem/1.05 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.main-story-column-header > span {
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #0f766e;
+  color: #ffffff;
+  font: 900 0.9rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.story-block-list,
+.story-beat-groups {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: #64748b rgba(226, 232, 240, 0.8);
+}
+
+.story-block-list,
+.story-beat-groups,
+.story-beat-group,
+.story-beat-list,
+.story-block-card,
+.story-beat-card {
+  display: grid;
+}
+
+.story-block-list,
+.story-beat-groups {
+  align-content: start;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.story-block-card,
+.story-beat-group,
+.story-beat-card {
+  gap: 0.65rem;
+  padding: 1rem;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.story-block-card {
+  position: relative;
+  min-height: 9rem;
+  align-content: start;
+  border-left: 5px solid #0f766e;
+  background: #f8fafc;
+}
+
+.story-block-card-selected {
+  background: #ccfbf1;
+  box-shadow: inset 0 0 0 2px #0f766e;
+}
+
+.story-block-select-button {
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  padding: 0 2.5rem 0 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.story-block-select-button:focus-visible,
+.story-block-edit-button:focus-visible,
+.story-block-delete-button:focus-visible {
+  outline: 2px solid rgba(20, 184, 166, 0.48);
+  outline-offset: 2px;
+}
+
+.story-block-edit-button,
+.story-block-delete-button {
+  position: absolute;
+  right: 0.65rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(15, 118, 110, 0.42);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f766e;
+  cursor: pointer;
+}
+
+.story-block-edit-button {
+  top: 0.65rem;
+}
+
+.story-block-delete-button {
+  top: 3.05rem;
+  border-color: rgba(220, 38, 38, 0.42);
+  color: #dc2626;
+}
+
+.story-block-edit-button:hover {
+  background: #f0fdfa;
+}
+
+.story-block-delete-button:hover {
+  background: #fef2f2;
+}
+
+.story-block-edit-button svg,
+.story-block-delete-button svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2.3;
+}
+
+.story-block-card h3,
+.story-beat-group-header h3,
+.story-beat-card h4 {
+  color: #111827;
+  font: 900 1.1rem/1.15 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.story-block-card p,
+.story-beat-card p,
+.main-story-empty {
+  color: #475569;
+  font: 600 0.95rem/1.45 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.story-block-beat-count {
+  color: #0f766e;
+}
+
+.story-block-add-placeholder,
+.story-beat-add-placeholder {
+  min-height: 8rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 2px dashed rgba(15, 118, 110, 0.58);
+  border-radius: 8px;
+  background: rgba(240, 253, 250, 0.78);
+  color: #115e59;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.story-block-add-placeholder svg,
+.story-beat-add-placeholder svg {
+  width: 1.7rem;
+  height: 1.7rem;
+  stroke-width: 2.5;
+}
+
+.story-block-add-placeholder strong,
+.story-beat-add-placeholder strong {
+  font: 900 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.story-block-add-placeholder:hover:not(:disabled),
+.story-block-add-placeholder:focus-visible:not(:disabled),
+.story-beat-add-placeholder:hover:not(:disabled),
+.story-beat-add-placeholder:focus-visible:not(:disabled) {
+  background: #ccfbf1;
+  outline: 2px solid rgba(20, 184, 166, 0.42);
+  outline-offset: 2px;
+}
+
+.story-block-add-placeholder:disabled,
+.story-beat-add-placeholder:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.story-beat-groups {
+  gap: 1rem;
+}
+
+.story-beat-group {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+}
+
+.story-beat-group-empty {
+  min-height: 16rem;
+  align-content: center;
+}
+
+.story-beat-group-header {
+  display: grid;
+  gap: 0.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.story-beat-list {
+  gap: 0.75rem;
+}
+
+.story-beat-card {
+  position: relative;
+  min-height: 200px;
+  padding: 1.1rem 1.25rem 4rem;
+  --story-beat-rgb: 154, 79, 22;
+  border: 4px double rgb(var(--story-beat-rgb));
+  border-radius: 0;
+  background: rgba(var(--story-beat-rgb), 0.1);
+  color: #2f1808;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  box-sizing: border-box;
+}
+
+.story-beat-card-information {
+  --story-beat-rgb: 14, 165, 233;
+}
+
+.story-beat-card-narrative {
+  --story-beat-rgb: 124, 58, 237;
+}
+
+.story-beat-card-roleplaying {
+  --story-beat-rgb: 236, 72, 153;
+}
+
+.story-beat-card-decision {
+  --story-beat-rgb: 245, 158, 11;
+}
+
+.story-beat-card-combat {
+  --story-beat-rgb: 220, 38, 38;
+}
+
+.story-beat-card-transition {
+  --story-beat-rgb: 20, 184, 166;
+}
+
+.story-beat-card-milestone {
+  --story-beat-rgb: 22, 163, 74;
+}
+
+.story-beat-card-milestone-low {
+  --story-beat-rgb: 154, 79, 22;
+}
+
+.story-beat-card-milestone-high {
+  --story-beat-rgb: 190, 24, 93;
+}
+
+.story-beat-card-milestone-optional {
+  --story-beat-rgb: 15, 118, 110;
+}
+
+.story-beat-card-header {
+  display: grid;
+  gap: 0.35rem;
+  padding-right: 2.6rem;
+}
+
+.story-beat-card-body {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.story-beat-type {
+  color: rgb(var(--story-beat-rgb));
+  font: 800 0.72rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.story-beat-card h4 {
+  margin: 0;
+  color: #2f1808;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.story-beat-card p {
+  color: #3f2410;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.story-beat-card-actions {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.story-beat-card-action {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(var(--story-beat-rgb), 0.65);
+  border-radius: 6px;
+  background: #fff8e7;
+  color: rgb(var(--story-beat-rgb));
+  cursor: pointer;
+}
+
+.story-beat-card-action svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 2.2;
+}
+
+.story-beat-card-action:hover,
+.story-beat-card-action:focus-visible {
+  background: rgba(var(--story-beat-rgb), 0.16);
+  outline: 2px solid rgba(var(--story-beat-rgb), 0.32);
+  outline-offset: 2px;
+}
+
+.story-beat-card-delete {
+  border-color: rgba(220, 38, 38, 0.62);
+  color: #dc2626;
+}
+
+.story-beat-card-delete:hover,
+.story-beat-card-delete:focus-visible {
+  background: #fef2f2;
+  outline-color: rgba(220, 38, 38, 0.32);
+}
+
+.story-block-delete-button:disabled,
+.story-beat-card-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.story-beat-appended-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.story-beat-appended-item {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.story-beat-appended-item p {
+  margin: 0;
+  color: #3f2410;
+  font: 600 0.95rem/1.35 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.story-beat-roleplaying-text,
+.story-beat-roleplaying-preview {
+  color: #3f2410;
+  font: 600 1rem/1.45 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.story-roleplaying-npc-token {
+  display: inline;
+  padding: 0.08rem 0.3rem;
+  border: 1px solid rgba(236, 72, 153, 0.28);
+  border-radius: 5px;
+  background: rgba(236, 72, 153, 0.14);
+  color: #831843;
+  font-weight: 800;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.story-beat-roleplaying-information-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(236, 72, 153, 0.18);
+}
+
+.story-beat-roleplaying-information-item {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) auto;
+  gap: 0.25rem 0.55rem;
+  align-items: start;
+}
+
+.story-beat-roleplaying-information-item span,
+.story-beat-roleplaying-information-item strong {
+  overflow-wrap: anywhere;
+}
+
+.story-beat-roleplaying-information-item span {
+  color: #831843;
+  font: 900 0.75rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.story-beat-roleplaying-information-item strong {
+  justify-self: end;
+  color: #9d174d;
+  font: 900 0.75rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.story-beat-roleplaying-information-item p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #3f2410;
+  font: 600 0.95rem/1.35 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.story-beat-narrative-paragraphs {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.story-beat-linked-milestone {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.2rem;
+}
+
+.story-beat-linked-milestone-importance {
+  width: fit-content;
+  padding: 0.22rem 0.48rem;
+  border: 1px solid rgba(var(--milestone-rgb), 0.4);
+  border-radius: 999px;
+  background: rgba(var(--milestone-rgb), 0.13);
+  color: var(--milestone-text);
+  font: 900 0.68rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.story-beat-linked-milestone strong {
+  color: #2f1808;
+  font: 800 1.05rem/1.2 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  overflow-wrap: anywhere;
+}
+
+.story-block-dialog {
+  width: min(100%, 28rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.25);
+  box-sizing: border-box;
+}
+
+.story-block-dialog h2 {
+  margin: 0;
+  color: #1f1235;
+  font: 800 1.2rem/1.2 "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+.story-beat-dialog {
+  width: min(100%, 67.2rem);
+  max-height: calc(100dvh - 2rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.25);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.story-beat-dialog-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.story-beat-dialog-header h2,
+.story-beat-dialog-header span {
+  margin: 0;
+  color: #1f1235;
+  overflow-wrap: anywhere;
+}
+
+.story-beat-dialog-header h2 {
+  font: 800 1.2rem/1.2 "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+.story-beat-dialog-header span {
+  color: #475569;
+  font: 800 0.82rem/1.25 "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.story-beat-dialog-status {
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px solid rgba(220, 38, 38, 0.24);
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #991b1b;
+  font: 700 0.95rem/1.35 "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+.story-beat-main-text-field textarea {
+  min-height: 12rem;
+}
+
+.story-beat-roleplaying-editor {
+  min-height: 0;
+  max-height: min(58dvh, 40rem);
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 3fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.story-beat-roleplaying-main-column,
+.story-beat-roleplaying-info-column {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+}
+
+.story-beat-roleplaying-info-column {
+  max-height: 100%;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  scrollbar-color: #ec4899 rgba(253, 242, 248, 0.72);
+}
+
+.story-beat-roleplaying-main-column textarea {
+  min-height: 24rem;
+}
+
+.story-beat-roleplaying-preview {
+  min-height: 8rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(236, 72, 153, 0.22);
+  border-radius: 8px;
+  background: rgba(253, 242, 248, 0.72);
+  box-sizing: border-box;
+}
+
+.story-beat-roleplaying-info-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 0.9rem 3rem 0.9rem 0.9rem;
+  border: 1px solid rgba(236, 72, 153, 0.22);
+  border-radius: 8px;
+  background: #fdf2f8;
+  box-sizing: border-box;
+}
+
+.story-beat-roleplaying-info-text-field {
+  grid-column: 1 / -1;
+}
+
+.story-beat-roleplaying-info-text-field textarea {
+  min-height: 7rem;
+}
+
+.story-beat-skill-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.story-beat-skill-suggestions button {
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(var(--skill-rgb), 0.42);
+  border-radius: 6px;
+  background: rgba(var(--skill-rgb), 0.14);
+  color: #111827;
+  font: 800 0.82rem/1 "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.story-beat-narrative,
+.story-beat-narrative-preview {
+  white-space: pre-wrap;
+}
+
+.story-beat-narrative-preview {
+  min-height: 4rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #475569;
+  font: 600 0.95rem/1.45 "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.story-skill-token {
+  display: inline;
+  padding: 0.08rem 0.28rem;
+  border-radius: 5px;
+  border: 1px solid rgba(var(--skill-rgb), 0.26);
+  background: rgba(var(--skill-rgb), 0.12);
+  color: #111827;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.story-skill-token.dc-low {
+  border-color: rgba(var(--skill-rgb), 0.22);
+  background: rgba(var(--skill-rgb), 0.12);
+  font-weight: 700;
+}
+
+.story-skill-token.dc-medium {
+  border-color: rgba(var(--skill-rgb), 0.36);
+  background: rgba(var(--skill-rgb), 0.2);
+  font-weight: 800;
+}
+
+.story-skill-token.dc-high {
+  border-width: 2px;
+  border-color: rgba(var(--skill-rgb), 0.52);
+  background: rgba(var(--skill-rgb), 0.3);
+  font-weight: 900;
+}
+
+.story-skill-token.dc-legendary {
+  border-width: 3px;
+  border-color: rgba(var(--skill-rgb), 0.72);
+  background: rgba(var(--skill-rgb), 0.42);
+  font-weight: 1000;
+  text-shadow: 0 0 0.01rem currentColor;
+}
+
+.story-beat-appended-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.story-beat-paragraph-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.story-beat-paragraph-card {
+  position: relative;
+  padding: 0.9rem 3rem 0.9rem 0.9rem;
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  border-radius: 8px;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.story-beat-paragraph-card textarea {
+  min-height: 8rem;
+}
+
+.story-beat-appended-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem;
+  gap: 0.85rem;
+  padding: 0.9rem 3rem 0.9rem 0.9rem;
+  border: 1px solid rgba(15, 118, 110, 0.22);
+  border-radius: 8px;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.story-beat-appended-info-field {
+  grid-column: 1 / -1;
+}
+
+.story-beat-appended-info-field textarea {
+  min-height: 6rem;
+}
+
+.story-beat-appended-remove {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.7rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #64748b;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.story-beat-appended-add {
+  min-height: 5rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.4rem;
+  padding: 0.8rem;
+  border: 2px dashed rgba(15, 118, 110, 0.48);
+  border-radius: 8px;
+  background: rgba(240, 253, 250, 0.68);
+  color: #115e59;
+  cursor: pointer;
+}
+
+.story-beat-appended-add svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.story-beat-appended-add strong {
+  font: 900 0.84rem/1.2 "Inter Tight", "Segoe UI", Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.skill-acrobatics {
+  --skill-rgb: 20, 184, 166;
+}
+
+.skill-animal-handling {
+  --skill-rgb: 34, 197, 94;
+}
+
+.skill-arcana {
+  --skill-rgb: 139, 92, 246;
+}
+
+.skill-athletics {
+  --skill-rgb: 239, 68, 68;
+}
+
+.skill-deception {
+  --skill-rgb: 168, 85, 247;
+}
+
+.skill-history {
+  --skill-rgb: 245, 158, 11;
+}
+
+.skill-insight {
+  --skill-rgb: 6, 182, 212;
+}
+
+.skill-intimidation {
+  --skill-rgb: 220, 38, 38;
+}
+
+.skill-investigation {
+  --skill-rgb: 59, 130, 246;
+}
+
+.skill-medicine {
+  --skill-rgb: 16, 185, 129;
+}
+
+.skill-nature {
+  --skill-rgb: 132, 204, 22;
+}
+
+.skill-perception {
+  --skill-rgb: 14, 165, 233;
+}
+
+.skill-performance {
+  --skill-rgb: 236, 72, 153;
+}
+
+.skill-persuasion {
+  --skill-rgb: 244, 114, 182;
+}
+
+.skill-religion {
+  --skill-rgb: 99, 102, 241;
+}
+
+.skill-sleight-of-hand {
+  --skill-rgb: 217, 119, 6;
+}
+
+.skill-stealth {
+  --skill-rgb: 100, 116, 139;
+}
+
+.skill-survival {
+  --skill-rgb: 101, 163, 13;
+}
+
 .portrait-placeholder {
   position: relative;
 }
@@ -495,6 +1632,240 @@ body {
 .campaign-session-mechanics-row textarea:focus {
   outline: 2px solid rgba(22, 163, 74, 0.28);
   outline-offset: 2px;
+}
+
+.campaign-roleplaying-npcs-page {
+  min-height: calc(100dvh - 7.25rem);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.5rem 2rem 2rem;
+  background: rgba(255, 253, 244, 0.64);
+  box-sizing: border-box;
+}
+
+.campaign-roleplaying-npcs-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(31, 18, 53, 0.16);
+  padding-bottom: 0.85rem;
+}
+
+.campaign-roleplaying-npcs-header p,
+.campaign-roleplaying-npcs-header h2 {
+  margin: 0;
+}
+
+.campaign-roleplaying-npcs-header p {
+  color: #6b21a8;
+  font: 800 0.78rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.campaign-roleplaying-npcs-header h2 {
+  color: #1f1235;
+  font: 900 1.75rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-roleplaying-npcs-header span {
+  min-width: 2.75rem;
+  min-height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(107, 33, 168, 0.28);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #6b21a8;
+  font: 900 1rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-roleplaying-npcs-table-shell {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid rgba(31, 18, 53, 0.16);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0.75rem 1.5rem rgba(31, 18, 53, 0.08);
+}
+
+.campaign-roleplaying-npcs-table {
+  width: 100%;
+  min-width: 48rem;
+  border-collapse: collapse;
+  color: #1f1235;
+  font: 600 0.95rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-roleplaying-npcs-table th,
+.campaign-roleplaying-npcs-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(31, 18, 53, 0.1);
+  text-align: left;
+  vertical-align: top;
+}
+
+.campaign-roleplaying-npcs-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f5f3ff;
+  color: #3b0764;
+  font: 900 0.78rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.campaign-roleplaying-npcs-table td {
+  overflow-wrap: anywhere;
+}
+
+.campaign-roleplaying-npcs-table td:nth-child(3),
+.campaign-roleplaying-npcs-table td:nth-child(4),
+.campaign-roleplaying-npcs-table td:nth-child(5) {
+  max-width: 18rem;
+}
+
+.campaign-roleplaying-npcs-table tbody tr:hover {
+  background: rgba(245, 243, 255, 0.7);
+}
+
+.campaign-roleplaying-npc-tag {
+  display: inline-block;
+  max-width: 14rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid rgba(107, 33, 168, 0.2);
+  border-radius: 6px;
+  background: #faf5ff;
+  color: #581c87;
+  font: 800 0.85rem/1.25 Consolas, 'Courier New', monospace;
+  overflow-wrap: anywhere;
+}
+
+.campaign-roleplaying-npc-name-cell {
+  min-width: 13rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.campaign-roleplaying-npc-name-cell strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.campaign-roleplaying-npc-name-input {
+  min-width: 0;
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 700 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
+}
+
+.campaign-roleplaying-npc-name-input:focus-visible {
+  border-color: #6d28d9;
+  outline: 2px solid rgba(109, 40, 217, 0.28);
+  outline-offset: 1px;
+}
+
+.campaign-roleplaying-npc-name-action {
+  width: 2.15rem;
+  height: 2.15rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.campaign-roleplaying-npc-name-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.campaign-roleplaying-npc-name-action svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2.4;
+}
+
+.campaign-roleplaying-npc-name-edit {
+  color: #6d28d9;
+}
+
+.campaign-roleplaying-npc-name-save {
+  color: #16a34a;
+}
+
+.campaign-roleplaying-npc-name-discard {
+  color: #dc2626;
+}
+
+.campaign-roleplaying-npc-name-edit:hover:not(:disabled),
+.campaign-roleplaying-npc-name-edit:focus-visible:not(:disabled) {
+  background: rgba(109, 40, 217, 0.08);
+  outline: 0;
+}
+
+.campaign-roleplaying-npc-name-save:hover:not(:disabled),
+.campaign-roleplaying-npc-name-save:focus-visible:not(:disabled) {
+  background: rgba(22, 163, 74, 0.08);
+  outline: 0;
+}
+
+.campaign-roleplaying-npc-name-discard:hover:not(:disabled),
+.campaign-roleplaying-npc-name-discard:focus-visible:not(:disabled) {
+  background: rgba(220, 38, 38, 0.08);
+  outline: 0;
+}
+
+.campaign-roleplaying-npcs-status {
+  margin: 0;
+  padding: 1rem;
+  color: #4b5563;
+  font: 700 1rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-roleplaying-npcs-error {
+  color: #b91c1c;
+}
+
+@media (max-width: 760px) {
+  .campaign-roleplaying-npcs-page {
+    padding: 1rem;
+  }
+
+  .campaign-roleplaying-npcs-header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .main-story-page {
+    height: auto;
+    min-height: calc(100dvh - 7.25rem);
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .story-block-list,
+  .story-beat-groups {
+    max-height: 38rem;
+  }
+
+  .story-beat-roleplaying-editor,
+  .story-beat-roleplaying-info-card {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {

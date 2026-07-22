@@ -19,6 +19,17 @@
               @for (skill of group.skills; track skill.skill) {
                 <div class="campaign-member-proficiency-row">
                   <span>{{ skill.label }}</span>
+                  <input
+                    type="number"
+                    class="campaign-member-proficiency-value"
+                    min="0"
+                    max="40"
+                    step="1"
+                    [value]="skillValueFor(skill.skill)"
+                    [disabled]="isSaving()"
+                    [attr.aria-label]="skill.label + ' value'"
+                    (input)="setSkillValue(skill.skill, $event)"
+                  />
                   <button
                     type="button"
                     class="campaign-member-proficiency-toggle"
@@ -61,6 +72,17 @@
                   >
                     <span aria-hidden="true">*</span>
                   </button>
+                  <input
+                    type="number"
+                    class="campaign-member-proficiency-value"
+                    min="0"
+                    max="40"
+                    step="1"
+                    [value]="skillValueFor(skill.skill)"
+                    [disabled]="isSaving()"
+                    [attr.aria-label]="skill.label + ' value'"
+                    (input)="setSkillValue(skill.skill, $event)"
+                  />
                   <span>{{ skill.label }}</span>
                 </div>
               }

@@ -1,0 +1,418 @@
+<section class="monster-editor-page" aria-label="Monster asset editor">
+  <header class="monster-editor-header">
+    <button type="button" class="monster-editor-back" (click)="backToAssets()">
+      <svg lucideArrowLeft aria-hidden="true"></svg>
+      Assets
+    </button>
+
+    <div>
+      <span>Monster Asset</span>
+      <h1>{{ monster()?.name || 'Monster' }}</h1>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <p class="monster-editor-status">Loading monster...</p>
+  } @else if (loadError()) {
+    <p class="monster-editor-status">{{ loadError() }}</p>
+  } @else if (monster()) {
+    <div class="monster-editor-layout">
+      <section class="monster-editor-section">
+        <header>
+          <h2>Basic Information</h2>
+          <button
+            type="button"
+            class="monster-editor-primary-action"
+            [disabled]="!canSaveBasicInformation()"
+            (click)="saveBasicInformation()"
+          >
+            <svg lucideCheck aria-hidden="true"></svg>
+            {{ isSavingBasicInformation() ? 'Saving...' : 'Save' }}
+          </button>
+        </header>
+
+        <div class="monster-editor-grid">
+          <label class="monster-editor-field">
+            <span>Monster Name</span>
+            <input type="text" [value]="nameDraft()" (input)="setNameDraft($event)" />
+          </label>
+
+          <label class="monster-editor-field">
+            <span>Size</span>
+            <select [value]="sizeDraft()" (change)="setSizeDraft($event)">
+              <option value="">No size</option>
+              @for (option of optionListWithCurrentValue(monsterSizeOptions, sizeDraft()); track option) {
+                <option [value]="option">{{ option }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="monster-editor-field">
+            <span>Race</span>
+            <select [value]="raceDraft()" (change)="setRaceDraft($event)">
+              <option value="">No race</option>
+              @for (option of optionListWithCurrentValue(monsterRaceOptions, raceDraft()); track option) {
+                <option [value]="option">{{ option }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="monster-editor-field">
+            <span>Class</span>
+            <input type="text" [value]="classDraft()" (input)="setClassDraft($event)" />
+          </label>
+        </div>
+
+        <div class="monster-editor-field">
+          <span>Tags</span>
+          <div class="monster-editor-tag-editor">
+            @for (tag of tagsDraft(); track tag) {
+              <span>
+                {{ tag }}
+                <button type="button" aria-label="Remove tag" title="Remove tag" (click)="removeTag(tag)">
+                  X
+                </button>
+              </span>
+            }
+            <input
+              type="text"
+              placeholder="Add tag"
+              [value]="tagDraft()"
+              (input)="setTagDraft($event)"
+              (keydown)="handleTagKeydown($event)"
+              (blur)="addTagFromDraft()"
+            />
+          </div>
+        </div>
+
+        <label class="monster-editor-field">
+          <span>General Notes</span>
+          <textarea [value]="notesDraft()" (input)="setNotesDraft($event)"></textarea>
+        </label>
+      </section>
+
+        <section class="monster-editor-section">
+          <header>
+            <h2>Abilities</h2>
+          </header>
+
+          <div class="monster-editor-note-list">
+            @for (ability of abilityDrafts(); track ability.draftId) {
+              <article class="monster-editor-row-card">
+                <div class="monster-editor-row-grid monster-editor-ability-grid">
+                  <label class="monster-editor-field">
+                    <span>Name</span>
+                    <strong class="monster-editor-ability-name">{{ ability.name }}</strong>
+                  </label>
+                  <label class="monster-editor-field">
+                    <span>Value</span>
+                    <input type="number" [value]="ability.value" (input)="updateAbilityDraft(ability.draftId, 'value', $event)" />
+                  </label>
+                  <label class="monster-editor-field">
+                    <span>Modifier</span>
+                    <input type="text" [value]="formatModifier(ability.modifier)" readonly />
+                  </label>
+                  <button
+                    type="button"
+                    class="monster-editor-proficiency-marker"
+                    [class.monster-editor-proficiency-marker-active]="isAbilityProficient(ability)"
+                    [attr.aria-pressed]="isAbilityProficient(ability)"
+                    (click)="toggleAbilityProficiency(ability)"
+                  >
+                    Proficient
+                  </button>
+                </div>
+              </article>
+            } @empty {
+              <p class="monster-editor-empty">No abilities added.</p>
+            }
+          </div>
+
+          <div class="monster-editor-field monster-editor-skill-proficiency-field">
+            <span>Skill Proficiencies</span>
+            <div class="monster-editor-tag-editor">
+              @for (proficiency of selectedSkillProficiencies(); track proficiency) {
+                <span>
+                  {{ proficiency }}
+                  <button
+                    type="button"
+                    aria-label="Remove skill proficiency"
+                    title="Remove skill proficiency"
+                    (click)="removeSkillProficiency(proficiency)"
+                  >
+                    X
+                  </button>
+                </span>
+              }
+              <input
+                type="text"
+                list="monster-skill-proficiency-options"
+                placeholder="Add skill proficiency"
+                [value]="skillProficiencyDraft()"
+                (input)="setSkillProficiencyDraft($event)"
+                (keydown)="handleSkillProficiencyKeydown($event)"
+                (blur)="addSkillProficiencyFromDraft()"
+              />
+              <datalist id="monster-skill-proficiency-options">
+                @for (option of availableSkillProficiencyOptions(); track option) {
+                  <option [value]="option"></option>
+                }
+              </datalist>
+            </div>
+          </div>
+      </section>
+
+      <div class="monster-editor-feature-section-grid">
+        @for (section of featureSections; track section.category) {
+          <section [class]="'monster-editor-section monster-editor-feature-section monster-editor-feature-section-' + featureCategorySlug(section.category)">
+            <header>
+              <h2>{{ section.label }}</h2>
+              <button type="button" class="monster-editor-secondary-action" (click)="openAddFeature(section.category)">
+                <svg lucidePlus aria-hidden="true"></svg>
+                {{ section.addLabel }}
+              </button>
+            </header>
+
+            <div class="monster-editor-feature-list">
+              @for (feature of featuresForCategory(section.category); track feature.id) {
+                <article class="monster-editor-feature-card">
+                  <header class="monster-editor-feature-head">
+                    <div>
+                      <h3>{{ feature.name }}</h3>
+                      @if (feature.usageNote) {
+                        <span>{{ feature.usageNote }}</span>
+                      }
+                    </div>
+                  </header>
+
+                  @if (feature.description) {
+                    <p>{{ feature.description }}</p>
+                  }
+
+                  @if (featureMetadata(feature).length > 0) {
+                    <div class="monster-editor-metadata">
+                      @for (metadata of featureMetadata(feature); track metadata) {
+                        <span>{{ metadata }}</span>
+                      }
+                    </div>
+                  }
+
+                  <div class="monster-editor-card-actions">
+                    <button
+                      type="button"
+                      class="monster-editor-icon-action"
+                      aria-label="Move feature up"
+                      title="Move up"
+                      [disabled]="isFirstFeature(section.category, feature) || isReorderingFeatures()"
+                      (click)="moveFeature(section.category, feature, -1)"
+                    >
+                      <svg lucideArrowUp aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="monster-editor-icon-action"
+                      aria-label="Move feature down"
+                      title="Move down"
+                      [disabled]="isLastFeature(section.category, feature) || isReorderingFeatures()"
+                      (click)="moveFeature(section.category, feature, 1)"
+                    >
+                      <svg lucideArrowDown aria-hidden="true"></svg>
+                    </button>
+                    <button type="button" class="monster-editor-icon-action" aria-label="Edit feature" title="Edit feature" (click)="openEditFeature(feature)">
+                      <svg lucidePencil aria-hidden="true"></svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="monster-editor-icon-action monster-editor-danger-action"
+                      aria-label="Delete feature"
+                      title="Delete feature"
+                      [disabled]="deletingFeatureId() === feature.id"
+                      (click)="deleteFeature(feature)"
+                    >
+                      <svg lucideTrash2 aria-hidden="true"></svg>
+                    </button>
+                  </div>
+                </article>
+              } @empty {
+                <p class="monster-editor-empty">No {{ section.label.toLowerCase() }} added.</p>
+              }
+            </div>
+          </section>
+        }
+      </div>
+
+      <section class="monster-editor-section">
+        <header>
+          <h2>Spellcasting</h2>
+          @if (!hasSpellcastingDraft()) {
+            <button type="button" class="monster-editor-secondary-action" (click)="addSpellcasting()">
+              <svg lucidePlus aria-hidden="true"></svg>
+              Add Spellcasting
+            </button>
+          }
+        </header>
+
+        @if (!hasSpellcastingDraft()) {
+          <p class="monster-editor-empty">This monster has no spellcasting configuration.</p>
+        } @else {
+          <div class="monster-editor-grid">
+            <label class="monster-editor-field">
+              <span>Spellcasting Ability</span>
+              <input type="text" [value]="spellcastingDraft().spellcastingAbility" (input)="updateSpellcastingDraft('spellcastingAbility', $event)" />
+            </label>
+            <label class="monster-editor-field">
+              <span>Spell Save DC</span>
+              <input type="number" min="0" [value]="spellcastingDraft().spellSaveDC" (input)="updateSpellcastingDraft('spellSaveDC', $event)" />
+            </label>
+            <label class="monster-editor-field">
+              <span>Spell Attack Bonus</span>
+              <input type="number" [value]="spellcastingDraft().spellAttackBonus" (input)="updateSpellcastingDraft('spellAttackBonus', $event)" />
+            </label>
+          </div>
+
+          <label class="monster-editor-field">
+            <span>Spellcasting Notes</span>
+            <textarea [value]="spellcastingDraft().notes" (input)="updateSpellcastingDraft('notes', $event)"></textarea>
+          </label>
+
+          <div class="monster-editor-subsection-head">
+            <h3>Spell Slots</h3>
+            <button type="button" class="monster-editor-secondary-action" (click)="addSpellSlotDraft()">
+              <svg lucidePlus aria-hidden="true"></svg>
+              Add Slot Level
+            </button>
+          </div>
+
+          <div class="monster-editor-note-list">
+            @for (slot of spellSlotDrafts(); track slot.draftId) {
+              <article class="monster-editor-row-card">
+                <div class="monster-editor-row-grid monster-editor-slot-grid">
+                  <label class="monster-editor-field">
+                    <span>Spell Level</span>
+                    <input type="number" min="0" [value]="slot.spellLevel" (input)="updateSpellSlotDraft(slot.draftId, 'spellLevel', $event)" />
+                  </label>
+                  <label class="monster-editor-field">
+                    <span>Maximum Slots</span>
+                    <input type="number" min="0" [value]="slot.maximumSlots" (input)="updateSpellSlotDraft(slot.draftId, 'maximumSlots', $event)" />
+                  </label>
+                  <label class="monster-editor-field">
+                    <span>Remaining Slots</span>
+                    <input type="number" min="0" [value]="slot.remainingSlots" (input)="updateSpellSlotDraft(slot.draftId, 'remainingSlots', $event)" />
+                  </label>
+                  <button type="button" class="monster-editor-icon-action" aria-label="Delete spell slot" title="Delete spell slot" (click)="removeSpellSlotDraft(slot.draftId)">
+                    <svg lucideTrash2 aria-hidden="true"></svg>
+                  </button>
+                </div>
+              </article>
+            } @empty {
+              <p class="monster-editor-empty">No spell slots added.</p>
+            }
+          </div>
+
+          <div class="monster-editor-form-actions">
+            <button
+              type="button"
+              class="monster-editor-danger-button"
+              [disabled]="isRemovingSpellcasting()"
+              (click)="removeSpellcasting()"
+            >
+              Remove Spellcasting
+            </button>
+            <button
+              type="button"
+              class="monster-editor-primary-action"
+              [disabled]="!canSaveSpellcasting()"
+              (click)="saveSpellcasting()"
+            >
+              <svg lucideCheck aria-hidden="true"></svg>
+              {{ isSavingSpellcasting() ? 'Saving...' : 'Save Spellcasting' }}
+            </button>
+          </div>
+        }
+      </section>
+    </div>
+  }
+
+  @if (featureDraft(); as draft) {
+    <div class="monster-editor-dialog-backdrop" role="presentation">
+      <section class="monster-editor-dialog" role="dialog" aria-modal="true" aria-label="Monster feature">
+        <button type="button" class="monster-editor-dialog-close" aria-label="Close" title="Close" [disabled]="isSavingFeature()" (click)="closeFeatureDraft()">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+
+        <h2>{{ draft.id === null ? 'Add Feature' : 'Edit Feature' }}</h2>
+
+        <div class="monster-editor-grid">
+          <label class="monster-editor-field">
+            <span>Name</span>
+            <input type="text" [value]="draft.name" (input)="updateFeatureDraft('name', $event)" />
+          </label>
+
+          <label class="monster-editor-field">
+            <span>Category</span>
+            <select [value]="draft.category" (change)="updateFeatureDraft('category', $event)">
+              @for (section of featureSections; track section.category) {
+                <option [value]="section.category">{{ section.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <label class="monster-editor-field">
+          <span>Description</span>
+          <textarea [value]="draft.description" (input)="updateFeatureDraft('description', $event)"></textarea>
+        </label>
+
+        <label class="monster-editor-field">
+          <span>Usage Note</span>
+          <input type="text" placeholder="2/day, Recharge 5-6, Phase Two only" [value]="draft.usageNote" (input)="updateFeatureDraft('usageNote', $event)" />
+        </label>
+
+        <details class="monster-editor-details">
+          <summary>Advanced / Spell Details</summary>
+
+          <label class="monster-editor-checkbox">
+            <input type="checkbox" [checked]="draft.isSpell" (change)="updateFeatureDraft('isSpell', $event)" />
+            <span>Is Spell</span>
+          </label>
+
+          <label class="monster-editor-field">
+            <span>Resource Cost</span>
+            <input type="number" min="0" [value]="draft.resourceCost" (input)="updateFeatureDraft('resourceCost', $event)" />
+          </label>
+
+          @if (hasSpellDetails(draft)) {
+            <div class="monster-editor-grid">
+              <label class="monster-editor-field">
+                <span>Spell Level</span>
+                <input type="number" min="0" [value]="draft.spellLevel" (input)="updateFeatureDraft('spellLevel', $event)" />
+              </label>
+              <label class="monster-editor-field">
+                <span>Casting Time</span>
+                <input type="text" [value]="draft.castingTime" (input)="updateFeatureDraft('castingTime', $event)" />
+              </label>
+              <label class="monster-editor-field">
+                <span>Range</span>
+                <input type="text" [value]="draft.range" (input)="updateFeatureDraft('range', $event)" />
+              </label>
+              <label class="monster-editor-field">
+                <span>Duration</span>
+                <input type="text" [value]="draft.duration" (input)="updateFeatureDraft('duration', $event)" />
+              </label>
+            </div>
+
+            <label class="monster-editor-checkbox">
+              <input type="checkbox" [checked]="draft.concentration" (change)="updateFeatureDraft('concentration', $event)" />
+              <span>Concentration</span>
+            </label>
+          }
+        </details>
+
+        <button type="button" class="monster-editor-primary-action" [disabled]="!canSaveFeature()" (click)="saveFeature()">
+          <svg lucideCheck aria-hidden="true"></svg>
+          {{ isSavingFeature() ? 'Saving...' : 'Save Feature' }}
+        </button>
+      </section>
+    </div>
+  }
+</section>

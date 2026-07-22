@@ -37,6 +37,19 @@ public sealed class CampaignMilestoneRepository : ICampaignMilestoneRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<CampaignMilestone>> ListUnlinkedByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.CampaignMilestones
+            .AsNoTracking()
+            .Where(milestone => milestone.CampaignId == campaignId
+                && milestone.StoryBeat == null)
+            .OrderBy(milestone => milestone.Importance)
+            .ThenBy(milestone => milestone.Title)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<CampaignMilestone?> GetByCampaignIdAndMilestoneIdAsync(
         Guid campaignId,
         int milestoneId,

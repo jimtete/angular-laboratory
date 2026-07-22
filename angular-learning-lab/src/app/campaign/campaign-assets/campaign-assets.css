@@ -1,7 +1,8 @@
 .campaign-assets-page,
 .campaign-assets-panel,
 .campaign-assets-entry,
-.campaign-assets-dialog {
+.campaign-assets-dialog,
+.campaign-assets-tag-editor {
   box-sizing: border-box;
 }
 
@@ -124,7 +125,8 @@
 }
 
 .campaign-assets-folder,
-.campaign-assets-item {
+.campaign-assets-item,
+.campaign-assets-monster {
   cursor: pointer;
 }
 
@@ -146,6 +148,61 @@
   margin: 0;
   color: #4b5563;
   font: 600 0.92rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-assets-tags,
+.campaign-assets-card-actions,
+.campaign-assets-tag-editor,
+.campaign-assets-confirmation-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.campaign-assets-tags span,
+.campaign-assets-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.32rem 0.45rem;
+  border: 1px solid rgba(109, 40, 217, 0.28);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 700 0.82rem/1.15 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-assets-card-actions {
+  align-self: end;
+  margin-top: 0.25rem;
+}
+
+.campaign-assets-card-actions button {
+  min-height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(109, 40, 217, 0.4);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 800 0.78rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-assets-card-actions .campaign-assets-danger-action {
+  width: 2rem;
+  padding: 0;
+  border-color: rgba(185, 28, 28, 0.4);
+  color: #991b1b;
+}
+
+.campaign-assets-danger-action svg {
+  width: 1rem;
+  height: 1rem;
+  color: currentColor;
 }
 
 .campaign-assets-entry p {
@@ -351,6 +408,91 @@
   text-transform: none;
 }
 
+.campaign-assets-field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.campaign-assets-tag-editor {
+  min-height: 2.7rem;
+  padding: 0.45rem;
+  border: 2px solid #9ca3af;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #6d28d9;
+}
+
+.campaign-assets-tag-editor input {
+  flex: 1 1 8rem;
+  min-width: 7rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.45rem;
+  border: 0;
+  box-shadow: none;
+}
+
+.campaign-assets-tag-chip button {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(31, 18, 53, 0.24);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 800 0.68rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-assets-confirmation {
+  padding-top: 1.25rem;
+}
+
+.campaign-assets-confirmation h2,
+.campaign-assets-confirmation p {
+  margin: 0;
+  color: #1f1235;
+  font-family: 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-assets-confirmation h2 {
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.campaign-assets-confirmation p {
+  color: #4b5563;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.campaign-assets-confirmation-actions {
+  justify-content: flex-end;
+}
+
+.campaign-assets-confirmation-cancel,
+.campaign-assets-confirmation-delete {
+  min-height: 2.4rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  font: 800 0.9rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-assets-confirmation-cancel {
+  background: #ffffff;
+  color: #1f1235;
+}
+
+.campaign-assets-confirmation-delete {
+  border-color: #991b1b;
+  background: #991b1b;
+  color: #ffffff;
+}
+
 .campaign-assets-create {
   justify-self: end;
   min-width: 7rem;
@@ -359,7 +501,10 @@
 .campaign-assets-create:disabled,
 .campaign-assets-dialog-close:disabled,
 .campaign-assets-campaign-picker:disabled,
-.campaign-assets-campaign-chip button:disabled {
+.campaign-assets-campaign-chip button:disabled,
+.campaign-assets-tag-chip button:disabled,
+.campaign-assets-confirmation-cancel:disabled,
+.campaign-assets-confirmation-delete:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -372,5 +517,9 @@
 
   .campaign-assets-actions button {
     flex: 1 1 auto;
+  }
+
+  .campaign-assets-field-grid {
+    grid-template-columns: 1fr;
   }
 }

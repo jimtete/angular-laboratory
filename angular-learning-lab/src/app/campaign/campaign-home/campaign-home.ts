@@ -7,6 +7,7 @@ import {
   CampaignApiService,
   CampaignCacheService,
   CampaignInformationCacheService,
+  CampaignSettingsModel,
   CampaignSessionModel,
   TokenStorageService,
 } from '../../Infrastructure';
@@ -27,7 +28,9 @@ export class CampaignHome implements OnInit {
   private readonly modalHelper = inject(ModalHelper);
 
   protected readonly sessions = signal<CampaignSessionModel[]>([]);
+  protected readonly campaignSettings = signal<CampaignSettingsModel | null>(null);
   protected readonly isLoadingSessions = signal(false);
+  protected readonly isLoadingSettings = signal(false);
   protected readonly isCreatingSession = signal(false);
   protected readonly campaignId = computed(() => {
     return this.route.parent?.snapshot.paramMap.get('campaignId') ?? null;
@@ -43,9 +46,11 @@ export class CampaignHome implements OnInit {
   protected readonly currentMembers = computed(
     () => this.campaignInformationCache.joinedMembers().length,
   );
-  protected readonly maxMembers = 6;
+  protected readonly maxMembers = computed(() => (
+    this.campaignSettings()?.maxNumberOfPlayers ?? 1
+  ));
   protected readonly membersRingFill = computed(() => {
-    const fillPercentage = (this.currentMembers() / this.maxMembers) * 100;
+    const fillPercentage = (this.currentMembers() / this.maxMembers()) * 100;
     const boundedFillPercentage = Math.max(0, Math.min(100, fillPercentage));
 
     return `${boundedFillPercentage}%`;
@@ -68,7 +73,19 @@ export class CampaignHome implements OnInit {
       error: () => {},
     });
 
+    this.loadSettings();
     this.loadSessions();
+  }
+
+  refreshCampaignPage(): boolean {
+    this.loadSettings(true);
+    this.loadSessions();
+
+    return false;
+  }
+
+  isRefreshingCampaignPage(): boolean {
+    return this.isLoadingSettings() || this.isLoadingSessions();
   }
 
   protected openLatestSession(): void {
@@ -148,6 +165,31 @@ export class CampaignHome implements OnInit {
         error: (error: unknown) => {
           this.modalHelper.showError(
             this.getErrorMessage(error, 'Campaign sessions could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private loadSettings(forceRefresh = false): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId || (this.isLoadingSettings() && !forceRefresh)) {
+      return;
+    }
+
+    this.isLoadingSettings.set(true);
+
+    this.campaignApiService
+      .fetchCampaignSettings(campaignId)
+      .pipe(finalize(() => this.isLoadingSettings.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.campaignSettings.set(response.data ?? null);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign settings could not be loaded.'),
             { statusCode: this.getErrorStatus(error) },
           );
         },

@@ -52,7 +52,21 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
                 Nickname = participation.Nickname,
                 HalfProficientSkills = participation.HalfProficientSkills,
                 ProficientSkills = participation.ProficientSkills,
-                ExpertiseSkills = participation.ExpertiseSkills
+                ExpertiseSkills = participation.ExpertiseSkills,
+                AbilityValues = participation.AbilityValues
+                    .Select(abilityValue => new CampaignMemberAbilityValueResponse
+                    {
+                        Ability = abilityValue.Ability,
+                        Value = abilityValue.Value
+                    })
+                    .ToList(),
+                SkillValues = participation.SkillValues
+                    .Select(skillValue => new CampaignMemberSkillValueResponse
+                    {
+                        Skill = skillValue.Skill,
+                        Value = skillValue.Value
+                    })
+                    .ToList()
             })
             .ToListAsync(cancellationToken);
     }

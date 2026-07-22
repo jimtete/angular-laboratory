@@ -21,6 +21,18 @@ export enum Skill {
 
 export type SkillValue = Skill | keyof typeof Skill | string | number;
 
+export type CampaignMemberAbilityValue = string | number;
+
+export interface CampaignMemberAbilityValueModel {
+  ability: CampaignMemberAbilityValue;
+  value: number;
+}
+
+export interface CampaignMemberSkillValueModel {
+  skill: SkillValue;
+  value: number;
+}
+
 export interface CampaignMemberInformationModel {
   userId: string;
   username: string;
@@ -30,4 +42,6 @@ export interface CampaignMemberInformationModel {
   halfProficientSkills: SkillValue[];
   proficientSkills: SkillValue[];
   expertiseSkills: SkillValue[];
+  abilityValues: CampaignMemberAbilityValueModel[];
+  skillValues: CampaignMemberSkillValueModel[];
 }

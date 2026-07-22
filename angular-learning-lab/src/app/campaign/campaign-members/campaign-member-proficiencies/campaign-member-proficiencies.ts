@@ -3,10 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import {
+  Ability,
   ApiError,
   CampaignApiService,
   CampaignInformationCacheService,
+  CampaignMemberAbilityValueModel,
   CampaignMemberInformationModel,
+  CampaignMemberSkillValueModel,
   Skill,
   SkillValue,
   UpdateCampaignMemberSkillsRequest,
@@ -41,7 +44,9 @@ export class CampaignMemberProficiencies {
   private readonly userId = this.route.snapshot.paramMap.get('userId');
 
   protected readonly draftLevels = signal<Record<number, ProficiencyLevel>>({});
+  protected readonly draftSkillValues = signal<Record<number, number>>({});
   private readonly initialLevels = signal<Record<number, ProficiencyLevel>>({});
+  private readonly initialSkillValues = signal<Record<number, number>>({});
   protected readonly isSaving = signal(false);
   protected readonly member = computed(() => (
     this.campaignInformationCache.joinedMembers()
@@ -113,8 +118,12 @@ export class CampaignMemberProficiencies {
       }
 
       const levels = this.toLevels(member);
+      const skillValues = this.toSkillValues(member);
+
       this.initialLevels.set(levels);
       this.draftLevels.set(levels);
+      this.initialSkillValues.set(skillValues);
+      this.draftSkillValues.set(skillValues);
     });
   }
 
@@ -133,6 +142,23 @@ export class CampaignMemberProficiencies {
     }));
   }
 
+  protected skillValueFor(skill: Skill): number {
+    return this.draftSkillValues()[skill] ?? 0;
+  }
+
+  protected setSkillValue(skill: Skill, event: Event): void {
+    if (this.isSaving()) {
+      return;
+    }
+
+    const value = Number((event.target as HTMLInputElement).value);
+
+    this.draftSkillValues.update((skillValues) => ({
+      ...skillValues,
+      [skill]: this.clampSkillValue(value),
+    }));
+  }
+
   protected goBack(): void {
     const campaignId = this.route.parent?.snapshot.paramMap.get('campaignId');
 
@@ -145,6 +171,7 @@ export class CampaignMemberProficiencies {
     }
 
     this.draftLevels.set({ ...this.initialLevels() });
+    this.draftSkillValues.set({ ...this.initialSkillValues() });
   }
 
   protected saveChanges(): void {
@@ -211,6 +238,8 @@ export class CampaignMemberProficiencies {
       halfProficientSkills: [],
       proficientSkills: [],
       expertiseSkills: [],
+      abilityValues: this.toAbilityValueRequests(this.member()?.abilityValues),
+      skillValues: [],
     };
 
     Object.entries(this.draftLevels()).forEach(([skillValue, level]) => {
@@ -231,6 +260,13 @@ export class CampaignMemberProficiencies {
       }
     });
 
+    this.allSkillDefinitions().forEach((definition) => {
+      request.skillValues.push({
+        skill: definition.skill,
+        value: this.clampSkillValue(this.skillValueFor(definition.skill)),
+      });
+    });
+
     return request;
   }
 
@@ -246,6 +282,46 @@ export class CampaignMemberProficiencies {
     );
   }
 
+  private toSkillValues(member: CampaignMemberInformationModel): Record<number, number> {
+    const skillValues: Record<number, number> = {};
+
+    (member.skillValues ?? []).forEach((skillValue) => {
+      const skill = this.toSkill(skillValue.skill);
+
+      if (skill !== null) {
+        skillValues[skill] = this.clampSkillValue(skillValue.value);
+      }
+    });
+
+    return skillValues;
+  }
+
+  private allSkillDefinitions(): SkillDefinition[] {
+    return [
+      ...this.leftSkillGroups,
+      ...this.rightSkillGroups,
+    ].flatMap((group) => group.skills);
+  }
+
+  private toAbilityValueRequests(
+    abilityValues: CampaignMemberAbilityValueModel[] | null | undefined,
+  ): UpdateCampaignMemberSkillsRequest['abilityValues'] {
+    return (abilityValues ?? [])
+      .map((abilityValue) => {
+        const ability = this.toAbility(abilityValue.ability);
+
+        return ability === null
+          ? null
+          : {
+            ability,
+            value: abilityValue.value,
+          };
+      })
+      .filter((abilityValue): abilityValue is UpdateCampaignMemberSkillsRequest['abilityValues'][number] => (
+        abilityValue !== null
+      ));
+  }
+
   private toSkill(skill: SkillValue): Skill | null {
     if (typeof skill === 'number') {
       return skill as Skill;
@@ -258,6 +334,28 @@ export class CampaignMemberProficiencies {
     }
 
     return Skill[skill as keyof typeof Skill] ?? null;
+  }
+
+  private toAbility(ability: CampaignMemberAbilityValueModel['ability']): Ability | null {
+    if (typeof ability === 'number') {
+      return ability as Ability;
+    }
+
+    const parsedAbility = Number(ability);
+
+    if (Number.isFinite(parsedAbility)) {
+      return parsedAbility as Ability;
+    }
+
+    return Ability[ability as keyof typeof Ability] ?? null;
+  }
+
+  private clampSkillValue(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(40, Math.round(value)));
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

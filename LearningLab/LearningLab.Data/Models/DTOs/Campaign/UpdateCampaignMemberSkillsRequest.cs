@@ -9,4 +9,8 @@ public sealed class UpdateCampaignMemberSkillsRequest
     public IReadOnlyList<Skill> ProficientSkills { get; init; } = [];
 
     public IReadOnlyList<Skill> ExpertiseSkills { get; init; } = [];
+
+    public IReadOnlyList<CampaignMemberAbilityValueRequest> AbilityValues { get; init; } = [];
+
+    public IReadOnlyList<CampaignMemberSkillValueRequest> SkillValues { get; init; } = [];
 }

@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard, masterRoleGuard, pendingChangesGuard } from './Infrastructure';
 import { Campaign } from './campaign/campaign';
 import { CampaignAssets } from './campaign/campaign-assets/campaign-assets';
+import { MonsterEditor } from './campaign/campaign-assets/monster-editor/monster-editor';
 import { CampaignContent } from './campaign/campaign-content/campaign-content';
 import { CampaignHome } from './campaign/campaign-home/campaign-home';
 import { CampaignMemberProficiencies } from './campaign/campaign-members/campaign-member-proficiencies/campaign-member-proficiencies';
@@ -60,6 +61,11 @@ export const routes: Routes = [
     path: 'character-sheet',
     component: CharacterSheet,
     canActivate: [authGuard]
+  },
+  {
+    path: 'assets/monsters/:monsterId',
+    component: MonsterEditor,
+    canActivate: [authGuard, masterRoleGuard]
   },
   {
     path: 'assets',

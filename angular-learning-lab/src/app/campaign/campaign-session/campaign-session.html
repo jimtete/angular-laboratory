@@ -3,7 +3,19 @@
     <p class="campaign-session-status">Loading session...</p>
   } @else if (session()) {
     <header class="campaign-session-header">
-      <h1>{{ headerText() }}</h1>
+      <div class="campaign-session-title-row">
+        <button
+          type="button"
+          class="campaign-session-back-button"
+          aria-label="Back to sessions"
+          title="Back to sessions"
+          (click)="goToSessionsPage()"
+        >
+          <svg lucideArrowLeft aria-hidden="true"></svg>
+        </button>
+
+        <h1>{{ headerText() }}</h1>
+      </div>
 
       <div class="campaign-session-date-control">
         <button
@@ -265,10 +277,13 @@
                     @for (milestone of availableMilestones(); track milestone.id) {
                       <button
                         type="button"
-                        class="campaign-session-milestone-option"
+                        [class]="'campaign-session-milestone-option ' + campaignMilestoneImportanceClass(milestone)"
                         [class.campaign-session-milestone-option-selected]="selectedMilestoneId() === milestone.id"
                         (click)="selectCampaignMilestone(milestone)"
                       >
+                        <span [class]="'campaign-session-milestone-importance ' + campaignMilestoneImportanceClass(milestone)">
+                          {{ milestoneImportanceLabel(milestone) }}
+                        </span>
                         <strong>{{ milestone.title }}</strong>
                         <span>{{ milestone.description || 'No description.' }}</span>
                       </button>

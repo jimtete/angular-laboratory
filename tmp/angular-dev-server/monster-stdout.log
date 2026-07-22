@@ -1,0 +1,25 @@
+
+> angular-learning-lab@0.0.0 start
+> ng serve --host 127.0.0.1 --port 4200
+
+> Building...
+√ Building...
+Initial chunk files | Names         | Raw size
+main.js             | main          |  1.20 MB | 
+styles.css          | styles        | 42.08 kB | 
+
+                    | Initial total |  1.24 MB
+
+Application bundle generation complete. [4.437 seconds] - 2026-07-22T10:16:09.205Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names | Raw size
+main.js             | main  |  1.20 MB | 
+
+Application bundle generation complete. [2.283 seconds] - 2026-07-22T11:15:00.777Z
+
+Component update sent to client(s).

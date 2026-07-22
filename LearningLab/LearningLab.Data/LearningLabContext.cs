@@ -4,7 +4,9 @@ using LearningLab.Data.Models.Assets;
 using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.Campaign.Quests;
 using LearningLab.Data.Models.Campaign.Sessions;
+using LearningLab.Data.Models.Campaign.Story;
 using LearningLab.Data.Models.Character;
+using LearningLab.Data.Models.Monsters;
 using LearningLab.Data.Models.Notifications;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +21,8 @@ public class LearningLabContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<CharacterSheet> CharacterSheets { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
+    public DbSet<CampaignNpc> CampaignNpcs { get; set; }
+    public DbSet<CampaignNpcParticipation> CampaignNpcParticipations { get; set; }
     public DbSet<CampaignQuest> CampaignQuests { get; set; }
     public DbSet<CampaignQuestTask> CampaignQuestTasks { get; set; }
     public DbSet<CampaignSession> CampaignSessions { get; set; }
@@ -27,6 +31,9 @@ public class LearningLabContext : DbContext
     public DbSet<SessionNoteMechanicsChange> SessionNoteMechanicsChanges { get; set; }
     public DbSet<CampaignMilestone> CampaignMilestones { get; set; }
     public DbSet<Asset> Assets { get; set; }
+    public DbSet<StoryBlock> StoryBlocks { get; set; }
+    public DbSet<StoryBeat> StoryBeats { get; set; }
+    public DbSet<StoryBlockMilestone> StoryBlockMilestones { get; set; }
     public DbSet<CampaignSettings> CampaignSettings { get; set; }
     public DbSet<PlayerCampaignParticipation> PlayerCampaignParticipations { get; set; }
     public DbSet<CampaignParticipationInvite> CampaignParticipationInvites { get; set; }
@@ -35,6 +42,12 @@ public class LearningLabContext : DbContext
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
+    public DbSet<Monster> Monsters { get; set; }
+    public DbSet<MonsterAbility> MonsterAbilities { get; set; }
+    public DbSet<MonsterProficiency> MonsterProficiencies { get; set; }
+    public DbSet<MonsterFeature> MonsterFeatures { get; set; }
+    public DbSet<MonsterSpellcasting> MonsterSpellcasting { get; set; }
+    public DbSet<MonsterSpellSlot> MonsterSpellSlots { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -188,6 +201,313 @@ public class LearningLabContext : DbContext
                 .HasForeignKey(quest => quest.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasMany(campaign => campaign.Npcs)
+                .WithOne(npc => npc.Campaign)
+                .HasForeignKey(npc => npc.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(campaign => campaign.NpcParticipations)
+                .WithOne(participation => participation.Campaign)
+                .HasForeignKey(participation => participation.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(campaign => campaign.StoryBlocks)
+                .WithOne(block => block.Campaign)
+                .HasForeignKey(block => block.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+        });
+
+        modelBuilder.Entity<CampaignNpc>(entity =>
+        {
+            entity.ToTable("CampaignNpcs");
+
+            entity.HasKey(npc => npc.CampaignNpcId);
+
+            entity.Property(npc => npc.CampaignNpcId)
+                .HasColumnName("campaign_npc_id");
+
+            entity.Property(npc => npc.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(npc => npc.Tag)
+                .HasColumnName("tag")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.Property(npc => npc.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(npc => npc.DisplayName)
+                .HasColumnName("display_name")
+                .HasMaxLength(256)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(npc => npc.Description)
+                .HasColumnName("description")
+                .HasMaxLength(2048)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(npc => npc.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(npc => npc.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasIndex(npc => new
+            {
+                npc.CampaignId,
+                npc.Tag
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<CampaignNpcParticipation>(entity =>
+        {
+            entity.ToTable("CampaignNpcParticipations");
+
+            entity.HasKey(participation => new
+            {
+                participation.CampaignId,
+                participation.MonsterId
+            });
+
+            entity.Property(participation => participation.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(participation => participation.MonsterId)
+                .HasColumnName("monster_id");
+
+            entity.HasOne(participation => participation.Campaign)
+                .WithMany(campaign => campaign.NpcParticipations)
+                .HasForeignKey(participation => participation.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(participation => participation.Monster)
+                .WithMany(monster => monster.CampaignParticipations)
+                .HasForeignKey(participation => participation.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(participation => participation.MonsterId);
+        });
+
+        modelBuilder.Entity<StoryBlock>(entity =>
+        {
+            entity.ToTable("StoryBlocks");
+
+            entity.HasKey(block => block.StoryBlockId);
+
+            entity.Property(block => block.StoryBlockId)
+                .HasColumnName("story_block_id");
+
+            entity.Property(block => block.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(block => block.Title)
+                .HasColumnName("title")
+                .HasMaxLength(256)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.HasMany(block => block.Beats)
+                .WithOne(beat => beat.StoryBlock)
+                .HasForeignKey(beat => beat.StoryBlockId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(block => block.Milestones)
+                .WithOne(milestone => milestone.StoryBlock)
+                .HasForeignKey(milestone => milestone.StoryBlockId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(block => block.CampaignId);
+        });
+
+        modelBuilder.Entity<StoryBeat>(entity =>
+        {
+            entity.ToTable("StoryBeats");
+
+            entity.HasKey(beat => beat.Id);
+
+            entity.Property(beat => beat.Id)
+                .HasColumnName("story_beat_id");
+
+            entity.Property(beat => beat.StoryBlockId)
+                .HasColumnName("story_block_id");
+
+            entity.Property(beat => beat.OrderIndex)
+                .HasColumnName("order_index")
+                .IsRequired();
+
+            entity.Property(beat => beat.StoryBeatType)
+                .HasColumnName("story_beat_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(beat => beat.Title)
+                .HasColumnName("title")
+                .HasMaxLength(256)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(beat => beat.CampaignMilestoneId)
+                .HasColumnName("campaign_milestone_id");
+
+            entity.HasOne(beat => beat.Milestone)
+                .WithOne(milestone => milestone.StoryBeat)
+                .HasForeignKey<StoryBeat>(beat => beat.CampaignMilestoneId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.OwnsOne(beat => beat.Information, information =>
+            {
+                information.ToJson("information");
+
+                information.Property(content => content.Narrative)
+                    .IsRequired();
+
+                information.OwnsMany(content => content.OptionalInformation, optionalInformation =>
+                {
+                    optionalInformation.Property(optional => optional.Skill)
+                        .HasConversion<string>();
+
+                    optionalInformation.Property(optional => optional.DifficultyClass)
+                        .IsRequired();
+
+                    optionalInformation.Property(optional => optional.Information)
+                        .IsRequired();
+
+                    optionalInformation.Property(optional => optional.Placement)
+                        .HasConversion<string>()
+                        .IsRequired();
+                });
+            });
+
+            entity.OwnsOne(beat => beat.Narrative, narrative =>
+            {
+                narrative.ToJson("narrative");
+
+                narrative.OwnsMany(content => content.Paragraphs, paragraph =>
+                {
+                    paragraph.Property(item => item.OrderIndex)
+                        .IsRequired();
+
+                    paragraph.Property(item => item.Text)
+                        .IsRequired();
+                });
+            });
+
+            entity.OwnsOne(beat => beat.Roleplaying, roleplaying =>
+            {
+                roleplaying.ToJson("roleplaying");
+
+                roleplaying.Property(content => content.MainDescription)
+                    .IsRequired();
+
+                roleplaying.OwnsMany(content => content.NpcReferences, npc =>
+                {
+                    npc.Property(item => item.NpcTag)
+                        .IsRequired();
+                });
+
+                roleplaying.OwnsMany(content => content.DiscoverableInformation, information =>
+                {
+                    information.Property(item => item.NpcTag)
+                        .IsRequired();
+
+                    information.Property(item => item.CheckType)
+                        .HasConversion<string>()
+                        .IsRequired();
+
+                    information.Property(item => item.Skill)
+                        .HasConversion<string>();
+
+                    information.Property(item => item.Ability)
+                        .HasConversion<string>();
+
+                    information.Property(item => item.Information)
+                        .IsRequired();
+                });
+            });
+
+            entity.OwnsOne(beat => beat.Decision, decision =>
+            {
+                decision.ToJson("decision");
+
+                decision.Property(content => content.Description)
+                    .IsRequired();
+
+                decision.OwnsMany(content => content.Decisions, option =>
+                {
+                    option.Property(item => item.OrderIndex)
+                        .IsRequired();
+
+                    option.Property(item => item.Title)
+                        .IsRequired();
+
+                    option.Property(item => item.Description)
+                        .IsRequired();
+
+                    option.Property(item => item.IsSelected)
+                        .IsRequired();
+                });
+            });
+
+            entity.HasIndex(beat => beat.StoryBlockId);
+
+            entity.HasIndex(beat => new
+            {
+                beat.StoryBlockId,
+                beat.OrderIndex
+            })
+            .IsUnique();
+
+            entity.HasIndex(beat => beat.CampaignMilestoneId)
+                .IsUnique()
+                .HasFilter("[campaign_milestone_id] IS NOT NULL");
+        });
+
+        modelBuilder.Entity<StoryBlockMilestone>(entity =>
+        {
+            entity.ToTable("StoryBlockMilestones");
+
+            entity.HasKey(milestone => new
+            {
+                milestone.StoryBlockId,
+                milestone.CampaignMilestoneId
+            });
+
+            entity.Property(milestone => milestone.StoryBlockId)
+                .HasColumnName("story_block_id");
+
+            entity.Property(milestone => milestone.CampaignMilestoneId)
+                .HasColumnName("campaign_milestone_id");
+
+            entity.Property(milestone => milestone.OrderIndex)
+                .HasColumnName("order_index")
+                .IsRequired();
+
+            entity.HasOne(milestone => milestone.CampaignMilestone)
+                .WithMany(milestone => milestone.StoryBlockMilestones)
+                .HasForeignKey(milestone => milestone.CampaignMilestoneId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(milestone => milestone.CampaignMilestoneId)
+                .IsUnique();
+
+            entity.HasIndex(milestone => new
+            {
+                milestone.StoryBlockId,
+                milestone.OrderIndex
+            })
+            .IsUnique();
         });
 
         modelBuilder.Entity<CampaignSettings>(entity =>
@@ -247,6 +567,30 @@ public class LearningLabContext : DbContext
             entity.PrimitiveCollection(participation => participation.ExpertiseSkills)
                 .HasColumnName("expertise_skills")
                 .HasColumnType("nvarchar(max)");
+
+            entity.OwnsMany(participation => participation.AbilityValues, abilityValues =>
+            {
+                abilityValues.ToJson("ability_values");
+
+                abilityValues.Property(item => item.Ability)
+                    .HasConversion<string>()
+                    .IsRequired();
+
+                abilityValues.Property(item => item.Value)
+                    .IsRequired();
+            });
+
+            entity.OwnsMany(participation => participation.SkillValues, skillValues =>
+            {
+                skillValues.ToJson("skill_values");
+
+                skillValues.Property(item => item.Skill)
+                    .HasConversion<string>()
+                    .IsRequired();
+
+                skillValues.Property(item => item.Value)
+                    .IsRequired();
+            });
 
             entity.Property(participation => participation.DateJoined)
                 .HasColumnName("date_joined")
@@ -681,6 +1025,248 @@ public class LearningLabContext : DbContext
             {
                 asset.ParentAssetId,
                 asset.Name
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<Monster>(entity =>
+        {
+            entity.ToTable("Monsters");
+
+            entity.HasKey(monster => monster.Id);
+
+            entity.Property(monster => monster.Id)
+                .HasColumnName("monster_id");
+
+            entity.Property(monster => monster.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(monster => monster.Size)
+                .HasColumnName("size")
+                .HasMaxLength(128);
+
+            entity.Property(monster => monster.Race)
+                .HasColumnName("race")
+                .HasMaxLength(128);
+
+            entity.Property(monster => monster.Class)
+                .HasColumnName("class")
+                .HasMaxLength(128);
+
+            entity.PrimitiveCollection(monster => monster.Tags)
+                .HasColumnName("tags")
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(monster => monster.Notes)
+                .HasColumnName("notes");
+
+            entity.HasMany(monster => monster.Abilities)
+                .WithOne(ability => ability.Monster)
+                .HasForeignKey(ability => ability.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(monster => monster.Proficiencies)
+                .WithOne(proficiency => proficiency.Monster)
+                .HasForeignKey(proficiency => proficiency.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(monster => monster.Features)
+                .WithOne(feature => feature.Monster)
+                .HasForeignKey(feature => feature.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(monster => monster.Spellcasting)
+                .WithOne(spellcasting => spellcasting.Monster)
+                .HasForeignKey<MonsterSpellcasting>(spellcasting => spellcasting.MonsterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(monster => monster.Name);
+        });
+
+        modelBuilder.Entity<MonsterAbility>(entity =>
+        {
+            entity.ToTable("MonsterAbilities");
+
+            entity.HasKey(ability => ability.Id);
+
+            entity.Property(ability => ability.Id)
+                .HasColumnName("monster_ability_id");
+
+            entity.Property(ability => ability.MonsterId)
+                .HasColumnName("monster_id");
+
+            entity.Property(ability => ability.Name)
+                .HasColumnName("name")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.Property(ability => ability.Value)
+                .HasColumnName("value");
+
+            entity.Property(ability => ability.Modifier)
+                .HasColumnName("modifier");
+
+            entity.Property(ability => ability.Notes)
+                .HasColumnName("notes");
+
+            entity.HasIndex(ability => new
+            {
+                ability.MonsterId,
+                ability.Name
+            });
+        });
+
+        modelBuilder.Entity<MonsterProficiency>(entity =>
+        {
+            entity.ToTable("MonsterProficiencies");
+
+            entity.HasKey(proficiency => proficiency.Id);
+
+            entity.Property(proficiency => proficiency.Id)
+                .HasColumnName("monster_proficiency_id");
+
+            entity.Property(proficiency => proficiency.MonsterId)
+                .HasColumnName("monster_id");
+
+            entity.Property(proficiency => proficiency.Name)
+                .HasColumnName("name")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.Property(proficiency => proficiency.Bonus)
+                .HasColumnName("bonus");
+
+            entity.Property(proficiency => proficiency.Notes)
+                .HasColumnName("notes");
+
+            entity.HasIndex(proficiency => new
+            {
+                proficiency.MonsterId,
+                proficiency.Name
+            });
+        });
+
+        modelBuilder.Entity<MonsterFeature>(entity =>
+        {
+            entity.ToTable("MonsterFeatures");
+
+            entity.HasKey(feature => feature.Id);
+
+            entity.Property(feature => feature.Id)
+                .HasColumnName("monster_feature_id");
+
+            entity.Property(feature => feature.MonsterId)
+                .HasColumnName("monster_id");
+
+            entity.Property(feature => feature.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(feature => feature.Description)
+                .HasColumnName("description");
+
+            entity.Property(feature => feature.Category)
+                .HasColumnName("category")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(feature => feature.UsageNote)
+                .HasColumnName("usage_note");
+
+            entity.Property(feature => feature.ResourceCost)
+                .HasColumnName("resource_cost");
+
+            entity.Property(feature => feature.IsSpell)
+                .HasColumnName("is_spell")
+                .IsRequired();
+
+            entity.Property(feature => feature.SpellLevel)
+                .HasColumnName("spell_level");
+
+            entity.Property(feature => feature.CastingTime)
+                .HasColumnName("casting_time")
+                .HasMaxLength(128);
+
+            entity.Property(feature => feature.Range)
+                .HasColumnName("range")
+                .HasMaxLength(128);
+
+            entity.Property(feature => feature.Duration)
+                .HasColumnName("duration")
+                .HasMaxLength(128);
+
+            entity.Property(feature => feature.Concentration)
+                .HasColumnName("concentration");
+
+            entity.Property(feature => feature.SortOrder)
+                .HasColumnName("sort_order")
+                .IsRequired();
+
+            entity.HasIndex(feature => new
+            {
+                feature.MonsterId,
+                feature.SortOrder
+            });
+        });
+
+        modelBuilder.Entity<MonsterSpellcasting>(entity =>
+        {
+            entity.ToTable("MonsterSpellcasting");
+
+            entity.HasKey(spellcasting => spellcasting.MonsterId);
+
+            entity.Property(spellcasting => spellcasting.MonsterId)
+                .HasColumnName("monster_id");
+
+            entity.Property(spellcasting => spellcasting.SpellcastingAbility)
+                .HasColumnName("spellcasting_ability")
+                .HasMaxLength(128);
+
+            entity.Property(spellcasting => spellcasting.SpellSaveDC)
+                .HasColumnName("spell_save_dc");
+
+            entity.Property(spellcasting => spellcasting.SpellAttackBonus)
+                .HasColumnName("spell_attack_bonus");
+
+            entity.Property(spellcasting => spellcasting.Notes)
+                .HasColumnName("notes");
+
+            entity.HasMany(spellcasting => spellcasting.SpellSlots)
+                .WithOne(slot => slot.Spellcasting)
+                .HasForeignKey(slot => slot.MonsterSpellcastingId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MonsterSpellSlot>(entity =>
+        {
+            entity.ToTable("MonsterSpellSlots");
+
+            entity.HasKey(slot => slot.Id);
+
+            entity.Property(slot => slot.Id)
+                .HasColumnName("monster_spell_slot_id");
+
+            entity.Property(slot => slot.MonsterSpellcastingId)
+                .HasColumnName("monster_spellcasting_id");
+
+            entity.Property(slot => slot.SpellLevel)
+                .HasColumnName("spell_level")
+                .IsRequired();
+
+            entity.Property(slot => slot.MaximumSlots)
+                .HasColumnName("maximum_slots");
+
+            entity.Property(slot => slot.RemainingSlots)
+                .HasColumnName("remaining_slots");
+
+            entity.HasIndex(slot => new
+            {
+                slot.MonsterSpellcastingId,
+                slot.SpellLevel
             })
             .IsUnique();
         });

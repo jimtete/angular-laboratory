@@ -21,5 +21,23 @@ public class PlayerCampaignParticipation
 
     public List<Skill> ExpertiseSkills { get; set; } = [];
 
+    public List<PlayerCampaignParticipationAbilityValue> AbilityValues { get; set; } = [];
+
+    public List<PlayerCampaignParticipationSkillValue> SkillValues { get; set; } = [];
+
     public DateTimeOffset DateJoined { get; set; }
+}
+
+public class PlayerCampaignParticipationAbilityValue
+{
+    public Ability Ability { get; set; }
+
+    public int Value { get; set; }
+}
+
+public class PlayerCampaignParticipationSkillValue
+{
+    public Skill Skill { get; set; }
+
+    public int Value { get; set; }
 }

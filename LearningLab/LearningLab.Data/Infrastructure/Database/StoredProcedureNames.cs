@@ -12,5 +12,7 @@ public static class StoredProcedureNames
     public static class Gameplay
     {
         public const string GetAvailableItemsByCampaignId = "gameplay.GetAvailableItemsByCampaignId";
+        public const string GetCampaignNpcsByCampaignId =
+            "gameplay.GetCampaignNpcsByCampaignId";
     }
 }

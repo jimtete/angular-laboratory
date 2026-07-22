@@ -15,12 +15,29 @@ import {
   CampaignQuestModel,
   CampaignSessionModel,
   CampaignSettingsModel,
+  CreateStoryBlockRequest,
+  CreateDecisionStoryBeatRequest,
+  CreateInformationStoryBeatRequest,
+  CreateMilestoneStoryBeatRequest,
+  CreateNarrativeStoryBeatRequest,
+  CreateCampaignNpcRequest,
+  CreateRoleplayingStoryBeatRequest,
   CampaignUsernamesModel,
   CreateCampaignParticipationInviteRequest,
   CreateCampaignRequest,
   CreateAssetFolderRequest,
   CreateItemAssetRequest,
   CreateCampaignQuestRequest,
+  CampaignNpcModel,
+  StoryBeatModel,
+  StoryBlockModel,
+  UpdateDecisionStoryBeatRequest,
+  UpdateInformationStoryBeatRequest,
+  UpdateCampaignNpcRequest,
+  UpdateMilestoneStoryBeatRequest,
+  UpdateNarrativeStoryBeatRequest,
+  UpdateRoleplayingStoryBeatRequest,
+  UpdateStoryBlockTitleRequest,
   UpdateCampaignMemberNicknameRequest,
   UpdateCampaignMemberSkillsRequest,
   UpdateCampaignSettingsRequest,
@@ -175,6 +192,237 @@ export class CampaignApiService {
       ApiResponse<CampaignQuestModel>,
       CreateCampaignQuestRequest
     >(`/api/campaigns/${campaignId}/content/quests`, request);
+  }
+
+  fetchStoryBlocks(
+    campaignId: string,
+  ): Observable<ApiResponse<StoryBlockModel[]>> {
+    return this.apiClient.get<ApiResponse<StoryBlockModel[]>>(
+      `/api/campaigns/${campaignId}/content/story-blocks`,
+    );
+  }
+
+  fetchRoleplayingStoryBeatNpcs(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignNpcModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignNpcModel[]>>(
+      `/api/campaigns/${campaignId}/content/story-blocks/roleplaying-npcs`,
+    );
+  }
+
+  createRoleplayingNpc(
+    campaignId: string,
+    request: CreateCampaignNpcRequest,
+  ): Observable<ApiResponse<CampaignNpcModel>> {
+    return this.apiClient.post<ApiResponse<CampaignNpcModel>, CreateCampaignNpcRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks/roleplaying-npcs`,
+      request,
+    );
+  }
+
+  updateRoleplayingNpc(
+    campaignId: string,
+    npcTag: string,
+    request: UpdateCampaignNpcRequest,
+  ): Observable<ApiResponse<CampaignNpcModel>> {
+    return this.apiClient.put<ApiResponse<CampaignNpcModel>, UpdateCampaignNpcRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks/roleplaying-npcs/${encodeURIComponent(npcTag)}`,
+      request,
+    );
+  }
+
+  createStoryBlock(
+    campaignId: string,
+    request: CreateStoryBlockRequest,
+  ): Observable<ApiResponse<StoryBlockModel>> {
+    return this.apiClient.post<ApiResponse<StoryBlockModel>, CreateStoryBlockRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks`,
+      request,
+    );
+  }
+
+  updateStoryBlockTitle(
+    campaignId: string,
+    storyBlockId: string,
+    request: UpdateStoryBlockTitleRequest,
+  ): Observable<ApiResponse<StoryBlockModel>> {
+    return this.apiClient.patch<ApiResponse<StoryBlockModel>, UpdateStoryBlockTitleRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/title`,
+      request,
+    );
+  }
+
+  deleteStoryBlock(
+    campaignId: string,
+    storyBlockId: string,
+  ): Observable<ApiResponse<object>> {
+    return this.apiClient.delete<ApiResponse<object>>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}`,
+    );
+  }
+
+  fetchStoryBeats(
+    campaignId: string,
+    storyBlockId: string,
+  ): Observable<ApiResponse<StoryBeatModel[]>> {
+    return this.apiClient.get<ApiResponse<StoryBeatModel[]>>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats`,
+    );
+  }
+
+  createInformationStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    request: CreateInformationStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.post<
+      ApiResponse<StoryBeatModel>,
+      CreateInformationStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/information`,
+      request,
+    );
+  }
+
+  createNarrativeStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    request: CreateNarrativeStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.post<
+      ApiResponse<StoryBeatModel>,
+      CreateNarrativeStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/narrative`,
+      request,
+    );
+  }
+
+  createRoleplayingStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    request: CreateRoleplayingStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.post<
+      ApiResponse<StoryBeatModel>,
+      CreateRoleplayingStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/roleplaying`,
+      request,
+    );
+  }
+
+  createDecisionStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    request: CreateDecisionStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.post<
+      ApiResponse<StoryBeatModel>,
+      CreateDecisionStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/decision`,
+      request,
+    );
+  }
+
+  createMilestoneStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    request: CreateMilestoneStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.post<
+      ApiResponse<StoryBeatModel>,
+      CreateMilestoneStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/milestone`,
+      request,
+    );
+  }
+
+  updateInformationStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+    request: UpdateInformationStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBeatModel>,
+      UpdateInformationStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/information`,
+      request,
+    );
+  }
+
+  updateNarrativeStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+    request: UpdateNarrativeStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBeatModel>,
+      UpdateNarrativeStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/narrative`,
+      request,
+    );
+  }
+
+  updateRoleplayingStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+    request: UpdateRoleplayingStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBeatModel>,
+      UpdateRoleplayingStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/roleplaying`,
+      request,
+    );
+  }
+
+  updateDecisionStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+    request: UpdateDecisionStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBeatModel>,
+      UpdateDecisionStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/decision`,
+      request,
+    );
+  }
+
+  updateMilestoneStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+    request: UpdateMilestoneStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBeatModel>,
+      UpdateMilestoneStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/milestone`,
+      request,
+    );
+  }
+
+  deleteStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+  ): Observable<ApiResponse<object>> {
+    return this.apiClient.delete<ApiResponse<object>>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}`,
+    );
   }
 
   fetchAssets(parentAssetId: number | null = null): Observable<ApiResponse<AssetModel[]>> {

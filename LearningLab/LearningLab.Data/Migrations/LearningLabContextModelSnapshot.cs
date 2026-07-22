@@ -252,6 +252,82 @@ namespace LearningLab.Data.Migrations
                     b.ToTable("CampaignMilestones", (string)null);
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignNpc", b =>
+                {
+                    b.Property<Guid>("CampaignNpcId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_npc_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)")
+                        .HasDefaultValue("")
+                        .HasColumnName("description");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasDefaultValue("")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("tag");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("CampaignNpcId");
+
+                    b.HasIndex("CampaignId", "Tag")
+                        .IsUnique();
+
+                    b.ToTable("CampaignNpcs", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignNpcParticipation", b =>
+                {
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<int>("MonsterId")
+                        .HasColumnType("int")
+                        .HasColumnName("monster_id");
+
+                    b.HasKey("CampaignId", "MonsterId");
+
+                    b.HasIndex("MonsterId");
+
+                    b.ToTable("CampaignNpcParticipations", (string)null);
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignParticipationInvite", b =>
                 {
                     b.Property<Guid>("CampaignId")
@@ -638,6 +714,104 @@ namespace LearningLab.Data.Migrations
                     b.ToTable("SessionNoteMechanicsChanges", (string)null);
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
+                    b.Property<int?>("CampaignMilestoneId")
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_milestone_id");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("order_index");
+
+                    b.Property<string>("StoryBeatType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("story_beat_type");
+
+                    b.Property<Guid>("StoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasDefaultValue("")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignMilestoneId")
+                        .IsUnique()
+                        .HasFilter("[campaign_milestone_id] IS NOT NULL");
+
+                    b.HasIndex("StoryBlockId");
+
+                    b.HasIndex("StoryBlockId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("StoryBeats", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlock", b =>
+                {
+                    b.Property<Guid>("StoryBlockId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasDefaultValue("")
+                        .HasColumnName("title");
+
+                    b.HasKey("StoryBlockId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("StoryBlocks", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlockMilestone", b =>
+                {
+                    b.Property<Guid>("StoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.Property<int>("CampaignMilestoneId")
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_milestone_id");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("order_index");
+
+                    b.HasKey("StoryBlockId", "CampaignMilestoneId");
+
+                    b.HasIndex("CampaignMilestoneId")
+                        .IsUnique();
+
+                    b.HasIndex("StoryBlockId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("StoryBlockMilestones", (string)null);
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -722,6 +896,259 @@ namespace LearningLab.Data.Migrations
 
                             t.HasCheckConstraint("CK_CharacterSheets_PsycheRating", "[psyche_rating] BETWEEN 0 AND 15");
                         });
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.Monster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("monster_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Class")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("class");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Race")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("race");
+
+                    b.Property<string>("Size")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("size");
+
+                    b.PrimitiveCollection<string>("Tags")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("tags");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Monsters", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterAbility", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("monster_ability_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("Modifier")
+                        .HasColumnType("int")
+                        .HasColumnName("modifier");
+
+                    b.Property<int>("MonsterId")
+                        .HasColumnType("int")
+                        .HasColumnName("monster_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("notes");
+
+                    b.Property<int?>("Value")
+                        .HasColumnType("int")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MonsterId", "Name");
+
+                    b.ToTable("MonsterAbilities", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterFeature", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("monster_feature_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CastingTime")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("casting_time");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("category");
+
+                    b.Property<bool?>("Concentration")
+                        .HasColumnType("bit")
+                        .HasColumnName("concentration");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Duration")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("duration");
+
+                    b.Property<bool>("IsSpell")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_spell");
+
+                    b.Property<int>("MonsterId")
+                        .HasColumnType("int")
+                        .HasColumnName("monster_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Range")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("range");
+
+                    b.Property<int?>("ResourceCost")
+                        .HasColumnType("int")
+                        .HasColumnName("resource_cost");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("sort_order");
+
+                    b.Property<int?>("SpellLevel")
+                        .HasColumnType("int")
+                        .HasColumnName("spell_level");
+
+                    b.Property<string>("UsageNote")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("usage_note");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MonsterId", "SortOrder");
+
+                    b.ToTable("MonsterFeatures", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterProficiency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("monster_proficiency_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("Bonus")
+                        .HasColumnType("int")
+                        .HasColumnName("bonus");
+
+                    b.Property<int>("MonsterId")
+                        .HasColumnType("int")
+                        .HasColumnName("monster_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("notes");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MonsterId", "Name");
+
+                    b.ToTable("MonsterProficiencies", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterSpellSlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("monster_spell_slot_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("MaximumSlots")
+                        .HasColumnType("int")
+                        .HasColumnName("maximum_slots");
+
+                    b.Property<int>("MonsterSpellcastingId")
+                        .HasColumnType("int")
+                        .HasColumnName("monster_spellcasting_id");
+
+                    b.Property<int?>("RemainingSlots")
+                        .HasColumnType("int")
+                        .HasColumnName("remaining_slots");
+
+                    b.Property<int>("SpellLevel")
+                        .HasColumnType("int")
+                        .HasColumnName("spell_level");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MonsterSpellcastingId", "SpellLevel")
+                        .IsUnique();
+
+                    b.ToTable("MonsterSpellSlots", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterSpellcasting", b =>
+                {
+                    b.Property<int>("MonsterId")
+                        .HasColumnType("int")
+                        .HasColumnName("monster_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("notes");
+
+                    b.Property<int?>("SpellAttackBonus")
+                        .HasColumnType("int")
+                        .HasColumnName("spell_attack_bonus");
+
+                    b.Property<int?>("SpellSaveDC")
+                        .HasColumnType("int")
+                        .HasColumnName("spell_save_dc");
+
+                    b.Property<string>("SpellcastingAbility")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("spellcasting_ability");
+
+                    b.HasKey("MonsterId");
+
+                    b.ToTable("MonsterSpellcasting", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Notifications.Notification", b =>
@@ -875,6 +1302,36 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Campaign");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignNpc", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("Npcs")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignNpcParticipation", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("NpcParticipations")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Monsters.Monster", "Monster")
+                        .WithMany("CampaignParticipations")
+                        .HasForeignKey("MonsterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("Monster");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignParticipationInvite", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
@@ -919,7 +1376,63 @@ namespace LearningLab.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsMany("LearningLab.Data.Models.Campaign.PlayerCampaignParticipationAbilityValue", "AbilityValues", b1 =>
+                        {
+                            b1.Property<Guid>("PlayerCampaignParticipationCampaignId");
+
+                            b1.Property<Guid>("PlayerCampaignParticipationUserId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAddOrUpdate();
+
+                            b1.Property<string>("Ability")
+                                .IsRequired();
+
+                            b1.Property<int>("Value");
+
+                            b1.HasKey("PlayerCampaignParticipationCampaignId", "PlayerCampaignParticipationUserId", "__synthesizedOrdinal");
+
+                            b1.ToTable("PlayerCampaignParticipation");
+
+                            b1
+                                .ToJson("ability_values")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PlayerCampaignParticipationCampaignId", "PlayerCampaignParticipationUserId");
+                        });
+
+                    b.OwnsMany("LearningLab.Data.Models.Campaign.PlayerCampaignParticipationSkillValue", "SkillValues", b1 =>
+                        {
+                            b1.Property<Guid>("PlayerCampaignParticipationCampaignId");
+
+                            b1.Property<Guid>("PlayerCampaignParticipationUserId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAddOrUpdate();
+
+                            b1.Property<string>("Skill")
+                                .IsRequired();
+
+                            b1.Property<int>("Value");
+
+                            b1.HasKey("PlayerCampaignParticipationCampaignId", "PlayerCampaignParticipationUserId", "__synthesizedOrdinal");
+
+                            b1.ToTable("PlayerCampaignParticipation");
+
+                            b1
+                                .ToJson("skill_values")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PlayerCampaignParticipationCampaignId", "PlayerCampaignParticipationUserId");
+                        });
+
+                    b.Navigation("AbilityValues");
+
                     b.Navigation("Campaign");
+
+                    b.Navigation("SkillValues");
 
                     b.Navigation("User");
                 });
@@ -998,6 +1511,266 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("SessionNote");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.CampaignMilestone", "Milestone")
+                        .WithOne("StoryBeat")
+                        .HasForeignKey("LearningLab.Data.Models.Campaign.Story.StoryBeat", "CampaignMilestoneId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "StoryBlock")
+                        .WithMany("Beats")
+                        .HasForeignKey("StoryBlockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("LearningLab.Data.Models.Campaign.Story.StoryBeatDecision", "Decision", b1 =>
+                        {
+                            b1.Property<Guid>("StoryBeatId");
+
+                            b1.Property<string>("Description")
+                                .IsRequired();
+
+                            b1.HasKey("StoryBeatId");
+
+                            b1.ToTable("StoryBeats");
+
+                            b1
+                                .ToJson("decision")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StoryBeatId");
+
+                            b1.OwnsMany("LearningLab.Data.Models.Campaign.Story.StoryBeatDecisionOption", "Decisions", b2 =>
+                                {
+                                    b2.Property<Guid>("StoryBeatDecisionStoryBeatId");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAddOrUpdate();
+
+                                    b2.Property<string>("Description")
+                                        .IsRequired();
+
+                                    b2.Property<bool>("IsSelected");
+
+                                    b2.Property<int>("OrderIndex");
+
+                                    b2.Property<string>("Title")
+                                        .IsRequired();
+
+                                    b2.HasKey("StoryBeatDecisionStoryBeatId", "__synthesizedOrdinal");
+
+                                    b2.ToTable("StoryBeats");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("StoryBeatDecisionStoryBeatId");
+                                });
+
+                            b1.Navigation("Decisions");
+                        });
+
+                    b.OwnsOne("LearningLab.Data.Models.Campaign.Story.StoryBeatInformation", "Information", b1 =>
+                        {
+                            b1.Property<Guid>("StoryBeatId");
+
+                            b1.Property<string>("Narrative")
+                                .IsRequired();
+
+                            b1.HasKey("StoryBeatId");
+
+                            b1.ToTable("StoryBeats");
+
+                            b1
+                                .ToJson("information")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StoryBeatId");
+
+                            b1.OwnsMany("LearningLab.Data.Models.Campaign.Story.StoryBeatOptionalInformation", "OptionalInformation", b2 =>
+                                {
+                                    b2.Property<Guid>("StoryBeatInformationStoryBeatId");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAddOrUpdate();
+
+                                    b2.Property<int>("DifficultyClass");
+
+                                    b2.Property<string>("Information")
+                                        .IsRequired();
+
+                                    b2.Property<int?>("NarrativeOffset");
+
+                                    b2.Property<string>("Placement")
+                                        .IsRequired();
+
+                                    b2.Property<string>("Skill")
+                                        .IsRequired();
+
+                                    b2.HasKey("StoryBeatInformationStoryBeatId", "__synthesizedOrdinal");
+
+                                    b2.ToTable("StoryBeats");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("StoryBeatInformationStoryBeatId");
+                                });
+
+                            b1.Navigation("OptionalInformation");
+                        });
+
+                    b.OwnsOne("LearningLab.Data.Models.Campaign.Story.StoryBeatNarrative", "Narrative", b1 =>
+                        {
+                            b1.Property<Guid>("StoryBeatId");
+
+                            b1.HasKey("StoryBeatId");
+
+                            b1.ToTable("StoryBeats");
+
+                            b1
+                                .ToJson("narrative")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StoryBeatId");
+
+                            b1.OwnsMany("LearningLab.Data.Models.Campaign.Story.StoryBeatNarrativeParagraph", "Paragraphs", b2 =>
+                                {
+                                    b2.Property<Guid>("StoryBeatNarrativeStoryBeatId");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAddOrUpdate();
+
+                                    b2.Property<int>("OrderIndex");
+
+                                    b2.Property<string>("Text")
+                                        .IsRequired();
+
+                                    b2.HasKey("StoryBeatNarrativeStoryBeatId", "__synthesizedOrdinal");
+
+                                    b2.ToTable("StoryBeats");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("StoryBeatNarrativeStoryBeatId");
+                                });
+
+                            b1.Navigation("Paragraphs");
+                        });
+
+                    b.OwnsOne("LearningLab.Data.Models.Campaign.Story.StoryBeatRoleplaying", "Roleplaying", b1 =>
+                        {
+                            b1.Property<Guid>("StoryBeatId");
+
+                            b1.Property<string>("MainDescription")
+                                .IsRequired();
+
+                            b1.HasKey("StoryBeatId");
+
+                            b1.ToTable("StoryBeats");
+
+                            b1
+                                .ToJson("roleplaying")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StoryBeatId");
+
+                            b1.OwnsMany("LearningLab.Data.Models.Campaign.Story.StoryBeatRoleplayingInformation", "DiscoverableInformation", b2 =>
+                                {
+                                    b2.Property<Guid>("StoryBeatRoleplayingStoryBeatId");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAddOrUpdate();
+
+                                    b2.Property<string>("Ability");
+
+                                    b2.Property<string>("CheckType")
+                                        .IsRequired();
+
+                                    b2.Property<int?>("DifficultyClass");
+
+                                    b2.Property<string>("Information")
+                                        .IsRequired();
+
+                                    b2.Property<string>("NpcTag")
+                                        .IsRequired();
+
+                                    b2.Property<string>("Skill");
+
+                                    b2.HasKey("StoryBeatRoleplayingStoryBeatId", "__synthesizedOrdinal");
+
+                                    b2.ToTable("StoryBeats");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("StoryBeatRoleplayingStoryBeatId");
+                                });
+
+                            b1.OwnsMany("LearningLab.Data.Models.Campaign.Story.StoryBeatRoleplayingNpcReference", "NpcReferences", b2 =>
+                                {
+                                    b2.Property<Guid>("StoryBeatRoleplayingStoryBeatId");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAddOrUpdate();
+
+                                    b2.Property<string>("NpcTag")
+                                        .IsRequired();
+
+                                    b2.HasKey("StoryBeatRoleplayingStoryBeatId", "__synthesizedOrdinal");
+
+                                    b2.ToTable("StoryBeats");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("StoryBeatRoleplayingStoryBeatId");
+                                });
+
+                            b1.Navigation("DiscoverableInformation");
+
+                            b1.Navigation("NpcReferences");
+                        });
+
+                    b.Navigation("Decision");
+
+                    b.Navigation("Information");
+
+                    b.Navigation("Milestone");
+
+                    b.Navigation("Narrative");
+
+                    b.Navigation("Roleplaying");
+
+                    b.Navigation("StoryBlock");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlock", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("StoryBlocks")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlockMilestone", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.CampaignMilestone", "CampaignMilestone")
+                        .WithMany("StoryBlockMilestones")
+                        .HasForeignKey("CampaignMilestoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "StoryBlock")
+                        .WithMany("Milestones")
+                        .HasForeignKey("StoryBlockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CampaignMilestone");
+
+                    b.Navigation("StoryBlock");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.User", "User")
@@ -1037,6 +1810,61 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterAbility", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Monsters.Monster", "Monster")
+                        .WithMany("Abilities")
+                        .HasForeignKey("MonsterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Monster");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterFeature", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Monsters.Monster", "Monster")
+                        .WithMany("Features")
+                        .HasForeignKey("MonsterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Monster");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterProficiency", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Monsters.Monster", "Monster")
+                        .WithMany("Proficiencies")
+                        .HasForeignKey("MonsterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Monster");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterSpellSlot", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Monsters.MonsterSpellcasting", "Spellcasting")
+                        .WithMany("SpellSlots")
+                        .HasForeignKey("MonsterSpellcastingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Spellcasting");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterSpellcasting", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Monsters.Monster", "Monster")
+                        .WithOne("Spellcasting")
+                        .HasForeignKey("LearningLab.Data.Models.Monsters.MonsterSpellcasting", "MonsterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Monster");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Notifications.Notification", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.User", "User")
@@ -1069,6 +1897,10 @@ namespace LearningLab.Data.Migrations
                 {
                     b.Navigation("Milestones");
 
+                    b.Navigation("NpcParticipations");
+
+                    b.Navigation("Npcs");
+
                     b.Navigation("ParticipationInvites");
 
                     b.Navigation("PlayerParticipations");
@@ -1077,6 +1909,15 @@ namespace LearningLab.Data.Migrations
 
                     b.Navigation("Settings")
                         .IsRequired();
+
+                    b.Navigation("StoryBlocks");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.CampaignMilestone", b =>
+                {
+                    b.Navigation("StoryBeat");
+
+                    b.Navigation("StoryBlockMilestones");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Quests.CampaignQuest", b =>
@@ -1094,6 +1935,31 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Choices");
 
                     b.Navigation("MechanicsChanges");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlock", b =>
+                {
+                    b.Navigation("Beats");
+
+                    b.Navigation("Milestones");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.Monster", b =>
+                {
+                    b.Navigation("Abilities");
+
+                    b.Navigation("CampaignParticipations");
+
+                    b.Navigation("Features");
+
+                    b.Navigation("Proficiencies");
+
+                    b.Navigation("Spellcasting");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Monsters.MonsterSpellcasting", b =>
+                {
+                    b.Navigation("SpellSlots");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.User", b =>

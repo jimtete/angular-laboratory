@@ -26,7 +26,7 @@
           type="button"
           class="campaign-assets-icon-action"
           aria-label="Create item"
-          title="Create item"
+          title="Create asset"
           (click)="openCreateItemDialog()"
         >
           <svg lucidePackage aria-hidden="true"></svg>
@@ -36,7 +36,7 @@
     </header>
 
     <div class="campaign-assets-scroll" [attr.aria-label]="currentFolderLabel()">
-      @if (isLoadingAssets()) {
+      @if (isLoadingAssets() || isLoadingMonsters()) {
         <p class="campaign-assets-status">Loading assets...</p>
       } @else {
         <div class="campaign-assets-grid">
@@ -65,8 +65,40 @@
                 }
               </button>
             }
+          }
+
+          @for (monster of visibleMonsters(); track monster.id) {
+            <article class="campaign-assets-entry campaign-assets-monster">
+              <svg lucideSkull aria-hidden="true"></svg>
+              <strong>{{ monster.name }}</strong>
+              @if (getMonsterSummary(monster)) {
+                <span>{{ getMonsterSummary(monster) }}</span>
+              }
+              @if (getMonsterTags(monster).length > 0) {
+                <div class="campaign-assets-tags" aria-label="Monster tags">
+                  @for (tag of getMonsterTags(monster); track tag) {
+                    <span>{{ tag }}</span>
+                  }
+                </div>
+              }
+
+              <div class="campaign-assets-card-actions">
+                <button type="button" (click)="openMonster(monster)">Edit</button>
+                <button
+                  type="button"
+                  class="campaign-assets-danger-action"
+                  [attr.aria-label]="'Delete ' + monster.name"
+                  title="Delete monster"
+                  (click)="confirmDeleteMonster(monster, $event)"
+                >
+                  <svg lucideTrash2 aria-hidden="true"></svg>
+                </button>
+              </div>
+            </article>
           } @empty {
-            <p class="campaign-assets-status">No folders or items yet.</p>
+            @if (assets().length === 0 && visibleMonsters().length === 0) {
+              <p class="campaign-assets-status">No folders, items, or monsters yet.</p>
+            }
           }
         </div>
       }
@@ -126,7 +158,7 @@
           class="campaign-assets-dialog-close"
           aria-label="Close"
           title="Close"
-          [disabled]="isCreatingItem()"
+          [disabled]="isCreatingItem() || isCreatingMonster()"
           (click)="closeCreateItemDialog()"
         >
           <svg lucideX aria-hidden="true"></svg>
@@ -134,7 +166,11 @@
 
         <label class="campaign-assets-field">
           <span>Asset Type</span>
-          <select [value]="selectedAssetTypeDraft()" disabled>
+          <select
+            [value]="selectedAssetTypeDraft()"
+            [disabled]="isEditingItem()"
+            (change)="setSelectedAssetTypeDraft($event)"
+          >
             @for (option of assetTypeOptions; track option) {
               <option [value]="option">{{ option }}</option>
             }
@@ -221,16 +257,132 @@
               }
             </div>
           </div>
+        } @else {
+          <label class="campaign-assets-field">
+            <span>Monster Name</span>
+            <input
+              type="text"
+              [value]="monsterNameDraft()"
+              (input)="setMonsterNameDraft($event)"
+            />
+          </label>
+
+          <div class="campaign-assets-field-grid">
+            <label class="campaign-assets-field">
+              <span>Monster Size</span>
+              <select
+                [value]="monsterSizeDraft()"
+                (change)="setMonsterSizeDraft($event)"
+              >
+                <option value="">No size</option>
+                @for (option of monsterSizeOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="campaign-assets-field">
+              <span>Monster Race</span>
+              <select
+                [value]="monsterRaceDraft()"
+                (change)="setMonsterRaceDraft($event)"
+              >
+                <option value="">No race</option>
+                @for (option of monsterRaceOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="campaign-assets-field">
+              <span>Monster Class</span>
+              <input
+                type="text"
+                [value]="monsterClassDraft()"
+                (input)="setMonsterClassDraft($event)"
+              />
+            </label>
+          </div>
+
+          <div class="campaign-assets-field">
+            <span>Monster Tags</span>
+            <div class="campaign-assets-tag-editor">
+              @for (tag of monsterTagsDraft(); track tag) {
+                <span class="campaign-assets-tag-chip">
+                  {{ tag }}
+                  <button
+                    type="button"
+                    aria-label="Remove monster tag"
+                    title="Remove tag"
+                    [disabled]="isCreatingMonster()"
+                    (click)="removeMonsterTag(tag)"
+                  >
+                    X
+                  </button>
+                </span>
+              }
+              <input
+                type="text"
+                placeholder="Add tag"
+                [value]="monsterTagDraft()"
+                [disabled]="isCreatingMonster()"
+                (input)="setMonsterTagDraft($event)"
+                (keydown)="handleMonsterTagKeydown($event)"
+                (blur)="addMonsterTagFromDraft()"
+              />
+            </div>
+          </div>
+
+          <label class="campaign-assets-field campaign-assets-description-field">
+            <span>General Notes</span>
+            <textarea
+              [value]="monsterNotesDraft()"
+              (input)="setMonsterNotesDraft($event)"
+            ></textarea>
+          </label>
         }
 
         <button
           type="button"
           class="campaign-assets-create"
-          [disabled]="!canCreateItem()"
+          [disabled]="selectedAssetTypeDraft() === 'Item' ? !canCreateItem() : !canCreateMonster()"
           (click)="createItem()"
         >
           {{ itemDialogButtonLabel() }}
         </button>
+      </section>
+    </div>
+  }
+
+  @if (monsterDeleteConfirmation(); as monster) {
+    <div class="campaign-assets-dialog-backdrop" role="presentation">
+      <section
+        class="campaign-assets-dialog campaign-assets-confirmation"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Delete monster"
+      >
+        <h2>Delete monster</h2>
+        <p>{{ monster.name }} will be removed from your monster assets.</p>
+
+        <div class="campaign-assets-confirmation-actions">
+          <button
+            type="button"
+            class="campaign-assets-confirmation-cancel"
+            [disabled]="deletingMonsterId() === monster.id"
+            (click)="cancelDeleteMonster()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="campaign-assets-confirmation-delete"
+            [disabled]="deletingMonsterId() === monster.id"
+            (click)="deleteMonster()"
+          >
+            {{ deletingMonsterId() === monster.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
       </section>
     </div>
   }

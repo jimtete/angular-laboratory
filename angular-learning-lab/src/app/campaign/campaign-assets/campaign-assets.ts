@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { LucideFolder, LucidePackage, LucideX } from '@lucide/angular';
+import { Router } from '@angular/router';
+import { LucideFolder, LucidePackage, LucideSkull, LucideTrash2, LucideX } from '@lucide/angular';
 import { finalize } from 'rxjs';
 
 import {
@@ -11,35 +12,57 @@ import {
   CampaignApiService,
   CreateAssetFolderRequest,
   CreateItemAssetRequest,
+  CreateMonsterRequest,
+  MonsterApiService,
+  MonsterListModel,
   UpdateItemAssetRequest,
 } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
+import {
+  MONSTER_ABILITY_OPTIONS,
+  MONSTER_RACE_OPTIONS,
+  MONSTER_SIZE_OPTIONS,
+} from './monster-form-options';
 
 @Component({
   selector: 'app-campaign-assets',
-  imports: [LucideFolder, LucidePackage, LucideX],
+  imports: [LucideFolder, LucidePackage, LucideSkull, LucideTrash2, LucideX],
   templateUrl: './campaign-assets.html',
   styleUrl: './campaign-assets.css',
 })
 export class CampaignAssets implements OnInit {
   private readonly campaignApiService = inject(CampaignApiService);
+  private readonly monsterApiService = inject(MonsterApiService);
   private readonly modalHelper = inject(ModalHelper);
+  private readonly router = inject(Router);
 
   protected readonly assets = signal<AssetModel[]>([]);
+  protected readonly monsters = signal<MonsterListModel[]>([]);
   protected readonly availableCampaigns = signal<CampaignModel[]>([]);
   protected readonly folderStack = signal<AssetModel[]>([]);
   protected readonly isLoadingAssets = signal(false);
+  protected readonly isLoadingMonsters = signal(false);
   protected readonly isLoadingCampaigns = signal(false);
   protected readonly isCreateFolderDialogOpen = signal(false);
   protected readonly isCreateItemDialogOpen = signal(false);
   protected readonly isCampaignPickerOpen = signal(false);
   protected readonly isCreatingFolder = signal(false);
   protected readonly isCreatingItem = signal(false);
+  protected readonly isCreatingMonster = signal(false);
   protected readonly editingItemAsset = signal<AssetModel | null>(null);
+  protected readonly monsterDeleteConfirmation = signal<MonsterListModel | null>(null);
+  protected readonly deletingMonsterId = signal<number | null>(null);
   protected readonly folderNameDraft = signal('');
   protected readonly itemNameDraft = signal('');
   protected readonly itemDescriptionDraft = signal('');
-  protected readonly selectedAssetTypeDraft = signal<'Item'>('Item');
+  protected readonly monsterNameDraft = signal('');
+  protected readonly monsterSizeDraft = signal('');
+  protected readonly monsterRaceDraft = signal('');
+  protected readonly monsterClassDraft = signal('');
+  protected readonly monsterTagsDraft = signal<string[]>([]);
+  protected readonly monsterTagDraft = signal('');
+  protected readonly monsterNotesDraft = signal('');
+  protected readonly selectedAssetTypeDraft = signal<'Item' | 'Monster'>('Item');
   protected readonly selectedItemTypeDraft = signal<AssetItemType>(AssetItemType.Equipment);
   protected readonly selectedCampaignIds = signal<string[]>([]);
   protected readonly currentParentAssetId = computed(() => {
@@ -61,12 +84,20 @@ export class CampaignAssets implements OnInit {
     this.selectedAssetTypeDraft() === 'Item' &&
     !this.isCreatingItem()
   ));
+  protected readonly canCreateMonster = computed(() => (
+    this.normalizeText(this.monsterNameDraft()).length > 0 &&
+    this.selectedAssetTypeDraft() === 'Monster' &&
+    !this.isCreatingMonster()
+  ));
+  protected readonly visibleMonsters = computed(() => (
+    this.currentParentAssetId() === null ? this.monsters() : []
+  ));
   protected readonly isEditingItem = computed(() => this.editingItemAsset() !== null);
   protected readonly itemDialogTitle = computed(() => (
     this.isEditingItem() ? 'Edit asset' : 'Create asset'
   ));
   protected readonly itemDialogButtonLabel = computed(() => {
-    if (this.isCreatingItem()) {
+    if (this.isCreatingItem() || this.isCreatingMonster()) {
       return this.isEditingItem() ? 'Saving...' : 'Creating...';
     }
 
@@ -82,7 +113,9 @@ export class CampaignAssets implements OnInit {
 
     return this.availableCampaigns().filter((campaign) => !selectedIds.has(campaign.campaignId));
   });
-  protected readonly assetTypeOptions = ['Item'];
+  protected readonly assetTypeOptions = ['Item', 'Monster'];
+  protected readonly monsterSizeOptions = MONSTER_SIZE_OPTIONS;
+  protected readonly monsterRaceOptions = MONSTER_RACE_OPTIONS;
   protected readonly itemTypeOptions = [
     { value: AssetItemType.Equipment, label: 'Equipment' },
     { value: AssetItemType.Weapon, label: 'Weapon' },
@@ -92,6 +125,7 @@ export class CampaignAssets implements OnInit {
 
   ngOnInit(): void {
     this.loadAssets();
+    this.loadMonsters();
     this.loadCampaigns();
   }
 
@@ -110,6 +144,7 @@ export class CampaignAssets implements OnInit {
     this.editingItemAsset.set(null);
     this.itemNameDraft.set('');
     this.itemDescriptionDraft.set('');
+    this.resetMonsterDrafts();
     this.selectedAssetTypeDraft.set('Item');
     this.selectedItemTypeDraft.set(AssetItemType.Equipment);
     this.selectedCampaignIds.set([]);
@@ -119,7 +154,7 @@ export class CampaignAssets implements OnInit {
   }
 
   protected closeCreateItemDialog(): void {
-    if (!this.isCreatingItem()) {
+    if (!this.isCreatingItem() && !this.isCreatingMonster()) {
       this.isCreateItemDialogOpen.set(false);
       this.editingItemAsset.set(null);
       this.isCampaignPickerOpen.set(false);
@@ -138,8 +173,67 @@ export class CampaignAssets implements OnInit {
     this.itemDescriptionDraft.set((event.target as HTMLTextAreaElement).value);
   }
 
+  protected setSelectedAssetTypeDraft(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+
+    this.selectedAssetTypeDraft.set(value === 'Monster' ? 'Monster' : 'Item');
+  }
+
   protected setSelectedItemTypeDraft(event: Event): void {
     this.selectedItemTypeDraft.set(Number((event.target as HTMLSelectElement).value));
+  }
+
+  protected setMonsterNameDraft(event: Event): void {
+    this.monsterNameDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setMonsterSizeDraft(event: Event): void {
+    this.monsterSizeDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setMonsterRaceDraft(event: Event): void {
+    this.monsterRaceDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setMonsterClassDraft(event: Event): void {
+    this.monsterClassDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setMonsterTagDraft(event: Event): void {
+    this.monsterTagDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setMonsterNotesDraft(event: Event): void {
+    this.monsterNotesDraft.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  protected addMonsterTagFromDraft(): void {
+    const tag = this.normalizeText(this.monsterTagDraft());
+
+    if (!tag) {
+      return;
+    }
+
+    const existingTags = new Set(this.monsterTagsDraft().map((value) => value.toLowerCase()));
+
+    if (!existingTags.has(tag.toLowerCase())) {
+      this.monsterTagsDraft.update((tags) => [...tags, tag]);
+    }
+
+    this.monsterTagDraft.set('');
+  }
+
+  protected handleMonsterTagKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    this.addMonsterTagFromDraft();
+  }
+
+  protected removeMonsterTag(tag: string): void {
+    this.monsterTagsDraft.update((tags) => tags.filter((value) => value !== tag));
   }
 
   protected openEditItemDialog(asset: AssetModel): void {
@@ -227,6 +321,11 @@ export class CampaignAssets implements OnInit {
   }
 
   protected createItem(): void {
+    if (this.selectedAssetTypeDraft() === 'Monster') {
+      this.createMonster();
+      return;
+    }
+
     if (!this.canCreateItem()) {
       return;
     }
@@ -267,6 +366,50 @@ export class CampaignAssets implements OnInit {
       });
   }
 
+  protected openMonster(monster: MonsterListModel): void {
+    void this.router.navigate(['/assets/monsters', monster.id]);
+  }
+
+  protected confirmDeleteMonster(monster: MonsterListModel, event: Event): void {
+    event.stopPropagation();
+    this.monsterDeleteConfirmation.set(monster);
+  }
+
+  protected cancelDeleteMonster(): void {
+    if (!this.deletingMonsterId()) {
+      this.monsterDeleteConfirmation.set(null);
+    }
+  }
+
+  protected deleteMonster(): void {
+    const monster = this.monsterDeleteConfirmation();
+
+    if (!monster || this.deletingMonsterId()) {
+      return;
+    }
+
+    this.deletingMonsterId.set(monster.id);
+
+    this.monsterApiService
+      .deleteMonster(monster.id)
+      .pipe(finalize(() => this.deletingMonsterId.set(null)))
+      .subscribe({
+        next: (response) => {
+          this.monsterDeleteConfirmation.set(null);
+          this.monsters.update((monsters) => (
+            monsters.filter((candidate) => candidate.id !== monster.id)
+          ));
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Monster could not be deleted.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   protected isFolder(asset: AssetModel): boolean {
     return this.toAssetType(asset.assetType) === AssetType.Folder;
   }
@@ -287,6 +430,19 @@ export class CampaignAssets implements OnInit {
       : 'No more campaigns';
   }
 
+  protected getMonsterSummary(monster: MonsterListModel): string {
+    return [monster.size, monster.race, monster.class]
+      .map((value) => this.normalizeText(value))
+      .filter((value) => value.length > 0)
+      .join(' - ');
+  }
+
+  protected getMonsterTags(monster: MonsterListModel): string[] {
+    return (monster.tags ?? [])
+      .map((tag) => this.normalizeText(tag))
+      .filter((tag) => tag.length > 0);
+  }
+
   private loadAssets(): void {
     if (this.isLoadingAssets()) {
       return;
@@ -304,6 +460,76 @@ export class CampaignAssets implements OnInit {
         error: (error: unknown) => {
           this.modalHelper.showError(
             this.getErrorMessage(error, 'Assets could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private loadMonsters(): void {
+    if (this.isLoadingMonsters()) {
+      return;
+    }
+
+    this.isLoadingMonsters.set(true);
+
+    this.monsterApiService
+      .fetchMonsters()
+      .pipe(finalize(() => this.isLoadingMonsters.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.monsters.set(response.data ?? []);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Monsters could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private createMonster(): void {
+    if (!this.canCreateMonster()) {
+      return;
+    }
+
+    const request: CreateMonsterRequest = {
+      name: this.normalizeText(this.monsterNameDraft()),
+      size: this.toNullableText(this.monsterSizeDraft()),
+      race: this.toNullableText(this.monsterRaceDraft()),
+      class: this.toNullableText(this.monsterClassDraft()),
+      tags: this.monsterTagsDraft().length > 0 ? this.monsterTagsDraft() : null,
+      abilities: MONSTER_ABILITY_OPTIONS.map((ability) => ({
+        name: ability,
+        value: null,
+        modifier: null,
+        notes: null,
+      })),
+      proficiencies: null,
+      spellcasting: null,
+      features: null,
+      notes: this.toNullableText(this.monsterNotesDraft()),
+    };
+
+    this.isCreatingMonster.set(true);
+
+    this.monsterApiService
+      .createMonster(request)
+      .pipe(finalize(() => this.isCreatingMonster.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.isCreateItemDialogOpen.set(false);
+          this.resetMonsterDrafts();
+          this.loadMonsters();
+
+          if (response.data) {
+            void this.router.navigate(['/assets/monsters', response.data.id]);
+          }
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Monster could not be created.'),
             { statusCode: this.getErrorStatus(error) },
           );
         },
@@ -355,6 +581,22 @@ export class CampaignAssets implements OnInit {
 
   private normalizeText(value: string | null | undefined): string {
     return value?.trim() ?? '';
+  }
+
+  private toNullableText(value: string | null | undefined): string | null {
+    const normalizedValue = this.normalizeText(value);
+
+    return normalizedValue || null;
+  }
+
+  private resetMonsterDrafts(): void {
+    this.monsterNameDraft.set('');
+    this.monsterSizeDraft.set('');
+    this.monsterRaceDraft.set('');
+    this.monsterClassDraft.set('');
+    this.monsterTagsDraft.set([]);
+    this.monsterTagDraft.set('');
+    this.monsterNotesDraft.set('');
   }
 
   private getSelectedCampaignIdsRequest(): string[] | null {

@@ -19,4 +19,8 @@ public sealed class CampaignMemberInformationResponse
     public IReadOnlyList<Skill> ProficientSkills { get; init; } = [];
 
     public IReadOnlyList<Skill> ExpertiseSkills { get; init; } = [];
+
+    public IReadOnlyList<CampaignMemberAbilityValueResponse> AbilityValues { get; init; } = [];
+
+    public IReadOnlyList<CampaignMemberSkillValueResponse> SkillValues { get; init; } = [];
 }
