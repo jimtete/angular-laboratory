@@ -1,5 +1,6 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.Campaign.Quests;
+using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.Campaign.Story;
 
 namespace LearningLab.Data.Models.Campaign;
@@ -21,4 +22,8 @@ public class Campaign
     public List<CampaignNpc> Npcs { get; set; } = [];
     public List<CampaignNpcParticipation> NpcParticipations { get; set; } = [];
     public List<StoryBlock> StoryBlocks { get; set; } = [];
+    public List<CampaignEventDefinition> EventDefinitions { get; set; } = [];
+    public List<ConditionalRule> ConditionalRules { get; set; } = [];
+    public List<StoryOutcomeEffect> OutcomeEffects { get; set; } = [];
+    public List<CampaignChoiceDefinition> ChoiceDefinitions { get; set; } = [];
 }

@@ -19,7 +19,19 @@ public sealed class StoryBlockRepository : IStoryBlockRepository
         return await _context.StoryBlocks
             .AsNoTracking()
             .Where(block => block.CampaignId == campaignId)
-            .OrderBy(block => block.StoryBlockId)
+            .OrderBy(block => block.OrderIndex)
+            .ThenBy(block => block.StoryBlockId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<StoryBlock>> ListTrackedByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.StoryBlocks
+            .Where(block => block.CampaignId == campaignId)
+            .OrderBy(block => block.OrderIndex)
+            .ThenBy(block => block.StoryBlockId)
             .ToListAsync(cancellationToken);
     }
 
@@ -32,6 +44,29 @@ public sealed class StoryBlockRepository : IStoryBlockRepository
             .SingleOrDefaultAsync(
                 block => block.CampaignId == campaignId
                     && block.StoryBlockId == storyBlockId,
+                cancellationToken);
+    }
+
+    public Task<StoryBlock?> GetFirstByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBlocks
+            .AsNoTracking()
+            .Where(block => block.CampaignId == campaignId)
+            .OrderBy(block => block.OrderIndex)
+            .ThenBy(block => block.StoryBlockId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<int?> GetLatestOrderIndexByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBlocks
+            .Where(block => block.CampaignId == campaignId)
+            .MaxAsync(
+                block => (int?)block.OrderIndex,
                 cancellationToken);
     }
 

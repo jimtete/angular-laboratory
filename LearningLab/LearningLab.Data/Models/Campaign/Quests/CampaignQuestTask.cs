@@ -10,4 +10,5 @@ public class CampaignQuestTask
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public CampaignQuest CampaignQuest { get; set; } = null!;
+    public ICollection<StoryBeatQuestTask> StoryBeatLinks { get; set; } = [];
 }

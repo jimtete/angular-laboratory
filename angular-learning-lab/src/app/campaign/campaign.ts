@@ -54,6 +54,7 @@ export class Campaign implements OnInit {
   protected readonly isCampaignSessions = computed(() => {
     return this.currentUrl().includes('/campaign-sessions');
   });
+
   protected readonly isCampaignSettings = computed(() => {
     return this.currentUrl().includes('/campaign-settings');
   });
@@ -96,6 +97,7 @@ export class Campaign implements OnInit {
   protected goToCampaignSessions(): void {
     void this.router.navigate(['/campaigns', this.campaignId(), 'campaign-sessions']);
   }
+
 
   protected goToCampaignSettings(): void {
     void this.router.navigate(['/campaigns', this.campaignId(), 'campaign-settings']);
@@ -170,3 +172,5 @@ export class Campaign implements OnInit {
     );
   }
 }
+
+

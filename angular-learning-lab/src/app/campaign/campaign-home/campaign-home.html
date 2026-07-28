@@ -14,6 +14,22 @@
   </section>
 
   @if (isMaster()) {
+    <button
+      type="button"
+      class="campaign-home-story-blocks"
+      aria-label="Open story blocks"
+      (click)="goToStoryBlocks()"
+    >
+      <strong>{{ isLoadingStoryBlocks() ? '...' : storyBlockCount() }}</strong>
+      <p>Story Blocks</p>
+    </button>
+
+    <section class="campaign-home-npcs" aria-label="Campaign NPCs">
+      <strong>{{ isLoadingNpcs() ? '...' : npcCount() }}</strong>
+      <p>NPCs</p>
+      <span>{{ combatNpcCount() }} Battle / {{ roleplayingNpcCount() }} Roleplaying</span>
+    </section>
+
     <section class="campaign-home-sessions" aria-label="Campaign sessions">
       <button
         type="button"

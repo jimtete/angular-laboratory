@@ -2,7 +2,9 @@ using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Assets;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Campaign.Presentation;
 using LearningLab.Data.Models.Campaign.Quests;
+using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.Campaign.Sessions;
 using LearningLab.Data.Models.Campaign.Story;
 using LearningLab.Data.Models.Character;
@@ -25,6 +27,7 @@ public class LearningLabContext : DbContext
     public DbSet<CampaignNpcParticipation> CampaignNpcParticipations { get; set; }
     public DbSet<CampaignQuest> CampaignQuests { get; set; }
     public DbSet<CampaignQuestTask> CampaignQuestTasks { get; set; }
+    public DbSet<StoryBeatQuestTask> StoryBeatQuestTasks { get; set; }
     public DbSet<CampaignSession> CampaignSessions { get; set; }
     public DbSet<SessionNote> SessionNotes { get; set; }
     public DbSet<SessionNoteChoice> SessionNoteChoices { get; set; }
@@ -34,7 +37,20 @@ public class LearningLabContext : DbContext
     public DbSet<StoryBlock> StoryBlocks { get; set; }
     public DbSet<StoryBeat> StoryBeats { get; set; }
     public DbSet<StoryBlockMilestone> StoryBlockMilestones { get; set; }
+    public DbSet<CampaignPresentation> CampaignPresentations { get; set; }
+    public DbSet<CampaignPresentationEntry> CampaignPresentationEntries { get; set; }
+    public DbSet<CampaignPresentationStoryBeatSelection> CampaignPresentationStoryBeatSelections { get; set; }
     public DbSet<CampaignSettings> CampaignSettings { get; set; }
+    public DbSet<CampaignEventDefinition> CampaignEventDefinitions { get; set; }
+    public DbSet<CampaignEventOption> CampaignEventOptions { get; set; }
+    public DbSet<CampaignEventState> CampaignEventStates { get; set; }
+    public DbSet<ConditionalRule> ConditionalRules { get; set; }
+    public DbSet<ConditionGroup> ConditionGroups { get; set; }
+    public DbSet<ConditionClause> ConditionClauses { get; set; }
+    public DbSet<StoryOutcomeEffect> StoryOutcomeEffects { get; set; }
+    public DbSet<CampaignChoiceDefinition> CampaignChoiceDefinitions { get; set; }
+    public DbSet<CampaignChoiceOption> CampaignChoiceOptions { get; set; }
+    public DbSet<CampaignChoiceSelection> CampaignChoiceSelections { get; set; }
     public DbSet<PlayerCampaignParticipation> PlayerCampaignParticipations { get; set; }
     public DbSet<CampaignParticipationInvite> CampaignParticipationInvites { get; set; }
     public DbSet<Notification> Notifications { get; set; }
@@ -216,6 +232,26 @@ public class LearningLabContext : DbContext
                 .HasForeignKey(block => block.CampaignId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasMany(campaign => campaign.EventDefinitions)
+                .WithOne(definition => definition.Campaign)
+                .HasForeignKey(definition => definition.CampaignId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(campaign => campaign.ConditionalRules)
+                .WithOne(rule => rule.Campaign)
+                .HasForeignKey(rule => rule.CampaignId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(campaign => campaign.OutcomeEffects)
+                .WithOne(effect => effect.Campaign)
+                .HasForeignKey(effect => effect.CampaignId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(campaign => campaign.ChoiceDefinitions)
+                .WithOne(choice => choice.Campaign)
+                .HasForeignKey(choice => choice.CampaignId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         });
 
         modelBuilder.Entity<CampaignNpc>(entity =>
@@ -317,6 +353,10 @@ public class LearningLabContext : DbContext
                 .HasDefaultValue("")
                 .IsRequired();
 
+            entity.Property(block => block.OrderIndex)
+                .HasColumnName("order_index")
+                .IsRequired();
+
             entity.HasMany(block => block.Beats)
                 .WithOne(beat => beat.StoryBlock)
                 .HasForeignKey(beat => beat.StoryBlockId)
@@ -328,6 +368,13 @@ public class LearningLabContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(block => block.CampaignId);
+
+            entity.HasIndex(block => new
+            {
+                block.CampaignId,
+                block.OrderIndex
+            })
+            .IsUnique();
         });
 
         modelBuilder.Entity<StoryBeat>(entity =>
@@ -344,6 +391,11 @@ public class LearningLabContext : DbContext
 
             entity.Property(beat => beat.OrderIndex)
                 .HasColumnName("order_index")
+                .IsRequired();
+
+            entity.Property(beat => beat.SecondaryOrderIndex)
+                .HasColumnName("secondary_order_index")
+                .HasDefaultValue(1)
                 .IsRequired();
 
             entity.Property(beat => beat.StoryBeatType)
@@ -375,6 +427,9 @@ public class LearningLabContext : DbContext
 
                 information.OwnsMany(content => content.OptionalInformation, optionalInformation =>
                 {
+                    optionalInformation.Property(optional => optional.Id)
+                        .IsRequired();
+
                     optionalInformation.Property(optional => optional.Skill)
                         .HasConversion<string>();
 
@@ -413,12 +468,18 @@ public class LearningLabContext : DbContext
 
                 roleplaying.OwnsMany(content => content.NpcReferences, npc =>
                 {
+                    npc.Property(item => item.Id)
+                        .IsRequired();
+
                     npc.Property(item => item.NpcTag)
                         .IsRequired();
                 });
 
                 roleplaying.OwnsMany(content => content.DiscoverableInformation, information =>
                 {
+                    information.Property(item => item.Id)
+                        .IsRequired();
+
                     information.Property(item => item.NpcTag)
                         .IsRequired();
 
@@ -446,6 +507,9 @@ public class LearningLabContext : DbContext
 
                 decision.OwnsMany(content => content.Decisions, option =>
                 {
+                    option.Property(item => item.Id)
+                        .IsRequired();
+
                     option.Property(item => item.OrderIndex)
                         .IsRequired();
 
@@ -460,18 +524,562 @@ public class LearningLabContext : DbContext
                 });
             });
 
+            entity.OwnsOne(beat => beat.Combat, combat =>
+            {
+                combat.ToJson("combat");
+
+                combat.Property(content => content.Description)
+                    .IsRequired();
+
+                combat.Property(content => content.Rewards);
+
+                combat.OwnsMany(content => content.EnemyNpcs, enemyNpc =>
+                {
+                    enemyNpc.Property(item => item.MonsterId)
+                        .IsRequired();
+
+                    enemyNpc.Property(item => item.Amount)
+                        .IsRequired();
+                });
+            });
+
+            entity.OwnsOne(beat => beat.Transition, transition =>
+            {
+                transition.ToJson("transition");
+
+                transition.Property(content => content.Description)
+                    .IsRequired();
+            });
+
             entity.HasIndex(beat => beat.StoryBlockId);
 
             entity.HasIndex(beat => new
             {
                 beat.StoryBlockId,
-                beat.OrderIndex
+                beat.OrderIndex,
+                beat.SecondaryOrderIndex
             })
             .IsUnique();
 
             entity.HasIndex(beat => beat.CampaignMilestoneId)
                 .IsUnique()
                 .HasFilter("[campaign_milestone_id] IS NOT NULL");
+        });
+
+        modelBuilder.Entity<CampaignEventDefinition>(entity =>
+        {
+            entity.ToTable("CampaignEventDefinitions");
+
+            entity.HasKey(definition => definition.Id);
+
+            entity.Property(definition => definition.Id)
+                .HasColumnName("campaign_event_definition_id");
+
+            entity.Property(definition => definition.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(definition => definition.Key)
+                .HasColumnName("key")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.Property(definition => definition.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(definition => definition.Description)
+                .HasColumnName("description")
+                .HasMaxLength(2048);
+
+            entity.Property(definition => definition.EventType)
+                .HasColumnName("event_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(definition => definition.IsRepeatable)
+                .HasColumnName("is_repeatable")
+                .IsRequired();
+
+            entity.Property(definition => definition.CreatedAtUtc)
+                .HasColumnName("created_at_utc")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(definition => definition.UpdatedAtUtc)
+                .HasColumnName("updated_at_utc")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasMany(definition => definition.Options)
+                .WithOne(option => option.CampaignEventDefinition)
+                .HasForeignKey(option => option.CampaignEventDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(definition => definition.States)
+                .WithOne(state => state.CampaignEventDefinition)
+                .HasForeignKey(state => state.CampaignEventDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(definition => new
+            {
+                definition.CampaignId,
+                definition.Key
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<CampaignEventOption>(entity =>
+        {
+            entity.ToTable("CampaignEventOptions");
+
+            entity.HasKey(option => option.Id);
+
+            entity.Property(option => option.Id)
+                .HasColumnName("campaign_event_option_id");
+
+            entity.Property(option => option.CampaignEventDefinitionId)
+                .HasColumnName("campaign_event_definition_id");
+
+            entity.Property(option => option.Key)
+                .HasColumnName("key")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.Property(option => option.Label)
+                .HasColumnName("label")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(option => option.Description)
+                .HasColumnName("description")
+                .HasMaxLength(2048);
+
+            entity.Property(option => option.SortOrder)
+                .HasColumnName("sort_order")
+                .IsRequired();
+
+            entity.HasIndex(option => new
+            {
+                option.CampaignEventDefinitionId,
+                option.Key
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<CampaignEventState>(entity =>
+        {
+            entity.ToTable("CampaignEventStates");
+
+            entity.HasKey(state => state.Id);
+
+            entity.Property(state => state.Id)
+                .HasColumnName("campaign_event_state_id");
+
+            entity.Property(state => state.CampaignSessionId)
+                .HasColumnName("campaign_session_id");
+
+            entity.Property(state => state.CampaignEventDefinitionId)
+                .HasColumnName("campaign_event_definition_id");
+
+            entity.Property(state => state.BooleanValue)
+                .HasColumnName("boolean_value");
+
+            entity.Property(state => state.SelectedOptionId)
+                .HasColumnName("selected_option_id");
+
+            entity.Property(state => state.TextValue)
+                .HasColumnName("text_value")
+                .HasMaxLength(4096);
+
+            entity.Property(state => state.NumericValue)
+                .HasColumnName("numeric_value")
+                .HasPrecision(18, 4);
+
+            entity.Property(state => state.SourceStoryBlockId)
+                .HasColumnName("source_story_block_id");
+
+            entity.Property(state => state.SourceStoryBeatId)
+                .HasColumnName("source_story_beat_id");
+
+            entity.Property(state => state.ResolvedAtUtc)
+                .HasColumnName("resolved_at_utc")
+                .IsRequired();
+
+            entity.Property(state => state.UpdatedAtUtc)
+                .HasColumnName("updated_at_utc")
+                .IsRequired();
+
+            entity.HasOne(state => state.CampaignSession)
+                .WithMany(session => session.EventStates)
+                .HasForeignKey(state => state.CampaignSessionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(state => state.SelectedOption)
+                .WithMany()
+                .HasForeignKey(state => state.SelectedOptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(state => state.SourceStoryBlock)
+                .WithMany()
+                .HasForeignKey(state => state.SourceStoryBlockId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(state => state.SourceStoryBeat)
+                .WithMany()
+                .HasForeignKey(state => state.SourceStoryBeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(state => new
+            {
+                state.CampaignSessionId,
+                state.CampaignEventDefinitionId
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<ConditionalRule>(entity =>
+        {
+            entity.ToTable("ConditionalRules");
+
+            entity.HasKey(rule => rule.Id);
+
+            entity.Property(rule => rule.Id)
+                .HasColumnName("conditional_rule_id");
+
+            entity.Property(rule => rule.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(rule => rule.TargetType)
+                .HasColumnName("target_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(rule => rule.TargetId)
+                .HasColumnName("target_id");
+
+            entity.Property(rule => rule.RootConditionGroupId)
+                .HasColumnName("root_condition_group_id");
+
+            entity.Property(rule => rule.EffectType)
+                .HasColumnName("effect_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(rule => rule.CreatedAtUtc)
+                .HasColumnName("created_at_utc")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(rule => rule.UpdatedAtUtc)
+                .HasColumnName("updated_at_utc")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(rule => rule.RootConditionGroup)
+                .WithMany()
+                .HasForeignKey(rule => rule.RootConditionGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(rule => new
+            {
+                rule.TargetType,
+                rule.TargetId
+            });
+        });
+
+        modelBuilder.Entity<ConditionGroup>(entity =>
+        {
+            entity.ToTable("ConditionGroups");
+
+            entity.HasKey(group => group.Id);
+
+            entity.Property(group => group.Id)
+                .HasColumnName("condition_group_id");
+
+            entity.Property(group => group.ParentConditionGroupId)
+                .HasColumnName("parent_condition_group_id");
+
+            entity.Property(group => group.Operator)
+                .HasColumnName("operator")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(group => group.Negate)
+                .HasColumnName("negate")
+                .IsRequired();
+
+            entity.Property(group => group.SortOrder)
+                .HasColumnName("sort_order")
+                .IsRequired();
+
+            entity.HasOne(group => group.ParentConditionGroup)
+                .WithMany(group => group.Groups)
+                .HasForeignKey(group => group.ParentConditionGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ConditionClause>(entity =>
+        {
+            entity.ToTable("ConditionClauses");
+
+            entity.HasKey(clause => clause.Id);
+
+            entity.Property(clause => clause.Id)
+                .HasColumnName("condition_clause_id");
+
+            entity.Property(clause => clause.ConditionGroupId)
+                .HasColumnName("condition_group_id");
+
+            entity.Property(clause => clause.CampaignEventDefinitionId)
+                .HasColumnName("campaign_event_definition_id");
+
+            entity.Property(clause => clause.ComparisonOperator)
+                .HasColumnName("comparison_operator")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(clause => clause.BooleanValue)
+                .HasColumnName("boolean_value");
+
+            entity.Property(clause => clause.ExpectedOptionId)
+                .HasColumnName("expected_option_id");
+
+            entity.Property(clause => clause.TextValue)
+                .HasColumnName("text_value")
+                .HasMaxLength(4096);
+
+            entity.Property(clause => clause.NumericValue)
+                .HasColumnName("numeric_value")
+                .HasPrecision(18, 4);
+
+            entity.Property(clause => clause.SortOrder)
+                .HasColumnName("sort_order")
+                .IsRequired();
+
+            entity.HasOne(clause => clause.ConditionGroup)
+                .WithMany(group => group.Clauses)
+                .HasForeignKey(clause => clause.ConditionGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(clause => clause.CampaignEventDefinition)
+                .WithMany()
+                .HasForeignKey(clause => clause.CampaignEventDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(clause => clause.ExpectedOption)
+                .WithMany()
+                .HasForeignKey(clause => clause.ExpectedOptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(clause => clause.CampaignEventDefinitionId);
+        });
+
+        modelBuilder.Entity<StoryOutcomeEffect>(entity =>
+        {
+            entity.ToTable("StoryOutcomeEffects");
+
+            entity.HasKey(effect => effect.Id);
+
+            entity.Property(effect => effect.Id)
+                .HasColumnName("story_outcome_effect_id");
+
+            entity.Property(effect => effect.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(effect => effect.SourceType)
+                .HasColumnName("source_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(effect => effect.SourceId)
+                .HasColumnName("source_id");
+
+            entity.Property(effect => effect.CampaignEventDefinitionId)
+                .HasColumnName("campaign_event_definition_id");
+
+            entity.Property(effect => effect.OperationType)
+                .HasColumnName("operation_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(effect => effect.BooleanValue)
+                .HasColumnName("boolean_value");
+
+            entity.Property(effect => effect.SelectedOptionId)
+                .HasColumnName("selected_option_id");
+
+            entity.Property(effect => effect.TextValue)
+                .HasColumnName("text_value")
+                .HasMaxLength(4096);
+
+            entity.Property(effect => effect.NumericValue)
+                .HasColumnName("numeric_value")
+                .HasPrecision(18, 4);
+
+            entity.Property(effect => effect.SortOrder)
+                .HasColumnName("sort_order")
+                .IsRequired();
+
+            entity.HasOne(effect => effect.CampaignEventDefinition)
+                .WithMany()
+                .HasForeignKey(effect => effect.CampaignEventDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(effect => effect.SelectedOption)
+                .WithMany()
+                .HasForeignKey(effect => effect.SelectedOptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(effect => new
+            {
+                effect.SourceType,
+                effect.SourceId
+            });
+        });
+
+        modelBuilder.Entity<CampaignChoiceDefinition>(entity =>
+        {
+            entity.ToTable("CampaignChoiceDefinitions");
+
+            entity.HasKey(choice => choice.Id);
+
+            entity.Property(choice => choice.Id)
+                .HasColumnName("campaign_choice_definition_id");
+
+            entity.Property(choice => choice.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(choice => choice.StoryBlockId)
+                .HasColumnName("story_block_id");
+
+            entity.Property(choice => choice.StoryBeatId)
+                .HasColumnName("story_beat_id");
+
+            entity.Property(choice => choice.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(choice => choice.SelectionMode)
+                .HasColumnName("selection_mode")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.HasOne(choice => choice.StoryBlock)
+                .WithMany()
+                .HasForeignKey(choice => choice.StoryBlockId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(choice => choice.StoryBeat)
+                .WithMany()
+                .HasForeignKey(choice => choice.StoryBeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CampaignChoiceOption>(entity =>
+        {
+            entity.ToTable("CampaignChoiceOptions");
+
+            entity.HasKey(option => option.Id);
+
+            entity.Property(option => option.Id)
+                .HasColumnName("campaign_choice_option_id");
+
+            entity.Property(option => option.CampaignChoiceDefinitionId)
+                .HasColumnName("campaign_choice_definition_id");
+
+            entity.Property(option => option.StoryBeatId)
+                .HasColumnName("story_beat_id");
+
+            entity.Property(option => option.Key)
+                .HasColumnName("key")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.Property(option => option.Label)
+                .HasColumnName("label")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(option => option.Description)
+                .HasColumnName("description")
+                .HasMaxLength(2048);
+
+            entity.Property(option => option.SortOrder)
+                .HasColumnName("sort_order")
+                .IsRequired();
+
+            entity.HasOne(option => option.CampaignChoiceDefinition)
+                .WithMany(choice => choice.Options)
+                .HasForeignKey(option => option.CampaignChoiceDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(option => option.StoryBeat)
+                .WithMany()
+                .HasForeignKey(option => option.StoryBeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(option => new
+            {
+                option.CampaignChoiceDefinitionId,
+                option.Key
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<CampaignChoiceSelection>(entity =>
+        {
+            entity.ToTable("CampaignChoiceSelections");
+
+            entity.HasKey(selection => selection.Id);
+
+            entity.Property(selection => selection.Id)
+                .HasColumnName("campaign_choice_selection_id");
+
+            entity.Property(selection => selection.CampaignSessionId)
+                .HasColumnName("campaign_session_id");
+
+            entity.Property(selection => selection.CampaignChoiceDefinitionId)
+                .HasColumnName("campaign_choice_definition_id");
+
+            entity.Property(selection => selection.CampaignChoiceOptionId)
+                .HasColumnName("campaign_choice_option_id");
+
+            entity.Property(selection => selection.SelectedAtUtc)
+                .HasColumnName("selected_at_utc")
+                .IsRequired();
+
+            entity.HasOne(selection => selection.CampaignSession)
+                .WithMany(session => session.ChoiceSelections)
+                .HasForeignKey(selection => selection.CampaignSessionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(selection => selection.CampaignChoiceDefinition)
+                .WithMany()
+                .HasForeignKey(selection => selection.CampaignChoiceDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(selection => selection.CampaignChoiceOption)
+                .WithMany()
+                .HasForeignKey(selection => selection.CampaignChoiceOptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(selection => new
+            {
+                selection.CampaignSessionId,
+                selection.CampaignChoiceDefinitionId,
+                selection.CampaignChoiceOptionId
+            })
+            .IsUnique();
         });
 
         modelBuilder.Entity<StoryBlockMilestone>(entity =>
@@ -663,6 +1271,187 @@ public class LearningLabContext : DbContext
                 session.SessionNumber
             })
             .IsUnique();
+        });
+
+        modelBuilder.Entity<CampaignPresentation>(entity =>
+        {
+            entity.ToTable("CampaignPresentations");
+
+            entity.HasKey(presentation => presentation.Id);
+
+            entity.Property(presentation => presentation.Id)
+                .HasColumnName("campaign_presentation_id");
+
+            entity.Property(presentation => presentation.CampaignSessionId)
+                .HasColumnName("campaign_session_id");
+
+            entity.Property(presentation => presentation.Status)
+                .HasColumnName("status")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(presentation => presentation.ActiveStoryBlockId)
+                .HasColumnName("active_story_block_id");
+
+            entity.Property(presentation => presentation.CurrentStoryBeatId)
+                .HasColumnName("current_story_beat_id");
+
+            entity.Property(presentation => presentation.StartedAt)
+                .HasColumnName("started_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(presentation => presentation.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(presentation => presentation.EndedAt)
+                .HasColumnName("ended_at");
+
+            entity.HasOne(presentation => presentation.CampaignSession)
+                .WithOne(session => session.Presentation)
+                .HasForeignKey<CampaignPresentation>(presentation => presentation.CampaignSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(presentation => presentation.ActiveStoryBlock)
+                .WithMany(block => block.ActivePresentations)
+                .HasForeignKey(presentation => presentation.ActiveStoryBlockId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(presentation => presentation.CurrentStoryBeat)
+                .WithMany(beat => beat.CurrentPresentations)
+                .HasForeignKey(presentation => presentation.CurrentStoryBeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(presentation => presentation.Entries)
+                .WithOne(entry => entry.CampaignPresentation)
+                .HasForeignKey(entry => entry.CampaignPresentationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(presentation => presentation.StoryBeatSelections)
+                .WithOne(selection => selection.CampaignPresentation)
+                .HasForeignKey(selection => selection.CampaignPresentationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(presentation => presentation.CampaignSessionId)
+                .IsUnique();
+
+            entity.HasIndex(presentation => new
+            {
+                presentation.Status,
+                presentation.UpdatedAt
+            });
+        });
+
+        modelBuilder.Entity<CampaignPresentationEntry>(entity =>
+        {
+            entity.ToTable("CampaignPresentationEntries");
+
+            entity.HasKey(entry => entry.Id);
+
+            entity.Property(entry => entry.Id)
+                .HasColumnName("campaign_presentation_entry_id");
+
+            entity.Property(entry => entry.CampaignPresentationId)
+                .HasColumnName("campaign_presentation_id");
+
+            entity.Property(entry => entry.Sequence)
+                .HasColumnName("sequence")
+                .IsRequired();
+
+            entity.Property(entry => entry.EntryType)
+                .HasColumnName("entry_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(entry => entry.StoryBlockId)
+                .HasColumnName("story_block_id");
+
+            entity.Property(entry => entry.StoryBeatId)
+                .HasColumnName("story_beat_id");
+
+            entity.Property(entry => entry.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(entry => entry.StoryBlock)
+                .WithMany(block => block.PresentationEntries)
+                .HasForeignKey(entry => entry.StoryBlockId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(entry => entry.StoryBeat)
+                .WithMany(beat => beat.PresentationEntries)
+                .HasForeignKey(entry => entry.StoryBeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(entry => new
+            {
+                entry.CampaignPresentationId,
+                entry.Sequence
+            })
+            .IsUnique();
+
+            entity.HasIndex(entry => new
+            {
+                entry.CampaignPresentationId,
+                entry.CreatedAt
+            });
+        });
+
+        modelBuilder.Entity<CampaignPresentationStoryBeatSelection>(entity =>
+        {
+            entity.ToTable("CampaignPresentationStoryBeatSelections");
+
+            entity.HasKey(selection => selection.Id);
+
+            entity.Property(selection => selection.Id)
+                .HasColumnName("campaign_presentation_story_beat_selection_id");
+
+            entity.Property(selection => selection.CampaignPresentationId)
+                .HasColumnName("campaign_presentation_id");
+
+            entity.Property(selection => selection.StoryBlockId)
+                .HasColumnName("story_block_id");
+
+            entity.Property(selection => selection.OrderIndex)
+                .HasColumnName("order_index")
+                .IsRequired();
+
+            entity.Property(selection => selection.SelectedSecondaryOrderIndex)
+                .HasColumnName("selected_secondary_order_index")
+                .IsRequired();
+
+            entity.Property(selection => selection.SelectedStoryBeatId)
+                .HasColumnName("selected_story_beat_id");
+
+            entity.Property(selection => selection.SelectedAt)
+                .HasColumnName("selected_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(selection => selection.StoryBlock)
+                .WithMany(block => block.PresentationStoryBeatSelections)
+                .HasForeignKey(selection => selection.StoryBlockId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(selection => selection.SelectedStoryBeat)
+                .WithMany(beat => beat.SelectedInPresentations)
+                .HasForeignKey(selection => selection.SelectedStoryBeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(selection => new
+            {
+                selection.CampaignPresentationId,
+                selection.StoryBlockId,
+                selection.OrderIndex
+            })
+            .IsUnique();
+
+            entity.HasIndex(selection => selection.SelectedStoryBeatId);
         });
 
         modelBuilder.Entity<SessionNote>(entity =>
@@ -919,6 +1708,40 @@ public class LearningLabContext : DbContext
                 task.QuestId,
                 task.Title
             });
+        });
+
+        modelBuilder.Entity<StoryBeatQuestTask>(entity =>
+        {
+            entity.ToTable("StoryBeatQuestTasks");
+
+            entity.HasKey(link => new
+            {
+                link.StoryBeatId,
+                link.QuestTaskId
+            });
+
+            entity.Property(link => link.StoryBeatId)
+                .HasColumnName("story_beat_id");
+
+            entity.Property(link => link.QuestTaskId)
+                .HasColumnName("quest_task_id");
+
+            entity.Property(link => link.LinkedAt)
+                .HasColumnName("linked_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(link => link.StoryBeat)
+                .WithMany(beat => beat.QuestTaskLinks)
+                .HasForeignKey(link => link.StoryBeatId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(link => link.QuestTask)
+                .WithMany(task => task.StoryBeatLinks)
+                .HasForeignKey(link => link.QuestTaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(link => link.QuestTaskId);
         });
 
         modelBuilder.Entity<CampaignMilestone>(entity =>

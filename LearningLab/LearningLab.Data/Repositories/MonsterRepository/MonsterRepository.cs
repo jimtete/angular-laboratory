@@ -1,3 +1,4 @@
+using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.Monsters;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,32 @@ public sealed class MonsterRepository : IMonsterRepository
     {
         return await _context.Monsters
             .AsNoTracking()
+            .OrderBy(monster => monster.Name)
+            .ThenBy(monster => monster.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Monster>> ListByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.CampaignNpcParticipations
+            .AsNoTracking()
+            .Where(participation => participation.CampaignId == campaignId)
+            .Select(participation => participation.Monster)
+            .OrderBy(monster => monster.Name)
+            .ThenBy(monster => monster.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Monster>> ListDetailedByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        return await BuildDetailedQuery()
+            .AsNoTracking()
+            .Where(monster => monster.CampaignParticipations.Any(
+                participation => participation.CampaignId == campaignId))
             .OrderBy(monster => monster.Name)
             .ThenBy(monster => monster.Id)
             .ToListAsync(cancellationToken);
@@ -42,11 +69,55 @@ public sealed class MonsterRepository : IMonsterRepository
                 cancellationToken);
     }
 
+    public Task<bool> ExistsByIdAsync(
+        int monsterId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.Monsters
+            .AsNoTracking()
+            .AnyAsync(
+                monster => monster.Id == monsterId,
+                cancellationToken);
+    }
+
+    public Task<bool> CampaignParticipationExistsAsync(
+        Guid campaignId,
+        int monsterId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.CampaignNpcParticipations
+            .AsNoTracking()
+            .AnyAsync(
+                participation => participation.CampaignId == campaignId
+                    && participation.MonsterId == monsterId,
+                cancellationToken);
+    }
+
+    public Task<int> CountCampaignParticipationsByMonsterIdsAsync(
+        Guid campaignId,
+        IReadOnlyCollection<int> monsterIds,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.CampaignNpcParticipations
+            .AsNoTracking()
+            .CountAsync(
+                participation => participation.CampaignId == campaignId
+                    && monsterIds.Contains(participation.MonsterId),
+                cancellationToken);
+    }
+
     public async Task AddAsync(
         Monster monster,
         CancellationToken cancellationToken = default)
     {
         await _context.Monsters.AddAsync(monster, cancellationToken);
+    }
+
+    public async Task AddCampaignParticipationAsync(
+        CampaignNpcParticipation participation,
+        CancellationToken cancellationToken = default)
+    {
+        await _context.CampaignNpcParticipations.AddAsync(participation, cancellationToken);
     }
 
     public void Remove(Monster monster)

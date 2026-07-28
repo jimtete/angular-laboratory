@@ -1,0 +1,100 @@
+.combat-monster-card {
+  width: min(100%, 14.45rem);
+  aspect-ratio: 9 / 16;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  align-content: start;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 4px double #9a4f16;
+  border-radius: 0;
+  background:
+    linear-gradient(rgba(255, 253, 244, 0.94), rgba(245, 223, 189, 0.82)),
+    #fffdf4;
+  color: #2f1808;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.86),
+    0 0.9rem 1.8rem rgba(154, 79, 22, 0.18);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.combat-monster-card:hover,
+.combat-monster-card:focus-visible {
+  background:
+    linear-gradient(rgba(255, 253, 244, 0.98), rgba(245, 223, 189, 0.92)),
+    #fffdf4;
+  outline: 3px solid rgba(154, 79, 22, 0.32);
+  outline-offset: 3px;
+}
+
+.combat-monster-card h3 {
+  margin: 0;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(154, 79, 22, 0.32);
+  color: #2f1808;
+  font: 900 clamp(1.3rem, 2.25vw, 2rem)/0.92 'Cotemporary', 'Palatino Linotype', Georgia, serif;
+  overflow-wrap: anywhere;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.combat-monster-card-details {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.combat-monster-card-details div {
+  display: grid;
+  grid-template-columns: 3.3rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.combat-monster-card-details dt,
+.combat-monster-card-details dd {
+  margin: 0;
+}
+
+.combat-monster-card-details dt {
+  color: #8a4a19;
+  font: 900 0.72rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.combat-monster-card-details dd {
+  color: #2f1808;
+  font-size: 1rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.combat-monster-card-stats {
+  align-self: end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.combat-monster-card-stats span {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.12rem;
+  padding: 0.45rem 0.35rem;
+  border: 1px solid rgba(154, 79, 22, 0.42);
+  background: rgba(255, 248, 231, 0.78);
+}
+
+.combat-monster-card-stats strong {
+  color: #2f1808;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.combat-monster-card-stats small {
+  color: #6f3511;
+  font: 900 0.62rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}

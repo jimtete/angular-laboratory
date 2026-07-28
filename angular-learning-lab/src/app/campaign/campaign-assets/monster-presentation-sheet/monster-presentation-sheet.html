@@ -1,0 +1,112 @@
+<section class="monster-presentation-page" aria-label="Monster presentation sheet">
+  <button type="button" class="monster-presentation-back" aria-label="Go back" title="Go back" (click)="goBack()">
+    <svg lucideArrowLeft aria-hidden="true"></svg>
+  </button>
+
+  @if (isLoadingMonster()) {
+    <p class="monster-presentation-status">Loading monster...</p>
+  } @else if (loadError()) {
+    <p class="monster-presentation-status">{{ loadError() }}</p>
+  } @else if (monster(); as monster) {
+    <article class="monster-presentation-sheet">
+      <span>Monster Sheet</span>
+      <h1>{{ monster.name }}</h1>
+
+      <dl class="monster-presentation-meta">
+        <div>
+          <dt>Size</dt>
+          <dd>{{ monster.size || 'Unknown Size' }}</dd>
+        </div>
+        <div>
+          <dt>Race</dt>
+          <dd>{{ monster.race || 'Unknown Race' }}</dd>
+        </div>
+        <div>
+          <dt>Class</dt>
+          <dd>{{ monster.class || 'Unknown Class' }}</dd>
+        </div>
+      </dl>
+
+      <div class="monster-presentation-stats" aria-label="Monster ability scores">
+        @for (abilityName of abilityNames; track abilityName) {
+          <span>
+            <strong>{{ abilityScore(monster, abilityName) }}</strong>
+            <small>{{ abilityName.slice(0, 3).toUpperCase() }}</small>
+          </span>
+        }
+      </div>
+
+      @if (monster.notes) {
+        <section class="monster-presentation-section">
+          <h2>Notes</h2>
+          <p>{{ monster.notes }}</p>
+        </section>
+      }
+
+      @if (monster.proficiencies.length > 0) {
+        <section class="monster-presentation-section">
+          <h2>Proficiencies</h2>
+          <div class="monster-presentation-chip-list">
+            @for (proficiency of monster.proficiencies; track proficiency.name) {
+              <span>{{ proficiency.name }}</span>
+            }
+          </div>
+        </section>
+      }
+
+      @if (monster.spellcasting) {
+        <section class="monster-presentation-section">
+          <h2>Spellcasting</h2>
+          <dl class="monster-presentation-spellcasting">
+            @if (monster.spellcasting.spellcastingAbility) {
+              <div>
+                <dt>Ability</dt>
+                <dd>{{ monster.spellcasting.spellcastingAbility }}</dd>
+              </div>
+            }
+            @if (monster.spellcasting.spellSaveDC !== null) {
+              <div>
+                <dt>Save DC</dt>
+                <dd>{{ monster.spellcasting.spellSaveDC }}</dd>
+              </div>
+            }
+            @if (monster.spellcasting.spellAttackBonus !== null) {
+              <div>
+                <dt>Attack</dt>
+                <dd>{{ monster.spellcasting.spellAttackBonus }}</dd>
+              </div>
+            }
+          </dl>
+          @if (monster.spellcasting.notes) {
+            <p>{{ monster.spellcasting.notes }}</p>
+          }
+        </section>
+      }
+
+      @for (section of featureSections(monster); track section.label) {
+        <section class="monster-presentation-section">
+          <h2>{{ section.label }}</h2>
+          <div class="monster-presentation-feature-list">
+            @for (feature of section.features; track feature.id) {
+              <article class="monster-presentation-feature">
+                <header>
+                  <h3>{{ feature.name }}</h3>
+                  @if (featureMetadata(feature).length > 0) {
+                    <div class="monster-presentation-chip-list">
+                      @for (metadata of featureMetadata(feature); track metadata) {
+                        <span>{{ metadata }}</span>
+                      }
+                    </div>
+                  }
+                </header>
+                @if (feature.description) {
+                  <p>{{ feature.description }}</p>
+                }
+              </article>
+            }
+          </div>
+        </section>
+      }
+    </article>
+  }
+</section>

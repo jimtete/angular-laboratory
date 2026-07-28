@@ -8,9 +8,21 @@ public interface IStoryBlockRepository
         Guid campaignId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<StoryBlock>> ListTrackedByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
     Task<StoryBlock?> GetByCampaignIdAndStoryBlockIdAsync(
         Guid campaignId,
         Guid storyBlockId,
+        CancellationToken cancellationToken = default);
+
+    Task<StoryBlock?> GetFirstByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
+    Task<int?> GetLatestOrderIndexByCampaignIdAsync(
+        Guid campaignId,
         CancellationToken cancellationToken = default);
 
     Task AddAsync(

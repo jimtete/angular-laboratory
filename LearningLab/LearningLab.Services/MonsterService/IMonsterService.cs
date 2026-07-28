@@ -8,12 +8,28 @@ public interface IMonsterService
     Task<ServiceResult<IReadOnlyList<MonsterListResponse>>> GetMonstersAsync(
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<MonsterListResponse>>> GetCampaignMonstersAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<IReadOnlyList<MonsterResponse>>> GetCampaignMonsterDetailsAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<MonsterResponse>> GetMonsterByIdAsync(
         int monsterId,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<MonsterResponse>> CreateMonsterAsync(
         CreateMonsterRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<MonsterResponse>> AddMonsterToCampaignAsync(
+        Guid userId,
+        Guid campaignId,
+        int monsterId,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<MonsterResponse>> UpdateMonsterBasicInformationAsync(

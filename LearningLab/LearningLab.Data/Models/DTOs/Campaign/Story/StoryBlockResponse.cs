@@ -7,4 +7,6 @@ public sealed class StoryBlockResponse
     public Guid CampaignId { get; init; }
 
     public required string Title { get; init; }
+
+    public int OrderIndex { get; init; }
 }

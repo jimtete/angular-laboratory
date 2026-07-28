@@ -16,10 +16,12 @@ import {
   CampaignSessionModel,
   CampaignSettingsModel,
   CreateStoryBlockRequest,
+  CreateCombatStoryBeatRequest,
   CreateDecisionStoryBeatRequest,
   CreateInformationStoryBeatRequest,
   CreateMilestoneStoryBeatRequest,
   CreateNarrativeStoryBeatRequest,
+  CreateTransitionStoryBeatRequest,
   CreateCampaignNpcRequest,
   CreateRoleplayingStoryBeatRequest,
   CampaignUsernamesModel,
@@ -31,11 +33,14 @@ import {
   CampaignNpcModel,
   StoryBeatModel,
   StoryBlockModel,
+  ReorderStoryBlocksRequest,
+  UpdateCombatStoryBeatRequest,
   UpdateDecisionStoryBeatRequest,
   UpdateInformationStoryBeatRequest,
   UpdateCampaignNpcRequest,
   UpdateMilestoneStoryBeatRequest,
   UpdateNarrativeStoryBeatRequest,
+  UpdateTransitionStoryBeatRequest,
   UpdateRoleplayingStoryBeatRequest,
   UpdateStoryBlockTitleRequest,
   UpdateCampaignMemberNicknameRequest,
@@ -194,6 +199,17 @@ export class CampaignApiService {
     >(`/api/campaigns/${campaignId}/content/quests`, request);
   }
 
+  updateCampaignQuest(
+    campaignId: string,
+    questId: string,
+    request: UpdateCampaignQuestRequest,
+  ): Observable<ApiResponse<CampaignQuestModel>> {
+    return this.apiClient.put<
+      ApiResponse<CampaignQuestModel>,
+      UpdateCampaignQuestRequest
+    >(`/api/campaigns/${campaignId}/content/quests/${questId}`, request);
+  }
+
   fetchStoryBlocks(
     campaignId: string,
   ): Observable<ApiResponse<StoryBlockModel[]>> {
@@ -261,6 +277,16 @@ export class CampaignApiService {
     );
   }
 
+  reorderStoryBlocks(
+    campaignId: string,
+    request: ReorderStoryBlocksRequest,
+  ): Observable<ApiResponse<StoryBlockModel[]>> {
+    return this.apiClient.put<ApiResponse<StoryBlockModel[]>, ReorderStoryBlocksRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks/order`,
+      request,
+    );
+  }
+
   fetchStoryBeats(
     campaignId: string,
     storyBlockId: string,
@@ -322,6 +348,31 @@ export class CampaignApiService {
       CreateDecisionStoryBeatRequest
     >(
       `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/decision`,
+      request,
+    );
+  }
+
+  createCombatStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    request: CreateCombatStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.post<ApiResponse<StoryBeatModel>, CreateCombatStoryBeatRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/combat`,
+      request,
+    );
+  }
+
+  createTransitionStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    request: CreateTransitionStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.post<
+      ApiResponse<StoryBeatModel>,
+      CreateTransitionStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/transition`,
       request,
     );
   }
@@ -396,6 +447,33 @@ export class CampaignApiService {
       UpdateDecisionStoryBeatRequest
     >(
       `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/decision`,
+      request,
+    );
+  }
+
+  updateCombatStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+    request: UpdateCombatStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.put<ApiResponse<StoryBeatModel>, UpdateCombatStoryBeatRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/combat`,
+      request,
+    );
+  }
+
+  updateTransitionStoryBeat(
+    campaignId: string,
+    storyBlockId: string,
+    storyBeatId: string,
+    request: UpdateTransitionStoryBeatRequest,
+  ): Observable<ApiResponse<StoryBeatModel>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBeatModel>,
+      UpdateTransitionStoryBeatRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/${storyBeatId}/transition`,
       request,
     );
   }

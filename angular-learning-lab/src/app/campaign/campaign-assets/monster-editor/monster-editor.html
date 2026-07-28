@@ -348,14 +348,16 @@
             <input type="text" [value]="draft.name" (input)="updateFeatureDraft('name', $event)" />
           </label>
 
-          <label class="monster-editor-field">
-            <span>Category</span>
-            <select [value]="draft.category" (change)="updateFeatureDraft('category', $event)">
-              @for (section of featureSections; track section.category) {
-                <option [value]="section.category">{{ section.label }}</option>
-              }
-            </select>
-          </label>
+          @if (draft.id !== null) {
+            <label class="monster-editor-field">
+              <span>Category</span>
+              <select [value]="draft.category" (change)="updateFeatureDraft('category', $event)">
+                @for (section of featureSections; track section.category) {
+                  <option [value]="section.category">{{ section.label }}</option>
+                }
+              </select>
+            </label>
+          }
         </div>
 
         <label class="monster-editor-field">

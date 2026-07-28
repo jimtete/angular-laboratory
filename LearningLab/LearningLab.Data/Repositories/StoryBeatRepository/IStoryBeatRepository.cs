@@ -13,6 +13,10 @@ public interface IStoryBeatRepository
         Guid storyBeatId,
         CancellationToken cancellationToken = default);
 
+    Task<StoryBeat?> GetFirstByStoryBlockIdAsync(
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default);
+
     Task<StoryBeat?> GetByCampaignIdAndStoryBeatIdAsync(
         Guid campaignId,
         Guid storyBeatId,
@@ -27,6 +31,28 @@ public interface IStoryBeatRepository
         Guid storyBlockId,
         CancellationToken cancellationToken = default);
 
+    Task<int?> GetLatestSecondaryOrderIndexByStoryBlockIdAndOrderIndexAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> OrderExistsAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        int secondaryOrderIndex,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> TransitionExistsByStoryBlockIdAsync(
+        Guid storyBlockId,
+        Guid? excludedStoryBeatId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> HasStoryBeatAfterAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        int secondaryOrderIndex,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(
         StoryBeat storyBeat,
         CancellationToken cancellationToken = default);
@@ -34,6 +60,7 @@ public interface IStoryBeatRepository
     Task DecrementOrderAfterAsync(
         Guid storyBlockId,
         int orderIndex,
+        int secondaryOrderIndex,
         CancellationToken cancellationToken = default);
 
     void Update(StoryBeat storyBeat);

@@ -137,6 +137,32 @@ public sealed class CampaignContentController : ControllerBase
         };
     }
 
+    [HttpPut("quests/{questId:guid}")]
+    public async Task<ActionResult<ApiResponse<CampaignQuestResponse>>> UpdateCampaignQuest(
+        Guid campaignId,
+        Guid questId,
+        UpdateCampaignQuestRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignQuestResponse>();
+        }
+
+        var result = await _campaignQuestService.UpdateCampaignQuestAsync(
+            userId.Value,
+            campaignId,
+            questId,
+            request,
+            cancellationToken);
+
+        return MapQuestResponse(
+            result,
+            "Campaign quest updated successfully.");
+    }
+
     [HttpGet("milestones/unachieved")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<CampaignMilestoneResponse>>>> FetchUnachievedCampaignMilestones(
         Guid campaignId,
@@ -424,6 +450,12 @@ public sealed class CampaignContentController : ControllerBase
             {
                 StatusCode = StatusCodes.Status404NotFound,
                 Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignQuestNotFound => NotFound(new ApiResponse<CampaignQuestResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign quest was not found.",
                 Data = null
             }),
             ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(

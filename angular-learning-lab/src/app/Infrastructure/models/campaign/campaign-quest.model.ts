@@ -44,3 +44,5 @@ export interface CreateCampaignQuestRequest {
   completedAt: string | null;
   tasks: CampaignQuestTaskRequest[];
 }
+
+export interface UpdateCampaignQuestRequest extends CreateCampaignQuestRequest {}

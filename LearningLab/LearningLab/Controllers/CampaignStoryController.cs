@@ -103,6 +103,30 @@ public sealed class CampaignStoryController : ControllerBase
             "Story block title updated successfully.");
     }
 
+    [HttpPut("order")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StoryBlockResponse>>>> ReorderStoryBlocks(
+        Guid campaignId,
+        ReorderStoryBlocksRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<StoryBlockResponse>>();
+        }
+
+        var result = await _campaignStoryService.ReorderStoryBlocksAsync(
+            userId.Value,
+            campaignId,
+            request,
+            cancellationToken);
+
+        return MapStoryBlockListResponse(
+            result,
+            "Story blocks reordered successfully.");
+    }
+
     [HttpDelete("{storyBlockId:guid}")]
     public async Task<ActionResult<ApiResponse<object>>> DeleteStoryBlock(
         Guid campaignId,
@@ -307,6 +331,76 @@ public sealed class CampaignStoryController : ControllerBase
         };
     }
 
+    [HttpPost("{storyBlockId:guid}/beats/combat")]
+    public async Task<ActionResult<ApiResponse<StoryBeatResponse>>> CreateCombatStoryBeat(
+        Guid campaignId,
+        Guid storyBlockId,
+        CreateCombatStoryBeatRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<StoryBeatResponse>();
+        }
+
+        var result = await _campaignStoryService.CreateCombatStoryBeatAsync(
+            userId.Value,
+            campaignId,
+            storyBlockId,
+            request,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Created(string.Empty, new ApiResponse<StoryBeatResponse>
+            {
+                StatusCode = StatusCodes.Status201Created,
+                Message = "Story beat created successfully.",
+                Data = result.Data
+            }),
+            _ => MapStoryBeatResponse(
+                result,
+                "Story beat created successfully.")
+        };
+    }
+
+    [HttpPost("{storyBlockId:guid}/beats/transition")]
+    public async Task<ActionResult<ApiResponse<StoryBeatResponse>>> CreateTransitionStoryBeat(
+        Guid campaignId,
+        Guid storyBlockId,
+        CreateTransitionStoryBeatRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<StoryBeatResponse>();
+        }
+
+        var result = await _campaignStoryService.CreateTransitionStoryBeatAsync(
+            userId.Value,
+            campaignId,
+            storyBlockId,
+            request,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Created(string.Empty, new ApiResponse<StoryBeatResponse>
+            {
+                StatusCode = StatusCodes.Status201Created,
+                Message = "Story beat created successfully.",
+                Data = result.Data
+            }),
+            _ => MapStoryBeatResponse(
+                result,
+                "Story beat created successfully.")
+        };
+    }
+
     [HttpPost("{storyBlockId:guid}/beats/milestone")]
     public async Task<ActionResult<ApiResponse<StoryBeatResponse>>> CreateMilestoneStoryBeat(
         Guid campaignId,
@@ -442,6 +536,62 @@ public sealed class CampaignStoryController : ControllerBase
         }
 
         var result = await _campaignStoryService.UpdateDecisionStoryBeatAsync(
+            userId.Value,
+            campaignId,
+            storyBlockId,
+            storyBeatId,
+            request,
+            cancellationToken);
+
+        return MapStoryBeatResponse(
+            result,
+            "Story beat updated successfully.");
+    }
+
+    [HttpPut("{storyBlockId:guid}/beats/{storyBeatId:guid}/combat")]
+    public async Task<ActionResult<ApiResponse<StoryBeatResponse>>> UpdateCombatStoryBeat(
+        Guid campaignId,
+        Guid storyBlockId,
+        Guid storyBeatId,
+        UpdateCombatStoryBeatRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<StoryBeatResponse>();
+        }
+
+        var result = await _campaignStoryService.UpdateCombatStoryBeatAsync(
+            userId.Value,
+            campaignId,
+            storyBlockId,
+            storyBeatId,
+            request,
+            cancellationToken);
+
+        return MapStoryBeatResponse(
+            result,
+            "Story beat updated successfully.");
+    }
+
+    [HttpPut("{storyBlockId:guid}/beats/{storyBeatId:guid}/transition")]
+    public async Task<ActionResult<ApiResponse<StoryBeatResponse>>> UpdateTransitionStoryBeat(
+        Guid campaignId,
+        Guid storyBlockId,
+        Guid storyBeatId,
+        UpdateTransitionStoryBeatRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<StoryBeatResponse>();
+        }
+
+        var result = await _campaignStoryService.UpdateTransitionStoryBeatAsync(
             userId.Value,
             campaignId,
             storyBlockId,
@@ -1121,10 +1271,28 @@ public sealed class CampaignStoryController : ControllerBase
                 Message = "Campaign milestone was not found.",
                 Data = null
             }),
+            ApplicationStatusCode.CampaignMonsterNotFound => NotFound(new ApiResponse<StoryBeatResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "One or more monsters are not available in this campaign.",
+                Data = null
+            }),
             ApplicationStatusCode.StoryBeatMilestoneAlreadyExists => Conflict(new ApiResponse<StoryBeatResponse>
             {
                 StatusCode = StatusCodes.Status409Conflict,
                 Message = "Campaign milestone is already linked to a story beat.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBeatTransitionAlreadyExists => Conflict(new ApiResponse<StoryBeatResponse>
+            {
+                StatusCode = StatusCodes.Status409Conflict,
+                Message = "This story block already has a transition story beat.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBeatTransitionMustBeFinal => Conflict(new ApiResponse<StoryBeatResponse>
+            {
+                StatusCode = StatusCodes.Status409Conflict,
+                Message = "The transition story beat must remain the final beat in the story block.",
                 Data = null
             }),
             ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(

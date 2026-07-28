@@ -11,6 +11,8 @@ public sealed class StoryBeatResponse
 
     public int OrderIndex { get; init; }
 
+    public int SecondaryOrderIndex { get; init; }
+
     public required string Title { get; init; }
 
     public StoryBeatType StoryBeatType { get; init; }
@@ -22,6 +24,10 @@ public sealed class StoryBeatResponse
     public StoryBeatRoleplayingResponse? Roleplaying { get; init; }
 
     public StoryBeatDecisionResponse? Decision { get; init; }
+
+    public StoryBeatCombatResponse? Combat { get; init; }
+
+    public StoryBeatTransitionResponse? Transition { get; init; }
 
     public CampaignMilestoneResponse? Milestone { get; init; }
 }

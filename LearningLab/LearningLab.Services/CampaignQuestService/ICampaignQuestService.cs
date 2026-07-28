@@ -15,4 +15,11 @@ public interface ICampaignQuestService
         Guid campaignId,
         CreateCampaignQuestRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignQuestResponse>> UpdateCampaignQuestAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid questId,
+        UpdateCampaignQuestRequest request,
+        CancellationToken cancellationToken = default);
 }

@@ -5,6 +5,8 @@ namespace LearningLab.Data.Models.DTOs.Campaign.Story;
 
 public sealed class StoryBeatRoleplayingInformationRequest
 {
+    public Guid? Id { get; init; }
+
     public string? NpcTag { get; init; }
 
     public StoryBeatRoleplayingCheckType CheckType { get; init; }

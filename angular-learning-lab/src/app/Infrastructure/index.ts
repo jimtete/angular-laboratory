@@ -14,11 +14,16 @@ export * from './services/auth-api.service';
 export * from './services/campaign-cache.service';
 export * from './services/campaign-information-cache.service';
 export * from './services/campaign-api.service';
+export * from './services/campaign-choices-api.service';
 export * from './services/campaign-session-socket.service';
+export * from './services/campaign-events-api.service';
 export * from './services/character-sheet-api.service';
+export * from './services/campaign-rules-api.service';
 export * from './services/monster-api.service';
 export * from './services/notification-api.service';
 export * from './services/notification-cache.service';
 export * from './services/notification-socket.service';
+export * from './services/outcome-effects-api.service';
 export * from './services/token-storage.service';
 export * from './services/user-api.service';
+

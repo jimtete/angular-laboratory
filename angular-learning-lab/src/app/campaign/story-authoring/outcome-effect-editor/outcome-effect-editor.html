@@ -1,0 +1,92 @@
+<section class="outcome-effect-editor" aria-label="Event correlations">
+  <div class="outcome-effect-header">
+    <strong>Event Correlations</strong>
+    <button type="button" (click)="addEffect()">Add Event</button>
+  </div>
+
+  <div class="outcome-effect-list">
+    @for (effect of effects; track trackEffect($index); let effectIndex = $index) {
+      <article class="outcome-effect-row">
+        <label>
+          <span>Event</span>
+          <select
+            [ngModel]="effect.eventDefinitionId ?? effect.eventId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="setEvent(effectIndex, $event)"
+          >
+            <option [ngValue]="null">Select event</option>
+            @for (event of eventOptions; track event.id) {
+              <option [ngValue]="event.id">{{ event.name }} ({{ event.key }})</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Operation</span>
+          <select
+            [ngModel]="selectedOperation(effect)"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="setOperation(effectIndex, $event)"
+          >
+            @for (operation of operationOptions(effect); track operation.value) {
+              <option [ngValue]="operation.value">{{ operation.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Value</span>
+          @if (isClearOperation(effect)) {
+            <input type="text" value="Cleared" disabled />
+          } @else if (isBooleanEvent(effect)) {
+            <select
+              [ngModel]="effect.booleanValue === null || effect.booleanValue === undefined ? '' : (effect.booleanValue ? 'true' : 'false')"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="setBooleanValue(effectIndex, $event)"
+            >
+              <option value="">Select value</option>
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
+          } @else if (isSingleChoiceEvent(effect)) {
+            <select
+              [ngModel]="effect.selectedOptionId"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="setOptionValue(effectIndex, $event)"
+            >
+              <option [ngValue]="null">Select option</option>
+              @for (option of selectedEvent(effect)?.options ?? []; track option.id) {
+                <option [ngValue]="option.id">{{ option.label }}</option>
+              }
+            </select>
+          } @else if (isNumericEvent(effect)) {
+            <input
+              type="number"
+              [ngModel]="effect.numericValue"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="setNumericValue(effectIndex, $event)"
+            />
+          } @else {
+            <input
+              type="text"
+              [ngModel]="effect.textValue"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="setTextValue(effectIndex, $event)"
+            />
+          }
+        </label>
+
+        <button
+          type="button"
+          class="outcome-effect-remove"
+          aria-label="Remove effect"
+          (click)="removeEffect(effectIndex)"
+        >
+          Remove
+        </button>
+      </article>
+    } @empty {
+      <p>No event correlations configured.</p>
+    }
+  </div>
+</section>

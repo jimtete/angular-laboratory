@@ -5,6 +5,8 @@ namespace LearningLab.Data.Models.DTOs.Campaign.Story;
 
 public sealed class StoryBeatOptionalInformationResponse
 {
+    public Guid Id { get; init; }
+
     public Skill Skill { get; init; }
 
     public int DifficultyClass { get; init; }

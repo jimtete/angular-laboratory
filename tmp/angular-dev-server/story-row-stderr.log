@@ -1,0 +1,652 @@
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\shared\\components\\notification-modal\\notification-modal.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-assets\\campaign-assets.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-sessions\\campaign-sessions.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\register\\register.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\character-sheet\\sheet-table\\sheet-table.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-assets\\monster-editor\\monster-editor.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-assets\\monster-presentation-sheet\\monster-presentation-sheet.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-session\\campaign-session.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\session-runtime\\session-runtime.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-members\\campaign-member-proficiencies\\campaign-member-proficiencies.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\app.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-settings\\campaign-settings.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\story-authoring\\choice-editor\\choice-editor.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\my-campaigns\\create-new-campaign\\create-new-campaign.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\login\\login.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-home\\campaign-home.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\combat-npcs-page\\combat-monster-card\\combat-monster-card.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\story-authoring\\outcome-effect-editor\\outcome-effect-editor.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\home\\home.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\story-authoring\\rule-builder\\rule-builder.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-events-page\\campaign-events-page.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\logout-success\\logout-success.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-members\\campaign-members.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\my-campaigns\\invites\\my-campaign-invites.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\session-runtime\\theater-mode\\theater-mode.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\my-campaigns\\my-campaigns.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\shared\\components\\carousel-card\\carousel-card.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\shared\\components\\notification-card\\notification-card.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\character-sheet\\rating-row\\rating-row.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\combat-npcs-page\\combat-npcs-page.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\character-sheet\\character-sheet.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: LucideChevronLeft is not used within the template of CampaignContent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:227:4:
+[37m      227 │     [32mLucideChevronLeft[37m,
+          ╵     [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: LucideChevronRight is not used within the template of CampaignContent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:228:4:
+[37m      228 │     [32mLucideChevronRight[37m,
+          ╵     [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'storyBeatPreviousAlternative' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:178:66:
+[37m      178 │ ...l-has-previous]="[32mstoryBeatPreviousAlternative[37m(storyBeatRow) !=...
+          ╵                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:239:15:
+[37m      239 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatNextAlternative' does not exist on type 'CampaignContent'. Did you mean 'storyBeatNarrative'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:179:62:
+[37m      179 │ ...arousel-has-next]="[32mstoryBeatNextAlternative[37m(storyBeatRow) !== ...
+          ╵                       [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:239:15:
+[37m      239 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'storyBeatPreviousAlternative' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:181:29:
+[37m      181 │ ...            @if ([32mstoryBeatPreviousAlternative[37m(storyBeatRow); a...
+          ╵                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:239:15:
+[37m      239 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'storyBeatPreviousAlternative' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:181:29:
+[37m      181 │ ...            @if ([32mstoryBeatPreviousAlternative[37m(storyBeatRow); a...
+          ╵                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:239:15:
+[37m      239 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatNextAlternative' does not exist on type 'CampaignContent'. Did you mean 'storyBeatNarrative'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:441:29:
+[37m      441 │ ...              @if ([32mstoryBeatNextAlternative[37m(storyBeatRow); as ...
+          ╵                       [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:239:15:
+[37m      239 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatNextAlternative' does not exist on type 'CampaignContent'. Did you mean 'storyBeatNarrative'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:441:29:
+[37m      441 │ ...              @if ([32mstoryBeatNextAlternative[37m(storyBeatRow); as ...
+          ╵                       [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:239:15:
+[37m      239 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: LucideChevronLeft is not used within the template of CampaignContent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:227:4:
+[37m      227 │     [32mLucideChevronLeft[37m,
+          ╵     [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: LucideChevronRight is not used within the template of CampaignContent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:228:4:
+[37m      228 │     [32mLucideChevronRight[37m,
+          ╵     [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.css"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.css'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.css" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\app\\campaign\\campaign-content\\campaign-content.css"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\admin\\GItHub\\angular-laboratory\\angular-learning-lab\\src\\main.ts"[0m
+
+

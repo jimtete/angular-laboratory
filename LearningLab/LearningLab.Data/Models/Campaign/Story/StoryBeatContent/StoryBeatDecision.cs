@@ -9,6 +9,8 @@ public class StoryBeatDecision
 
 public class StoryBeatDecisionOption
 {
+    public Guid Id { get; set; }
+
     public int OrderIndex { get; set; }
 
     public string Title { get; set; } = string.Empty;

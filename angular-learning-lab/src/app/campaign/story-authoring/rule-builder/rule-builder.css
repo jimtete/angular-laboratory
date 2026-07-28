@@ -1,0 +1,186 @@
+.rule-builder {
+  min-width: 0;
+  display: grid;
+  gap: 0.85rem;
+  color: #2f1f16;
+}
+
+.rule-builder-empty,
+.rule-group {
+  min-width: 0;
+  border: 2px solid rgba(154, 79, 22, 0.46);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 241, 0.92), rgba(255, 248, 231, 0.86));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  box-sizing: border-box;
+}
+
+.rule-builder-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.9rem;
+}
+
+.rule-group {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem;
+}
+
+.rule-group-header {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 2.3rem minmax(12rem, 1fr) auto;
+  align-items: end;
+  gap: 0.7rem;
+}
+
+.rule-group-actions {
+  display: flex;
+  align-items: end;
+  justify-content: end;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.rule-group-body {
+  min-width: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rule-child-group {
+  min-width: 0;
+  display: grid;
+  gap: 0.45rem;
+  padding-left: 0.75rem;
+  border-left: 3px double rgba(95, 47, 20, 0.36);
+}
+
+.rule-condition {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.2fr) minmax(10rem, 0.9fr) minmax(12rem, 1fr) auto;
+  align-items: end;
+  gap: 0.65rem;
+  padding: 0.72rem;
+  border: 1px dashed rgba(154, 79, 22, 0.45);
+  background: rgba(255, 253, 244, 0.74);
+  box-sizing: border-box;
+}
+
+.rule-builder p,
+.rule-builder span,
+.rule-builder button {
+  margin: 0;
+  font: 900 0.78rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.rule-builder p,
+.rule-builder span {
+  color: #5f2f14;
+}
+
+.rule-builder label {
+  min-width: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.rule-builder input,
+.rule-builder select {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(95, 47, 20, 0.68);
+  border-radius: 2px;
+  background: #fffdf4;
+  color: #2f1f16;
+  font: 800 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.rule-builder select {
+  min-height: 2.65rem;
+  border-width: 2px;
+  border-color: #5f2f14;
+  background: linear-gradient(180deg, #fffdf4, #fff8e7);
+  font-family: Palatino, Georgia, serif;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    inset 0 -0.22rem 0 rgba(95, 47, 20, 0.06);
+}
+
+.rule-builder input:focus,
+.rule-builder select:focus {
+  border-color: #7c2d12;
+  outline: 2px solid rgba(124, 45, 18, 0.24);
+  outline-offset: 1px;
+}
+
+.rule-builder button {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #7c2d12;
+  border-radius: 4px;
+  background: #7c2d12;
+  color: #fff8e7;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rule-builder button:hover,
+.rule-builder button:focus-visible {
+  background: #5f2f14;
+  outline: 2px solid rgba(124, 45, 18, 0.28);
+  outline-offset: 2px;
+}
+
+.rule-group-collapse {
+  width: 2.35rem;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.rule-danger {
+  border-color: rgba(95, 47, 20, 0.42) !important;
+  background: rgba(255, 253, 244, 0.92) !important;
+  color: #5f2f14 !important;
+}
+
+.rule-danger:hover,
+.rule-danger:focus-visible {
+  border-color: #991b1b !important;
+  background: #fef2f2 !important;
+  color: #991b1b !important;
+}
+
+.rule-child-delete {
+  justify-self: start;
+}
+
+@media (max-width: 960px) {
+  .rule-group-header,
+  .rule-condition {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-group-collapse {
+    width: 100%;
+  }
+
+  .rule-group-actions {
+    justify-content: stretch;
+  }
+
+  .rule-group-actions button,
+  .rule-condition > button {
+    width: 100%;
+  }
+}

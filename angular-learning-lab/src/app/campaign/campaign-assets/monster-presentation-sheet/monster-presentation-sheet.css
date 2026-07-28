@@ -1,0 +1,182 @@
+.monster-presentation-page {
+  min-height: calc(100dvh - 4rem);
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: rgba(255, 253, 232, 0.38);
+  color: #2f1808;
+  box-sizing: border-box;
+}
+
+.monster-presentation-back {
+  justify-self: start;
+  min-height: 2.4rem;
+  width: 2.4rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #9a4f16;
+  border-radius: 0;
+  background: #fffdf4;
+  color: #2f1808;
+  font: 900 0.85rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.monster-presentation-back svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.monster-presentation-sheet {
+  width: min(100%, 58rem);
+  display: grid;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  border: 4px double #9a4f16;
+  border-radius: 0;
+  background: #fffdf4;
+  box-shadow: 0 1rem 2rem rgba(154, 79, 22, 0.18);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+}
+
+.monster-presentation-sheet > span,
+.monster-presentation-meta dt,
+.monster-presentation-stats small,
+.monster-presentation-spellcasting dt {
+  color: #6f3511;
+  font: 900 0.75rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.monster-presentation-sheet h1 {
+  margin: 0;
+  color: #2f1808;
+  font: 900 clamp(2.4rem, 7vw, 5rem)/0.9 'Cotemporary', 'Palatino Linotype', Georgia, serif;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.monster-presentation-meta,
+.monster-presentation-stats,
+.monster-presentation-spellcasting {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0;
+}
+
+.monster-presentation-meta div {
+  display: grid;
+  grid-template-columns: 4.2rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.monster-presentation-meta dd,
+.monster-presentation-spellcasting dd {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.monster-presentation-stats {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.monster-presentation-stats span {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 0.65rem 0.35rem;
+  border: 1px solid rgba(154, 79, 22, 0.42);
+  background: rgba(255, 248, 231, 0.78);
+}
+
+.monster-presentation-stats strong {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.monster-presentation-status {
+  margin: 0;
+  color: #4b5563;
+  font: 800 1rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.monster-presentation-section {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(154, 79, 22, 0.32);
+}
+
+.monster-presentation-section h2,
+.monster-presentation-feature h3 {
+  margin: 0;
+  color: #2f1808;
+}
+
+.monster-presentation-section h2 {
+  font: 900 1.25rem/1 'Cotemporary', 'Palatino Linotype', Georgia, serif;
+  text-transform: uppercase;
+}
+
+.monster-presentation-section p,
+.monster-presentation-feature p {
+  margin: 0;
+  color: #2f1808;
+  font: 700 1rem/1.45 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.monster-presentation-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.monster-presentation-chip-list span {
+  padding: 0.28rem 0.45rem;
+  border: 1px solid rgba(154, 79, 22, 0.32);
+  background: rgba(255, 248, 231, 0.8);
+  color: #6f3511;
+  font: 900 0.68rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.monster-presentation-spellcasting {
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.monster-presentation-feature-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.monster-presentation-feature {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.85rem;
+  border: 3px double rgba(154, 79, 22, 0.38);
+  background: rgba(255, 248, 231, 0.6);
+}
+
+.monster-presentation-feature header {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.monster-presentation-feature h3 {
+  font: 900 1.1rem/1.15 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+}
+
+@media (max-width: 700px) {
+  .monster-presentation-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .monster-presentation-page {
+    padding: 1rem;
+  }
+}

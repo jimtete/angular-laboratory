@@ -215,6 +215,11 @@
   box-shadow: 0 0 0 1px rgba(154, 79, 22, 0.48);
 }
 
+.monster-editor-ability-grid .monster-editor-ability-name,
+.monster-editor-ability-grid input {
+  font-size: 1.5rem;
+}
+
 .monster-editor-field textarea {
   min-height: 7rem;
   resize: vertical;

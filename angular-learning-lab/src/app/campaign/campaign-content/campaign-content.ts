@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LucideCheck, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@lucide/angular';
+import { LucideCheck, LucideEye, LucideGitBranch, LucideGripVertical, LucideLock, LucidePencil, LucidePlus, LucideTrash2, LucideX, LucideZap } from '@lucide/angular';
 import { catchError, finalize, forkJoin, map, Observable, of, switchMap, timeout } from 'rxjs';
 
 import {
@@ -8,21 +8,40 @@ import {
   AbilityValue,
   ApiError,
   CampaignApiService,
+  CampaignEventModel,
+  CampaignEventsApiService,
   CampaignMilestoneImportance,
   CampaignMilestoneModel,
   CampaignMilestoneRequest,
   CampaignNpcModel,
   CampaignQuestModel,
   CampaignQuestType,
+  CampaignRuleGroupRequest,
+  CampaignRulesApiService,
+  ConditionalRuleEffectType,
+  ConditionalRuleModel,
+  ConditionalTargetType,
+  OutcomeEffectModel,
+  OutcomeEffectOperation,
+  OutcomeEffectRequest,
+  OutcomeEffectsApiService,
+  OutcomeSourceType,
+  RuleComparisonOperator,
+  RuleConditionRequest,
+  RuleGroupOperator,
   Skill,
   SkillValue,
   CreateStoryBlockRequest,
+  CreateCombatStoryBeatRequest,
   CreateDecisionStoryBeatRequest,
   CreateInformationStoryBeatRequest,
   CreateMilestoneStoryBeatRequest,
   CreateNarrativeStoryBeatRequest,
   CreateRoleplayingStoryBeatRequest,
+  CreateTransitionStoryBeatRequest,
   CreateCampaignQuestRequest,
+  MonsterApiService,
+  MonsterModel,
   getCampaignMilestoneImportanceLabel,
   getCampaignMilestoneImportanceSlug,
   StoryBeatOptionalInformationModel,
@@ -34,20 +53,28 @@ import {
   StoryBeatType,
   StoryBlockModel,
   toCampaignMilestoneImportance,
+  UpdateCombatStoryBeatRequest,
   UpdateDecisionStoryBeatRequest,
   UpdateStoryBlockTitleRequest,
   UpdateRoleplayingStoryBeatRequest,
+  UpdateTransitionStoryBeatRequest,
 } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
+import { CombatNpcsPage } from './combat-npcs-page/combat-npcs-page';
+import { CampaignEventsPage } from './campaign-events-page/campaign-events-page';
+import { RuleBuilder } from '../story-authoring/rule-builder/rule-builder';
+import { OutcomeEffectEditor } from '../story-authoring/outcome-effect-editor/outcome-effect-editor';
 
 type CampaignContentTab =
   'main-story' |
+  'campaign-events' |
   'campaign-milestones' |
   'quests' |
   'roleplaying-npcs' |
   'combat-npcs';
 type QuestCarouselItem = CampaignQuestModel | 'add-quest';
 type QuestFormStep = 'details' | 'tasks';
+type StoryBlockDropPosition = 'before' | 'after';
 
 interface SkillOption {
   skill: Skill;
@@ -86,6 +113,26 @@ interface StoryBeatViewModel extends StoryBeatModel {
   milestone: CampaignMilestoneModel | null;
 }
 
+interface StoryBeatRowViewModel {
+  key: string;
+  storyBlockId: string;
+  orderIndex: number;
+  beats: StoryBeatViewModel[];
+  activeIndex: number;
+  activeBeat: StoryBeatViewModel | null;
+}
+
+interface SiblingStoryBeatDraftSource {
+  storyBlockId: string;
+  orderIndex: number;
+  displayIndex: number;
+}
+
+interface CreateStoryBeatOrderDraft {
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
+}
+
 interface StoryBeatOptionalInformationDraft {
   draftId: number;
   skill: Skill;
@@ -111,30 +158,96 @@ interface StoryBeatNarrativeParagraphDraft {
 
 interface StoryBeatDecisionChoiceDraft {
   draftId: number;
+  id: string | null;
   title: string;
   description: string;
+}
+
+interface StoryBeatCombatEnemyNpcDraft {
+  draftId: number;
+  monsterId: number | null;
+  amount: number;
+}
+
+interface StoryBeatCombatRewardDraft {
+  draftId: number;
+  text: string;
 }
 
 interface StoryBeatNarrativePart {
   text: string;
   className: string | null;
+  compactText?: string;
+  detailText?: string;
+  tokenKey?: string;
+}
+
+interface StoryBeatOutcomeEffectSource {
+  sourceType: OutcomeSourceType;
+  sourceId: string;
+}
+
+interface StoryBeatOutcomeEffectSummarySource extends StoryBeatOutcomeEffectSource {
+  storyBeatId: string;
+  key: string;
+  label: string;
+}
+
+interface StoryBeatOutcomeEffectSummary extends StoryBeatOutcomeEffectSource {
+  key: string;
+  label: string;
+  effectCount: number;
+  eventLabels: string[];
+}
+
+interface StoryBeatRuleSummary {
+  rule: ConditionalRuleModel;
+  label: string;
+  description: string;
+}
+
+interface StoryBeatOutcomeEffectTarget extends StoryBeatOutcomeEffectSource {
+  key: string;
+  title: string;
+  description: string;
+  category: string;
 }
 
 interface QuestTaskDraft {
   draftId: number;
   title: string;
   description: string;
+  dateCompleted: string | null;
 }
 
 @Component({
   selector: 'app-campaign-content',
-  imports: [LucideCheck, LucidePencil, LucidePlus, LucideTrash2, LucideX],
+  imports: [
+    CampaignEventsPage,
+    CombatNpcsPage,
+    OutcomeEffectEditor,
+    RuleBuilder,
+    LucideCheck,
+    LucideEye,
+    LucideGitBranch,
+    LucideGripVertical,
+    LucideLock,
+    LucidePencil,
+    LucidePlus,
+    LucideTrash2,
+    LucideX,
+    LucideZap,
+  ],
   templateUrl: './campaign-content.html',
   styleUrl: './campaign-content.css',
 })
 export class CampaignContent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly campaignApiService = inject(CampaignApiService);
+  private readonly campaignEventsApiService = inject(CampaignEventsApiService);
+  private readonly campaignRulesApiService = inject(CampaignRulesApiService);
+  private readonly outcomeEffectsApiService = inject(OutcomeEffectsApiService);
+  private readonly monsterApiService = inject(MonsterApiService);
   private readonly modalHelper = inject(ModalHelper);
 
   protected readonly selectedTab = signal<CampaignContentTab>('main-story');
@@ -148,6 +261,12 @@ export class CampaignContent implements OnInit {
   protected readonly roleplayingNpcNameDrafts = signal<Record<string, string>>({});
   protected readonly savingRoleplayingNpcTag = signal<string | null>(null);
   protected readonly isLoadingStoryContent = signal(false);
+  protected readonly isReorderingStoryBlocks = signal(false);
+  protected readonly draggedStoryBlockId = signal<string | null>(null);
+  protected readonly storyBlockDropTargetId = signal<string | null>(null);
+  protected readonly storyBlockDropPosition = signal<StoryBlockDropPosition>('after');
+  protected readonly storyBeatAlternativeIndexes = signal<Record<string, number>>({});
+  protected readonly expandedStoryBeatSkillTokenKeys = signal<Record<string, boolean>>({});
   protected readonly isLoadingMilestones = signal(false);
   protected readonly isLoadingQuests = signal(false);
   protected readonly isLoadingRoleplayingNpcs = signal(false);
@@ -168,6 +287,34 @@ export class CampaignContent implements OnInit {
   protected readonly editingStoryBlock = signal<StoryBlockViewModel | null>(null);
   protected readonly editingStoryBeat = signal<StoryBeatViewModel | null>(null);
   protected readonly storyBeatDialogBlock = signal<StoryBlockViewModel | null>(null);
+  protected readonly siblingStoryBeatDraftSource = signal<SiblingStoryBeatDraftSource | null>(null);
+  protected readonly storyBeatRulesDialogBeat = signal<StoryBeatViewModel | null>(null);
+  protected readonly storyBeatRule = signal<ConditionalRuleModel | null>(null);
+  protected readonly storyBeatRuleDraft = signal<CampaignRuleGroupRequest | null>(null);
+  protected readonly storyBeatRuleEffectType = signal<ConditionalRuleEffectType>(
+    ConditionalRuleEffectType.RequiredForAvailability,
+  );
+  protected readonly storyBeatRuleEffectTypes = [
+    { value: ConditionalRuleEffectType.RequiredForAvailability, label: 'Required For Availability' },
+    { value: ConditionalRuleEffectType.RequiredForVisibility, label: 'Required For Visibility' },
+    { value: ConditionalRuleEffectType.ExclusivePath, label: 'Exclusive Path' },
+    { value: ConditionalRuleEffectType.OptionalInformation, label: 'Optional Information' },
+  ];
+  protected readonly storyBeatRuleEventOptions = signal<CampaignEventModel[]>([]);
+  protected readonly storyBeatRuleSummaryEventOptions = signal<CampaignEventModel[]>([]);
+  protected readonly storyBeatRuleSummaries = signal<Record<string, ConditionalRuleModel[]>>({});
+  protected readonly isLoadingStoryBeatRules = signal(false);
+  protected readonly isSavingStoryBeatRule = signal(false);
+  protected readonly isDeletingStoryBeatRule = signal(false);
+  protected readonly storyBeatEventEffectsDialogBeat = signal<StoryBeatViewModel | null>(null);
+  protected readonly storyBeatEventEffects = signal<OutcomeEffectModel[]>([]);
+  protected readonly storyBeatEventEffectDrafts = signal<OutcomeEffectRequest[]>([]);
+  protected readonly storyBeatEventEffectOptions = signal<CampaignEventModel[]>([]);
+  protected readonly storyBeatEventEffectSummaries = signal<Record<string, StoryBeatOutcomeEffectSummary[]>>({});
+  protected readonly selectedRoleplayingEventSource = signal<StoryBeatOutcomeEffectSource | null>(null);
+  protected readonly isLoadingStoryBeatEventEffects = signal(false);
+  protected readonly isSavingStoryBeatEventEffects = signal(false);
+  protected readonly isDeletingStoryBeatEventEffects = signal(false);
   protected readonly deleteConfirmationStoryBlock = signal<StoryBlockViewModel | null>(null);
   protected readonly deleteConfirmationStoryBeat = signal<{
     storyBlock: StoryBlockViewModel;
@@ -186,6 +333,12 @@ export class CampaignContent implements OnInit {
   protected readonly storyBeatDecisionDescriptionDraft = signal('');
   protected readonly storyBeatDecisionChoiceDrafts = signal<StoryBeatDecisionChoiceDraft[]>([]);
   protected readonly activeStoryBeatDecisionChoiceDraftId = signal<number | null>(null);
+  protected readonly storyBeatCombatDescriptionDraft = signal('');
+  protected readonly storyBeatTransitionDescriptionDraft = signal('');
+  protected readonly storyBeatCombatRewardDrafts = signal<StoryBeatCombatRewardDraft[]>([]);
+  protected readonly storyBeatCombatEnemyNpcDrafts = signal<StoryBeatCombatEnemyNpcDraft[]>([]);
+  protected readonly combatNpcOptions = signal<MonsterModel[]>([]);
+  protected readonly isLoadingCombatNpcOptions = signal(false);
   protected readonly storyBeatMilestoneDraft = signal<number | null>(null);
   protected readonly milestoneTitleDraft = signal('');
   protected readonly milestoneDescriptionDraft = signal('');
@@ -208,6 +361,22 @@ export class CampaignContent implements OnInit {
   ));
   protected readonly roleplayingNpcRows = computed(() => (
     this.toRoleplayingNpcRows(this.roleplayingNpcs())
+  ));
+  protected readonly canSaveStoryBeatRule = computed(() => (
+    this.storyBeatRulesDialogBeat() !== null &&
+    this.storyBeatRuleDraft() !== null &&
+    !this.isLoadingStoryBeatRules() &&
+    !this.isSavingStoryBeatRule()
+  ));
+  protected readonly canSaveStoryBeatEventEffects = computed(() => (
+    this.storyBeatEventEffectsDialogBeat() !== null &&
+    this.hasSelectedStoryBeatEventEffectSource(this.storyBeatEventEffectsDialogBeat()!) &&
+    !this.isLoadingStoryBeatEventEffects() &&
+    !this.isSavingStoryBeatEventEffects() &&
+    this.storyBeatEventEffectDrafts().every((effect) => (
+      typeof (effect.eventDefinitionId ?? effect.eventId) === 'string' &&
+      (effect.eventDefinitionId ?? effect.eventId ?? '').trim().length > 0
+    ))
   ));
   protected readonly selectedStoryBlock = computed(() => {
     const selectedStoryBlockId = this.selectedStoryBlockId();
@@ -349,6 +518,29 @@ export class CampaignContent implements OnInit {
       );
     }
 
+    if (storyBeatType === StoryBeatType.Combat) {
+      const monsterIds = this.storyBeatCombatEnemyNpcDrafts()
+        .map((draft) => draft.monsterId)
+        .filter((monsterId): monsterId is number => monsterId !== null);
+      const uniqueMonsterIds = new Set(monsterIds);
+
+      return (
+        this.normalizeText(this.storyBeatCombatDescriptionDraft()).length > 0 &&
+        monsterIds.length > 0 &&
+        monsterIds.length === uniqueMonsterIds.size &&
+        this.storyBeatCombatEnemyNpcDrafts().every((draft) => (
+          draft.monsterId !== null && draft.amount >= 1
+        ))
+      );
+    }
+
+    if (storyBeatType === StoryBeatType.Transition) {
+      return (
+        this.normalizeText(this.storyBeatTransitionDescriptionDraft()).length > 0 &&
+        this.normalizeText(this.storyBeatTransitionDescriptionDraft()).length <= 2048
+      );
+    }
+
     if (storyBeatType === StoryBeatType.Milestone) {
       return this.storyBeatMilestoneDraft() !== null;
     }
@@ -368,6 +560,13 @@ export class CampaignContent implements OnInit {
         this.normalizeText(task.description).length > 0
       ))
   ));
+  protected readonly questDialogActionText = computed(() => {
+    if (this.isCreatingQuest()) {
+      return this.editingQuest() ? 'Updating...' : 'Creating...';
+    }
+
+    return this.editingQuest() ? 'Update' : 'Create';
+  });
   protected readonly milestoneDialogActionText = computed(() => {
     if (this.isCreatingMilestone()) {
       return this.editingMilestone() ? 'Updating...' : 'Creating...';
@@ -431,12 +630,12 @@ export class CampaignContent implements OnInit {
     {
       value: StoryBeatType.Combat,
       label: 'Combat',
-      disabled: true,
+      disabled: false,
     },
     {
       value: StoryBeatType.Transition,
       label: 'Transition',
-      disabled: true,
+      disabled: false,
     },
     {
       value: StoryBeatType.Milestone,
@@ -490,10 +689,18 @@ export class CampaignContent implements OnInit {
   private nextStoryBeatOptionalInformationDraftId = 1;
   private nextStoryBeatNarrativeParagraphDraftId = 1;
   private nextStoryBeatDecisionChoiceDraftId = 1;
+  private nextStoryBeatCombatEnemyNpcDraftId = 1;
+  private nextStoryBeatCombatRewardDraftId = 1;
 
   ngOnInit(): void {
+    this.selectedTab.set(this.toCampaignContentTab(
+      this.route.snapshot.queryParamMap.get('tab'),
+    ));
+
     if (this.selectedTab() === 'main-story') {
       this.loadStoryContent();
+    } else if (this.selectedTab() === 'campaign-events') {
+      return;
     } else if (this.selectedTab() === 'campaign-milestones') {
       this.loadMilestones();
     } else if (this.selectedTab() === 'quests') {
@@ -507,6 +714,10 @@ export class CampaignContent implements OnInit {
     if (this.selectedTab() === 'main-story') {
       this.loadStoryContent();
       return true;
+    }
+
+    if (this.selectedTab() === 'campaign-events') {
+      return false;
     }
 
     if (this.selectedTab() === 'campaign-milestones') {
@@ -544,6 +755,10 @@ export class CampaignContent implements OnInit {
       return;
     }
 
+    if (tab === 'campaign-events') {
+      return;
+    }
+
     if (tab === 'campaign-milestones') {
       this.loadMilestones();
       return;
@@ -557,6 +772,16 @@ export class CampaignContent implements OnInit {
     if (tab === 'roleplaying-npcs') {
       this.loadRoleplayingNpcs();
     }
+  }
+
+  private toCampaignContentTab(value: string | null): CampaignContentTab {
+    return value === 'campaign-milestones' ||
+      value === 'campaign-events' ||
+      value === 'quests' ||
+      value === 'roleplaying-npcs' ||
+      value === 'combat-npcs'
+      ? value
+      : 'main-story';
   }
 
   protected openCreateStoryBlockDialog(): void {
@@ -629,6 +854,103 @@ export class CampaignContent implements OnInit {
 
   protected isSelectedStoryBlock(storyBlock: StoryBlockViewModel): boolean {
     return this.selectedStoryBlockId() === storyBlock.storyBlockId;
+  }
+
+  protected startStoryBlockDrag(storyBlock: StoryBlockViewModel, event: DragEvent): void {
+    if (this.isReorderingStoryBlocks()) {
+      event.preventDefault();
+      return;
+    }
+
+    this.draggedStoryBlockId.set(storyBlock.storyBlockId);
+    this.storyBlockDropTargetId.set(storyBlock.storyBlockId);
+    this.storyBlockDropPosition.set('after');
+    event.dataTransfer?.setData('text/plain', storyBlock.storyBlockId);
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  protected dragOverStoryBlock(storyBlock: StoryBlockViewModel, event: DragEvent): void {
+    if (!this.draggedStoryBlockId() || this.isReorderingStoryBlocks()) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    const targetBounds = currentTarget?.getBoundingClientRect();
+    const dropPosition = targetBounds && event.clientY < targetBounds.top + targetBounds.height / 2
+      ? 'before'
+      : 'after';
+
+    this.storyBlockDropTargetId.set(storyBlock.storyBlockId);
+    this.storyBlockDropPosition.set(dropPosition);
+  }
+
+  protected dropStoryBlock(storyBlock: StoryBlockViewModel, event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const targetStoryBlockId = this.storyBlockDropTargetId() ?? storyBlock.storyBlockId;
+    const dropPosition = this.storyBlockDropPosition();
+
+    this.reorderDraggedStoryBlock(targetStoryBlockId, dropPosition);
+  }
+
+  protected endStoryBlockDrag(): void {
+    this.clearStoryBlockDragState();
+  }
+
+  protected isDraggingStoryBlock(storyBlock: StoryBlockViewModel): boolean {
+    return this.draggedStoryBlockId() === storyBlock.storyBlockId;
+  }
+
+  protected isStoryBlockDropBefore(storyBlock: StoryBlockViewModel): boolean {
+    return this.storyBlockDropTargetId() === storyBlock.storyBlockId &&
+      this.storyBlockDropPosition() === 'before' &&
+      this.draggedStoryBlockId() !== null &&
+      !this.isDraggingStoryBlock(storyBlock);
+  }
+
+  protected isStoryBlockDropAfter(storyBlock: StoryBlockViewModel): boolean {
+    return this.storyBlockDropTargetId() === storyBlock.storyBlockId &&
+      this.storyBlockDropPosition() === 'after' &&
+      this.draggedStoryBlockId() !== null &&
+      !this.isDraggingStoryBlock(storyBlock);
+  }
+
+  protected moveStoryBlockByKeyboard(
+    storyBlock: StoryBlockViewModel,
+    direction: 1 | -1,
+    event: Event,
+  ): void {
+    event.preventDefault();
+
+    if (this.isReorderingStoryBlocks()) {
+      return;
+    }
+
+    const storyBlocks = this.storyBlocks();
+    const currentIndex = storyBlocks.findIndex((block) => block.storyBlockId === storyBlock.storyBlockId);
+    const targetIndex = currentIndex + direction;
+
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= storyBlocks.length) {
+      return;
+    }
+
+    const nextStoryBlocks = [...storyBlocks];
+    [nextStoryBlocks[currentIndex], nextStoryBlocks[targetIndex]] = [
+      nextStoryBlocks[targetIndex]!,
+      nextStoryBlocks[currentIndex]!,
+    ];
+
+    this.commitStoryBlockOrder(nextStoryBlocks, storyBlocks);
   }
 
   protected deleteStoryBlock(): void {
@@ -763,9 +1085,36 @@ export class CampaignContent implements OnInit {
   }
 
   protected openCreateStoryBeatDialog(storyBlock: StoryBlockViewModel): void {
+    if (this.hasTransitionStoryBeat(storyBlock)) {
+      return;
+    }
+
     this.resetStoryBeatDialogState();
     this.storyBeatDialogBlock.set(storyBlock);
     this.isCreateStoryBeatDialogOpen.set(true);
+  }
+
+  protected openCreateSiblingStoryBeatDialog(
+    storyBlock: StoryBlockViewModel,
+    storyBeat: StoryBeatViewModel,
+  ): void {
+    if (this.hasTransitionStoryBeat(storyBlock)) {
+      return;
+    }
+
+    this.resetStoryBeatDialogState();
+    this.storyBeatDialogBlock.set(storyBlock);
+    this.siblingStoryBeatDraftSource.set({
+      storyBlockId: storyBlock.storyBlockId,
+      orderIndex: storyBeat.orderIndex,
+      displayIndex: storyBeat.displayIndex,
+    });
+    this.storyBeatTypeDraft.set(this.toStoryBeatType(storyBeat.storyBeatType));
+    this.isCreateStoryBeatDialogOpen.set(true);
+
+    if (this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Combat) {
+      this.loadCombatNpcOptions();
+    }
   }
 
   protected closeCreateStoryBeatDialog(): void {
@@ -790,6 +1139,11 @@ export class CampaignContent implements OnInit {
     this.storyBeatNarrativeDraft.set(storyBeat.information?.narrative ?? '');
     this.storyBeatRoleplayingDraft.set(storyBeat.roleplaying?.mainDescription ?? '');
     this.storyBeatDecisionDescriptionDraft.set(storyBeat.decision?.description ?? '');
+    this.storyBeatCombatDescriptionDraft.set(storyBeat.combat?.description ?? '');
+    this.storyBeatTransitionDescriptionDraft.set(storyBeat.transition?.description ?? '');
+    this.storyBeatCombatRewardDrafts.set(
+      this.toCombatRewardDrafts(storyBeat.combat?.rewards ?? null),
+    );
     this.storyBeatMilestoneDraft.set(storyBeat.milestone?.id ?? null);
     this.storyBeatNarrativeParagraphDrafts.set(
       storyBeat.narrative?.paragraphs.length
@@ -827,6 +1181,7 @@ export class CampaignContent implements OnInit {
       (storyBeat.decision?.decisions.length ?? 0) > 0
       ? (storyBeat.decision?.decisions ?? []).map((choice) => ({
         draftId: this.nextStoryBeatDecisionChoiceDraftId++,
+        id: choice.id ?? null,
         title: choice.title,
         description: choice.description,
       }))
@@ -834,7 +1189,508 @@ export class CampaignContent implements OnInit {
 
     this.storyBeatDecisionChoiceDrafts.set(decisionChoiceDrafts);
     this.activeStoryBeatDecisionChoiceDraftId.set(decisionChoiceDrafts[0]?.draftId ?? null);
+    this.storyBeatCombatEnemyNpcDrafts.set(
+      storyBeatType === StoryBeatType.Combat
+        ? (storyBeat.combat?.enemyNpcs ?? []).map((enemyNpc) => ({
+          draftId: this.nextStoryBeatCombatEnemyNpcDraftId++,
+          monsterId: enemyNpc.monsterId,
+          amount: enemyNpc.amount,
+        }))
+        : [],
+    );
+
+    if (storyBeatType === StoryBeatType.Combat) {
+      this.loadCombatNpcOptions();
+    }
+
     this.isCreateStoryBeatDialogOpen.set(true);
+  }
+
+  protected openStoryBeatRulesDialog(storyBeat: StoryBeatViewModel): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingStoryBeatRules()) {
+      return;
+    }
+
+    this.storyBeatRulesDialogBeat.set(storyBeat);
+    this.storyBeatRule.set(null);
+    this.storyBeatRuleDraft.set(null);
+    this.storyBeatRuleEffectType.set(ConditionalRuleEffectType.RequiredForAvailability);
+    this.isLoadingStoryBeatRules.set(true);
+
+    forkJoin({
+      events: this.campaignEventsApiService.fetchCampaignEvents(campaignId),
+      rules: this.campaignRulesApiService.fetchRules(
+        campaignId,
+        ConditionalTargetType.StoryBeat,
+        storyBeat.storyBeatId,
+      ),
+    })
+      .pipe(finalize(() => this.isLoadingStoryBeatRules.set(false)))
+      .subscribe({
+        next: ({ events, rules }) => {
+          const existingRule = (rules.data ?? [])[0] ?? null;
+
+          this.storyBeatRuleEventOptions.set(events.data ?? []);
+          this.storyBeatRule.set(existingRule);
+          this.storyBeatRuleDraft.set(existingRule?.root ? this.cloneRuleGroup(existingRule.root) : null);
+          this.storyBeatRuleEffectType.set(
+            existingRule?.effectType ?? ConditionalRuleEffectType.RequiredForAvailability,
+          );
+        },
+        error: (error: unknown) => {
+          this.closeStoryBeatRulesDialog();
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat rules could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected closeStoryBeatRulesDialog(): void {
+    if (this.isLoadingStoryBeatRules() || this.isSavingStoryBeatRule() || this.isDeletingStoryBeatRule()) {
+      return;
+    }
+
+    this.storyBeatRulesDialogBeat.set(null);
+    this.storyBeatRule.set(null);
+    this.storyBeatRuleDraft.set(null);
+    this.storyBeatRuleEventOptions.set([]);
+  }
+
+  protected saveStoryBeatRule(): void {
+    const campaignId = this.getCampaignId();
+    const storyBeat = this.storyBeatRulesDialogBeat();
+    const root = this.storyBeatRuleDraft();
+
+    if (!campaignId || !storyBeat || !root || this.isSavingStoryBeatRule()) {
+      return;
+    }
+
+    const existingRule = this.storyBeatRule();
+    const request = {
+      effectType: this.storyBeatRuleEffectType(),
+      targetType: ConditionalTargetType.StoryBeat,
+      targetId: storyBeat.storyBeatId,
+      root,
+    };
+    const saveRequest = existingRule
+      ? this.campaignRulesApiService.updateRule(campaignId, existingRule.id, request)
+      : this.campaignRulesApiService.createRule(campaignId, request);
+
+    this.isSavingStoryBeatRule.set(true);
+    saveRequest
+      .pipe(finalize(() => this.isSavingStoryBeatRule.set(false)))
+      .subscribe({
+        next: (response) => {
+          const savedRule = response.data ?? null;
+
+          this.storyBeatRule.set(savedRule);
+          this.setStoryBeatRuleSummary(storyBeat, savedRule);
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat rule could not be saved.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected setStoryBeatRuleEffectType(event: Event): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+
+    this.storyBeatRuleEffectType.set(
+      value === ConditionalRuleEffectType.RequiredForVisibility
+        ? ConditionalRuleEffectType.RequiredForVisibility
+        : value === ConditionalRuleEffectType.ExclusivePath
+          ? ConditionalRuleEffectType.ExclusivePath
+          : value === ConditionalRuleEffectType.OptionalInformation
+            ? ConditionalRuleEffectType.OptionalInformation
+            : ConditionalRuleEffectType.RequiredForAvailability,
+    );
+  }
+
+  protected deleteStoryBeatRule(): void {
+    const campaignId = this.getCampaignId();
+    const existingRule = this.storyBeatRule();
+
+    if (!campaignId || !existingRule || this.isDeletingStoryBeatRule()) {
+      return;
+    }
+
+    this.isDeletingStoryBeatRule.set(true);
+    this.campaignRulesApiService
+      .deleteRule(campaignId, existingRule.id)
+      .pipe(finalize(() => this.isDeletingStoryBeatRule.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.storyBeatRule.set(null);
+          this.storyBeatRuleDraft.set(null);
+          this.storyBeatRuleEffectType.set(ConditionalRuleEffectType.RequiredForAvailability);
+          if (this.storyBeatRulesDialogBeat()) {
+            this.removeStoryBeatRuleSummary(this.storyBeatRulesDialogBeat()!, existingRule.id);
+          }
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat rule could not be deleted.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected isEventAdjustableStoryBeat(storyBeat: StoryBeatViewModel): boolean {
+    return this.isRoleplayingStoryBeat(storyBeat) ||
+      this.isDecisionStoryBeat(storyBeat) ||
+      this.isCombatStoryBeat(storyBeat) ||
+      this.isMilestoneStoryBeat(storyBeat);
+  }
+
+  protected storyBeatRuleSummariesFor(storyBeat: StoryBeatViewModel): StoryBeatRuleSummary[] {
+    return (this.storyBeatRuleSummaries()[storyBeat.storyBeatId] ?? [])
+      .filter((rule) => (
+        rule.effectType === ConditionalRuleEffectType.RequiredForAvailability ||
+        rule.effectType === ConditionalRuleEffectType.RequiredForVisibility
+      ))
+      .map((rule) => ({
+        rule,
+        label: this.storyBeatRuleSummaryLabel(rule),
+        description: this.storyBeatRuleSummaryDescription(rule.root),
+      }));
+  }
+
+  protected isVisibilityStoryBeatRule(rule: ConditionalRuleModel): boolean {
+    return rule.effectType === ConditionalRuleEffectType.RequiredForVisibility;
+  }
+
+  protected storyBeatRuleSummaryLabel(rule: ConditionalRuleModel): string {
+    return rule.effectType === ConditionalRuleEffectType.RequiredForVisibility
+      ? 'Required for Visibility'
+      : 'Required for Availability';
+  }
+
+  protected storyBeatRuleSummaryDescription(root: CampaignRuleGroupRequest | null): string {
+    if (!root) {
+      return 'No conditions';
+    }
+
+    const conditions = this.toRuleConditionSummaries(root);
+    const remainingCount = Math.max(0, conditions.length - 2);
+
+    if (conditions.length === 0) {
+      return 'No conditions';
+    }
+
+    return [
+      conditions.slice(0, 2).join(` ${this.ruleGroupOperatorLabel(root.operator)} `),
+      remainingCount > 0 ? `+${remainingCount}` : '',
+    ].filter((part) => part.length > 0).join(' ');
+  }
+
+  protected hasNestedStoryBeatEventEffectTargets(storyBeat: StoryBeatViewModel): boolean {
+    return this.isRoleplayingStoryBeat(storyBeat) || this.isDecisionStoryBeat(storyBeat);
+  }
+
+  protected storyBeatEventEffectSummariesFor(storyBeat: StoryBeatViewModel): StoryBeatOutcomeEffectSummary[] {
+    return this.storyBeatEventEffectSummaries()[storyBeat.storyBeatId] ?? [];
+  }
+
+  protected hasStoryBeatEventEffects(storyBeat: StoryBeatViewModel): boolean {
+    return this.storyBeatEventEffectSummariesFor(storyBeat).length > 0;
+  }
+
+  protected storyBeatEventEffectLabels(storyBeat: StoryBeatViewModel): string[] {
+    return this.storyBeatEventLabelsFor(this.storyBeatEventEffectSummariesFor(storyBeat)).slice(0, 3);
+  }
+
+  protected storyBeatEventEffectOverflowCount(storyBeat: StoryBeatViewModel): number {
+    const totalEventCount = this.storyBeatEventLabelsFor(
+      this.storyBeatEventEffectSummariesFor(storyBeat),
+    ).length;
+
+    return Math.max(0, totalEventCount - this.storyBeatEventEffectLabels(storyBeat).length);
+  }
+
+  protected storyBeatEventEffectSummaryLabel(storyBeat: StoryBeatViewModel): string {
+    const eventCount = this.storyBeatEventLabelsFor(
+      this.storyBeatEventEffectSummariesFor(storyBeat),
+    ).length;
+
+    return `${eventCount} ${eventCount === 1 ? 'event' : 'events'}`;
+  }
+
+  protected storyBeatEventEffectSummaryLabels(summary: StoryBeatOutcomeEffectSummary): string[] {
+    return summary.eventLabels.slice(0, 3);
+  }
+
+  protected storyBeatEventEffectSummaryOverflowCount(summary: StoryBeatOutcomeEffectSummary): number {
+    return Math.max(0, summary.eventLabels.length - this.storyBeatEventEffectSummaryLabels(summary).length);
+  }
+
+  protected storyBeatEventCorrelationPartLabel(summary: StoryBeatOutcomeEffectSummary): string {
+    return summary.label;
+  }
+
+  protected storyBeatEventEffectSummaryTooltip(summary: StoryBeatOutcomeEffectSummary): string {
+    return `${this.storyBeatEventCorrelationPartLabel(summary)} correlates with ${summary.eventLabels.join(', ')}`;
+  }
+
+  protected storyBeatEventEffectSummaryAriaLabel(summary: StoryBeatOutcomeEffectSummary): string {
+    return `Event correlations for ${this.storyBeatEventCorrelationPartLabel(summary)}: ${summary.eventLabels.join(', ')}`;
+  }
+
+  protected storyBeatEventEffectTooltip(storyBeat: StoryBeatViewModel): string {
+    return this.storyBeatEventEffectSummariesFor(storyBeat)
+      .map((summary) => this.storyBeatEventEffectSummaryTooltip(summary))
+      .join('\n');
+  }
+
+  private storyBeatEventLabelsFor(summaries: StoryBeatOutcomeEffectSummary[]): string[] {
+    return Array.from(new Set(summaries.flatMap((summary) => summary.eventLabels)));
+  }
+
+  protected openStoryBeatEventEffectsDialog(storyBeat: StoryBeatViewModel): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingStoryBeatEventEffects()) {
+      return;
+    }
+
+    this.storyBeatEventEffectsDialogBeat.set(storyBeat);
+    this.storyBeatEventEffects.set([]);
+    this.storyBeatEventEffectDrafts.set([]);
+    this.storyBeatEventEffectOptions.set([]);
+    this.selectedRoleplayingEventSource.set(null);
+
+    const nestedTargets = this.hasNestedStoryBeatEventEffectTargets(storyBeat)
+      ? this.storyBeatOutcomeEffectTargets(storyBeat)
+      : [];
+    const initialSource = nestedTargets.length === 1
+      ? this.toStoryBeatOutcomeEffectSource(nestedTargets[0]!)
+      : this.hasNestedStoryBeatEventEffectTargets(storyBeat)
+        ? null
+        : this.toStoryBeatOutcomeEffectSource(storyBeat);
+
+    if (this.hasNestedStoryBeatEventEffectTargets(storyBeat)) {
+      this.selectedRoleplayingEventSource.set(initialSource);
+    }
+
+    if (this.hasNestedStoryBeatEventEffectTargets(storyBeat)) {
+      this.isLoadingStoryBeatEventEffects.set(true);
+      forkJoin({
+        events: this.campaignEventsApiService.fetchCampaignEvents(campaignId),
+        effects: initialSource
+          ? this.outcomeEffectsApiService.fetchOutcomeEffects(
+            campaignId,
+            initialSource.sourceType,
+            initialSource.sourceId,
+          )
+          : of({ data: [] as OutcomeEffectModel[] }),
+      })
+        .pipe(finalize(() => this.isLoadingStoryBeatEventEffects.set(false)))
+        .subscribe({
+          next: ({ events, effects }) => {
+            const outcomeEffects = effects.data ?? [];
+
+            this.storyBeatEventEffectOptions.set(events.data ?? []);
+            this.storyBeatEventEffects.set(outcomeEffects);
+            this.storyBeatEventEffectDrafts.set(outcomeEffects.map((effect) => (
+              this.toOutcomeEffectDraft(effect)
+            )));
+
+            if (initialSource) {
+              this.setStoryBeatEventEffectSummary(storyBeat, initialSource, outcomeEffects);
+            }
+          },
+          error: (error: unknown) => {
+            this.closeStoryBeatEventEffectsDialog();
+            this.modalHelper.showError(
+              this.getErrorMessage(error, 'Nested story beat event correlations could not be loaded.'),
+              { statusCode: this.getErrorStatus(error) },
+            );
+          },
+        });
+      return;
+    }
+
+    this.isLoadingStoryBeatEventEffects.set(true);
+    forkJoin({
+      events: this.campaignEventsApiService.fetchCampaignEvents(campaignId),
+      effects: this.outcomeEffectsApiService.fetchOutcomeEffects(
+        campaignId,
+        OutcomeSourceType.StoryBeat,
+        storyBeat.storyBeatId,
+      ),
+    })
+      .pipe(finalize(() => this.isLoadingStoryBeatEventEffects.set(false)))
+      .subscribe({
+        next: ({ events, effects }) => {
+          const outcomeEffects = effects.data ?? [];
+
+          this.storyBeatEventEffectOptions.set(events.data ?? []);
+          this.storyBeatEventEffects.set(outcomeEffects);
+          this.storyBeatEventEffectDrafts.set(outcomeEffects.map((effect) => (
+            this.toOutcomeEffectDraft(effect)
+          )));
+          this.setStoryBeatEventEffectSummary(
+            storyBeat,
+            { sourceType: OutcomeSourceType.StoryBeat, sourceId: storyBeat.storyBeatId },
+            outcomeEffects,
+          );
+        },
+        error: (error: unknown) => {
+          this.closeStoryBeatEventEffectsDialog();
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat event correlations could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected closeStoryBeatEventEffectsDialog(): void {
+    if (
+      this.isLoadingStoryBeatEventEffects() ||
+      this.isSavingStoryBeatEventEffects() ||
+      this.isDeletingStoryBeatEventEffects()
+    ) {
+      return;
+    }
+
+    this.storyBeatEventEffectsDialogBeat.set(null);
+    this.storyBeatEventEffects.set([]);
+    this.storyBeatEventEffectDrafts.set([]);
+    this.storyBeatEventEffectOptions.set([]);
+    this.selectedRoleplayingEventSource.set(null);
+  }
+
+  protected selectStoryBeatEventSource(target: StoryBeatOutcomeEffectTarget): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingStoryBeatEventEffects()) {
+      return;
+    }
+
+    const source = this.toStoryBeatOutcomeEffectSource(target);
+
+    this.selectedRoleplayingEventSource.set(source);
+    this.storyBeatEventEffects.set([]);
+    this.storyBeatEventEffectDrafts.set([]);
+    this.isLoadingStoryBeatEventEffects.set(true);
+    this.outcomeEffectsApiService
+      .fetchOutcomeEffects(campaignId, source.sourceType, source.sourceId)
+      .pipe(finalize(() => this.isLoadingStoryBeatEventEffects.set(false)))
+      .subscribe({
+        next: (response) => {
+          const outcomeEffects = response.data ?? [];
+
+          this.storyBeatEventEffects.set(outcomeEffects);
+          this.storyBeatEventEffectDrafts.set(outcomeEffects.map((effect) => (
+            this.toOutcomeEffectDraft(effect)
+          )));
+          const storyBeat = this.storyBeatEventEffectsDialogBeat();
+
+          if (storyBeat) {
+            this.setStoryBeatEventEffectSummary(storyBeat, source, outcomeEffects);
+          }
+        },
+        error: (error: unknown) => {
+          this.selectedRoleplayingEventSource.set(null);
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat event correlations could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected clearSelectedRoleplayingEventSource(): void {
+    this.selectedRoleplayingEventSource.set(null);
+    this.storyBeatEventEffects.set([]);
+    this.storyBeatEventEffectDrafts.set([]);
+  }
+
+  protected hasSelectedStoryBeatEventEffectSource(storyBeat: StoryBeatViewModel): boolean {
+    return !this.hasNestedStoryBeatEventEffectTargets(storyBeat) ||
+      this.selectedRoleplayingEventSource() !== null;
+  }
+
+  protected saveStoryBeatEventEffects(): void {
+    const campaignId = this.getCampaignId();
+    const storyBeat = this.storyBeatEventEffectsDialogBeat();
+
+    if (!campaignId || !storyBeat || !this.canSaveStoryBeatEventEffects()) {
+      return;
+    }
+
+    const source = this.toStoryBeatOutcomeEffectSource(storyBeat);
+
+    this.isSavingStoryBeatEventEffects.set(true);
+    this.replaceStoryBeatOutcomeEffects(campaignId, source)
+      .pipe(finalize(() => this.isSavingStoryBeatEventEffects.set(false)))
+      .subscribe({
+        next: (effects) => {
+          this.storyBeatEventEffects.set(effects);
+          this.storyBeatEventEffectDrafts.set(effects.map((effect) => this.toOutcomeEffectDraft(effect)));
+          this.setStoryBeatEventEffectSummary(storyBeat, source, effects);
+          this.modalHelper.showSuccess('Story beat event correlations saved.');
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat event correlations could not be saved.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected clearStoryBeatEventEffects(): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isDeletingStoryBeatEventEffects()) {
+      return;
+    }
+
+    const effects = this.storyBeatEventEffects();
+    const storyBeat = this.storyBeatEventEffectsDialogBeat();
+    const source = storyBeat ? this.toStoryBeatOutcomeEffectSource(storyBeat) : null;
+
+    if (effects.length === 0) {
+      this.storyBeatEventEffectDrafts.set([]);
+      if (storyBeat && source) {
+        this.setStoryBeatEventEffectSummary(storyBeat, source, []);
+      }
+      return;
+    }
+
+    this.isDeletingStoryBeatEventEffects.set(true);
+    forkJoin(effects.map((effect) => this.outcomeEffectsApiService.deleteOutcomeEffect(
+      campaignId,
+      effect.id,
+    )))
+      .pipe(finalize(() => this.isDeletingStoryBeatEventEffects.set(false)))
+      .subscribe({
+        next: () => {
+          this.storyBeatEventEffects.set([]);
+          this.storyBeatEventEffectDrafts.set([]);
+          if (storyBeat && source) {
+            this.setStoryBeatEventEffectSummary(storyBeat, source, []);
+          }
+          this.modalHelper.showSuccess('Story beat event correlations cleared.');
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat event correlations could not be cleared.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
   }
 
   protected confirmDeleteStoryBeat(
@@ -853,7 +1709,13 @@ export class CampaignContent implements OnInit {
   }
 
   protected storyBeatDialogTitle(): string {
-    return this.editingStoryBeat() ? 'Edit Story Beat' : 'Create Story Beat';
+    if (this.editingStoryBeat()) {
+      return 'Edit Story Beat';
+    }
+
+    return this.siblingStoryBeatDraftSource()
+      ? 'Create Sibling Story Beat'
+      : 'Create Story Beat';
   }
 
   protected storyBeatDialogActionText(): string {
@@ -865,7 +1727,11 @@ export class CampaignContent implements OnInit {
       return 'Updating...';
     }
 
-    return this.editingStoryBeat() ? 'Update' : 'Create';
+    if (this.editingStoryBeat()) {
+      return 'Update';
+    }
+
+    return this.siblingStoryBeatDraftSource() ? 'Create Sibling' : 'Create';
   }
 
   protected storyBeatTypeDraftValue(): string {
@@ -888,10 +1754,18 @@ export class CampaignContent implements OnInit {
           ? StoryBeatType.Roleplaying
           : value === StoryBeatType.Decision
             ? StoryBeatType.Decision
-            : value === StoryBeatType.Milestone
-              ? StoryBeatType.Milestone
-              : StoryBeatType.Information,
+            : value === StoryBeatType.Combat
+              ? StoryBeatType.Combat
+              : value === StoryBeatType.Transition
+                ? StoryBeatType.Transition
+                : value === StoryBeatType.Milestone
+                  ? StoryBeatType.Milestone
+                  : StoryBeatType.Information,
     );
+
+    if (this.storyBeatTypeDraft() === StoryBeatType.Combat) {
+      this.loadCombatNpcOptions();
+    }
   }
 
   protected setStoryBeatTitleDraft(event: Event): void {
@@ -953,8 +1827,85 @@ export class CampaignContent implements OnInit {
     return this.storyBeatTypeDraft() === StoryBeatType.Decision;
   }
 
+  protected isCombatStoryBeatDraft(): boolean {
+    return this.storyBeatTypeDraft() === StoryBeatType.Combat;
+  }
+
+  protected isTransitionStoryBeatDraft(): boolean {
+    return this.storyBeatTypeDraft() === StoryBeatType.Transition;
+  }
+
   protected isMilestoneStoryBeatDraft(): boolean {
     return this.storyBeatTypeDraft() === StoryBeatType.Milestone;
+  }
+
+  protected setStoryBeatTransitionDescriptionDraft(event: Event): void {
+    this.storyBeatTransitionDescriptionDraft.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  protected setStoryBeatCombatDescriptionDraft(event: Event): void {
+    this.storyBeatCombatDescriptionDraft.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  protected addStoryBeatCombatRewardDraft(): void {
+    this.storyBeatCombatRewardDrafts.update((drafts) => [
+      ...drafts,
+      this.createStoryBeatCombatRewardDraft(),
+    ]);
+  }
+
+  protected removeStoryBeatCombatRewardDraft(draftId: number): void {
+    this.storyBeatCombatRewardDrafts.update((drafts) => (
+      drafts.filter((draft) => draft.draftId !== draftId)
+    ));
+  }
+
+  protected setStoryBeatCombatRewardDraft(draftId: number, event: Event): void {
+    const text = (event.target as HTMLInputElement).value;
+
+    this.storyBeatCombatRewardDrafts.update((drafts) => drafts.map((draft) => (
+      draft.draftId === draftId ? { ...draft, text } : draft
+    )));
+  }
+
+  protected toggleStoryBeatCombatEnemyNpc(monsterId: number): void {
+    this.storyBeatCombatEnemyNpcDrafts.update((drafts) => {
+      if (drafts.some((draft) => draft.monsterId === monsterId)) {
+        return drafts.filter((draft) => draft.monsterId !== monsterId);
+      }
+
+      return [
+        ...drafts,
+        this.createStoryBeatCombatEnemyNpcDraft(monsterId),
+      ];
+    });
+  }
+
+  protected isCombatNpcSelected(monsterId: number): boolean {
+    return this.storyBeatCombatEnemyNpcDrafts().some((draft) => draft.monsterId === monsterId);
+  }
+
+  protected storyBeatCombatEnemyAmountFor(monsterId: number): number {
+    return this.storyBeatCombatEnemyNpcDrafts()
+      .find((draft) => draft.monsterId === monsterId)
+      ?.amount ?? 1;
+  }
+
+  protected setStoryBeatCombatEnemyAmount(monsterId: number, event: Event): void {
+    const amount = Number((event.target as HTMLInputElement).value);
+
+    this.storyBeatCombatEnemyNpcDrafts.update((drafts) => drafts.map((draft) => (
+      draft.monsterId === monsterId
+        ? { ...draft, amount: Number.isInteger(amount) && amount > 0 ? amount : 1 }
+        : draft
+    )));
+  }
+
+  protected combatNpcOptionLabel(monster: MonsterModel): string {
+    return [monster.name, monster.race, monster.class]
+      .map((value) => this.normalizeText(value))
+      .filter((value) => value.length > 0)
+      .join(' - ');
   }
 
   protected setStoryBeatMilestoneDraft(event: Event): void {
@@ -1184,6 +2135,12 @@ export class CampaignContent implements OnInit {
       .subscribe({
         next: () => {
           this.deleteConfirmationStoryBeat.set(null);
+
+          if (storyBlock.beats.some((beat) => this.isTransitionStoryBeat(beat))) {
+            this.loadStoryContent();
+            return;
+          }
+
           this.storyBlocks.update((blocks) => blocks.map((block) => (
             block.storyBlockId === storyBlock.storyBlockId
               ? {
@@ -1216,6 +2173,7 @@ export class CampaignContent implements OnInit {
     }
 
     const storyBeatType = this.storyBeatTypeDraft();
+    const siblingSource = this.siblingStoryBeatDraftSource();
 
     this.creatingStoryBeatBlockId.set(storyBlock.storyBlockId);
 
@@ -1239,17 +2197,29 @@ export class CampaignContent implements OnInit {
             storyBlock.storyBlockId,
             this.toDecisionStoryBeatRequest(),
           )
-          : storyBeatType === StoryBeatType.Milestone
-            ? this.campaignApiService.createMilestoneStoryBeat(
-              campaignId,
-              storyBlock.storyBlockId,
-              this.toMilestoneStoryBeatRequest(),
-            )
-            : this.campaignApiService.createInformationStoryBeat(
-              campaignId,
-              storyBlock.storyBlockId,
-              this.toInformationStoryBeatRequest(),
-            );
+            : storyBeatType === StoryBeatType.Combat
+              ? this.campaignApiService.createCombatStoryBeat(
+                campaignId,
+                storyBlock.storyBlockId,
+                this.toCombatStoryBeatRequest(),
+              )
+              : storyBeatType === StoryBeatType.Transition
+                ? this.campaignApiService.createTransitionStoryBeat(
+                  campaignId,
+                  storyBlock.storyBlockId,
+                  this.toTransitionStoryBeatRequest(),
+                )
+                : storyBeatType === StoryBeatType.Milestone
+                  ? this.campaignApiService.createMilestoneStoryBeat(
+                    campaignId,
+                    storyBlock.storyBlockId,
+                    this.toMilestoneStoryBeatRequest(),
+                  )
+                  : this.campaignApiService.createInformationStoryBeat(
+                    campaignId,
+                    storyBlock.storyBlockId,
+                    this.toInformationStoryBeatRequest(),
+                  );
 
     saveStoryBeat
       .pipe(finalize(() => this.creatingStoryBeatBlockId.set(null)))
@@ -1257,6 +2227,7 @@ export class CampaignContent implements OnInit {
         next: (response) => {
           this.isCreateStoryBeatDialogOpen.set(false);
           this.storyBeatDialogBlock.set(null);
+          this.siblingStoryBeatDraftSource.set(null);
 
           const storyBeat = response.data;
 
@@ -1265,21 +2236,52 @@ export class CampaignContent implements OnInit {
             return;
           }
 
-          this.storyBlocks.update((blocks) => blocks.map((block) => (
-            block.storyBlockId === storyBlock.storyBlockId
-              ? {
-                ...block,
-                beats: [
-                  ...block.beats,
-                  {
-                    ...storyBeat,
-                    milestone: storyBeat.milestone ?? null,
-                    displayIndex: block.beats.length + 1,
-                  },
-                ],
-              }
-              : block
-          )));
+          if (
+            this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Transition ||
+            storyBlock.beats.some((beat) => this.isTransitionStoryBeat(beat))
+          ) {
+            this.loadStoryContent();
+            return;
+          }
+
+          let siblingAlternativeIndex: number | null = null;
+
+          this.storyBlocks.update((blocks) => blocks.map((block) => {
+            if (block.storyBlockId !== storyBlock.storyBlockId) {
+              return block;
+            }
+
+            const orderIndex = siblingSource?.orderIndex ?? storyBeat.orderIndex;
+            const storyBeatViewModel: StoryBeatViewModel = {
+              ...storyBeat,
+              orderIndex,
+              secondaryOrderIndex: storyBeat.secondaryOrderIndex ?? 1,
+              milestone: storyBeat.milestone ?? null,
+              displayIndex: siblingSource?.displayIndex ?? storyBeat.orderIndex,
+            };
+            const beats = [...block.beats, storyBeatViewModel];
+
+            if (siblingSource) {
+              siblingAlternativeIndex = beats
+                .filter((beat) => beat.orderIndex === orderIndex)
+                .sort((firstBeat, secondBeat) => (
+                  firstBeat.secondaryOrderIndex - secondBeat.secondaryOrderIndex
+                ))
+                .findIndex((beat) => beat.storyBeatId === storyBeat.storyBeatId);
+            }
+
+            return {
+              ...block,
+              beats,
+            };
+          }));
+
+          if (siblingSource && siblingAlternativeIndex !== null) {
+            this.setStoryBeatAlternativeIndexByKey(
+              this.storyBeatRowKey(siblingSource.storyBlockId, siblingSource.orderIndex),
+              siblingAlternativeIndex,
+            );
+          }
         },
         error: (error: unknown) => {
           this.modalHelper.showError(
@@ -1325,19 +2327,33 @@ export class CampaignContent implements OnInit {
             storyBeatToUpdate.storyBeatId,
             this.toDecisionStoryBeatRequest(),
           )
-          : storyBeatType === StoryBeatType.Milestone
-            ? this.campaignApiService.updateMilestoneStoryBeat(
-              campaignId,
-              storyBlock.storyBlockId,
-              storyBeatToUpdate.storyBeatId,
-              this.toMilestoneStoryBeatRequest(),
-            )
-            : this.campaignApiService.updateInformationStoryBeat(
-              campaignId,
-              storyBlock.storyBlockId,
-              storyBeatToUpdate.storyBeatId,
-              this.toInformationStoryBeatRequest(),
-            );
+            : storyBeatType === StoryBeatType.Combat
+              ? this.campaignApiService.updateCombatStoryBeat(
+                campaignId,
+                storyBlock.storyBlockId,
+                storyBeatToUpdate.storyBeatId,
+                this.toCombatStoryBeatRequest(),
+              )
+              : storyBeatType === StoryBeatType.Transition
+                ? this.campaignApiService.updateTransitionStoryBeat(
+                  campaignId,
+                  storyBlock.storyBlockId,
+                  storyBeatToUpdate.storyBeatId,
+                  this.toTransitionStoryBeatRequest(),
+                )
+                : storyBeatType === StoryBeatType.Milestone
+                  ? this.campaignApiService.updateMilestoneStoryBeat(
+                    campaignId,
+                    storyBlock.storyBlockId,
+                    storyBeatToUpdate.storyBeatId,
+                    this.toMilestoneStoryBeatRequest(),
+                  )
+                  : this.campaignApiService.updateInformationStoryBeat(
+                    campaignId,
+                    storyBlock.storyBlockId,
+                    storyBeatToUpdate.storyBeatId,
+                    this.toInformationStoryBeatRequest(),
+                  );
 
     saveStoryBeat
       .pipe(finalize(() => this.updatingStoryBeatId.set(null)))
@@ -1354,6 +2370,11 @@ export class CampaignContent implements OnInit {
             return;
           }
 
+          if (storyBlock.beats.some((beat) => this.isTransitionStoryBeat(beat))) {
+            this.loadStoryContent();
+            return;
+          }
+
           this.storyBlocks.update((blocks) => blocks.map((block) => (
             block.storyBlockId === storyBlock.storyBlockId
               ? {
@@ -1362,6 +2383,8 @@ export class CampaignContent implements OnInit {
                   beat.storyBeatId === storyBeat.storyBeatId
                     ? {
                       ...storyBeat,
+                      orderIndex: beat.orderIndex,
+                      secondaryOrderIndex: beat.secondaryOrderIndex,
                       milestone: storyBeat.milestone ?? beat.milestone ?? null,
                       displayIndex: beat.displayIndex,
                     }
@@ -1394,6 +2417,69 @@ export class CampaignContent implements OnInit {
     return `${beatCount} ${beatCount === 1 ? 'story beat' : 'story beats'} planned.`;
   }
 
+  protected storyBeatRowsFor(storyBlock: StoryBlockViewModel): StoryBeatRowViewModel[] {
+    const groupedBeats = new Map<number, StoryBeatViewModel[]>();
+
+    storyBlock.beats.forEach((storyBeat) => {
+      const orderIndex = storyBeat.orderIndex;
+      const rowBeats = groupedBeats.get(orderIndex) ?? [];
+
+      rowBeats.push(storyBeat);
+      groupedBeats.set(orderIndex, rowBeats);
+    });
+
+    return Array.from(groupedBeats.entries()).map(([orderIndex, beats]) => {
+      const sortedBeats = [...beats].sort((firstBeat, secondBeat) => (
+        firstBeat.secondaryOrderIndex - secondBeat.secondaryOrderIndex
+      ));
+      const key = this.storyBeatRowKey(storyBlock.storyBlockId, orderIndex);
+      const activeIndex = this.clampStoryBeatAlternativeIndex(
+        this.storyBeatAlternativeIndexes()[key] ?? 0,
+        sortedBeats,
+      );
+
+      return {
+        key,
+        storyBlockId: storyBlock.storyBlockId,
+        orderIndex,
+        beats: sortedBeats,
+        activeIndex,
+        activeBeat: sortedBeats[activeIndex] ?? null,
+      };
+    });
+  }
+
+  protected storyBeatSequenceLabel(
+    storyBeatRow: StoryBeatRowViewModel,
+    storyBeat: StoryBeatViewModel,
+  ): string {
+    if (storyBeatRow.beats.length <= 1) {
+      return storyBeatRow.orderIndex.toString();
+    }
+
+    return `${storyBeatRow.orderIndex}.${storyBeat.secondaryOrderIndex}`;
+  }
+
+  protected storyBeatRowPagerLabel(storyBeatRow: StoryBeatRowViewModel): string {
+    return `${storyBeatRow.activeIndex + 1}/${storyBeatRow.beats.length}`;
+  }
+
+  protected storyBeatPreviousAlternative(storyBeatRow: StoryBeatRowViewModel): StoryBeatViewModel | null {
+    return storyBeatRow.beats[storyBeatRow.activeIndex - 1] ?? null;
+  }
+
+  protected storyBeatNextAlternative(storyBeatRow: StoryBeatRowViewModel): StoryBeatViewModel | null {
+    return storyBeatRow.beats[storyBeatRow.activeIndex + 1] ?? null;
+  }
+
+  protected showPreviousStoryBeatAlternative(storyBeatRow: StoryBeatRowViewModel): void {
+    this.setStoryBeatAlternativeIndex(storyBeatRow, storyBeatRow.activeIndex - 1);
+  }
+
+  protected showNextStoryBeatAlternative(storyBeatRow: StoryBeatRowViewModel): void {
+    this.setStoryBeatAlternativeIndex(storyBeatRow, storyBeatRow.activeIndex + 1);
+  }
+
   protected storyBeatTitle(storyBeat: StoryBeatViewModel): string {
     return storyBeat.title || `Story Beat ${storyBeat.displayIndex}`;
   }
@@ -1413,6 +2499,14 @@ export class CampaignContent implements OnInit {
 
     if (this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Decision) {
       return storyBeat.decision?.description || 'No decision description yet.';
+    }
+
+    if (this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Combat) {
+      return storyBeat.combat?.description || 'No combat description yet.';
+    }
+
+    if (this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Transition) {
+      return storyBeat.transition?.description || 'No transition description yet.';
     }
 
     return storyBeat.information?.narrative || 'No information yet.';
@@ -1438,6 +2532,18 @@ export class CampaignContent implements OnInit {
 
   protected isDecisionStoryBeat(storyBeat: StoryBeatViewModel): boolean {
     return this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Decision;
+  }
+
+  protected isCombatStoryBeat(storyBeat: StoryBeatViewModel): boolean {
+    return this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Combat;
+  }
+
+  protected isTransitionStoryBeat(storyBeat: StoryBeatViewModel): boolean {
+    return this.toStoryBeatType(storyBeat.storyBeatType) === StoryBeatType.Transition;
+  }
+
+  protected hasTransitionStoryBeat(storyBlock: StoryBlockViewModel): boolean {
+    return storyBlock.beats.some((storyBeat) => this.isTransitionStoryBeat(storyBeat));
   }
 
   protected isMilestoneStoryBeat(storyBeat: StoryBeatViewModel): boolean {
@@ -1488,7 +2594,38 @@ export class CampaignContent implements OnInit {
   }
 
   protected storyBeatPreviewParts(storyBeat: StoryBeatViewModel): StoryBeatNarrativePart[] {
-    return this.toNarrativePreviewParts(this.storyBeatNarrative(storyBeat));
+    return this.toNarrativePreviewParts(this.storyBeatNarrative(storyBeat), storyBeat.storyBeatId);
+  }
+
+  protected isExpandableStoryBeatSkillToken(part: StoryBeatNarrativePart): boolean {
+    return Boolean(part.tokenKey && part.compactText && part.detailText);
+  }
+
+  protected isStoryBeatSkillTokenExpanded(part: StoryBeatNarrativePart): boolean {
+    return part.tokenKey ? this.expandedStoryBeatSkillTokenKeys()[part.tokenKey] ?? false : false;
+  }
+
+  protected storyBeatSkillTokenText(part: StoryBeatNarrativePart): string {
+    return this.isStoryBeatSkillTokenExpanded(part)
+      ? part.detailText ?? part.text
+      : part.compactText ?? part.text;
+  }
+
+  protected storyBeatSkillTokenTooltip(part: StoryBeatNarrativePart): string {
+    return part.detailText ?? part.text;
+  }
+
+  protected toggleStoryBeatSkillToken(part: StoryBeatNarrativePart): void {
+    const tokenKey = part.tokenKey;
+
+    if (!tokenKey) {
+      return;
+    }
+
+    this.expandedStoryBeatSkillTokenKeys.update((keys) => ({
+      ...keys,
+      [tokenKey]: !(keys[tokenKey] ?? false),
+    }));
   }
 
   protected storyBeatRoleplayingPreviewPartsFor(
@@ -1503,6 +2640,101 @@ export class CampaignContent implements OnInit {
     return storyBeat.roleplaying?.discoverableInformation ?? [];
   }
 
+  protected roleplayingOutcomeEffectTargets(storyBeat: StoryBeatViewModel): StoryBeatOutcomeEffectTarget[] {
+    const roleplaying = storyBeat.roleplaying;
+
+    if (!roleplaying) {
+      return [];
+    }
+
+    const npcReferenceTargets = (roleplaying.npcReferences ?? [])
+      .map((reference) => {
+        const sourceId = this.normalizeText(reference.id);
+        const npcTag = this.normalizeText(reference.npcTag || reference.tag);
+
+        if (!sourceId || !npcTag) {
+          return null;
+        }
+
+        const title = this.getRoleplayingNpcDisplayNameByTag(npcTag, npcTag) || npcTag;
+
+        return {
+          sourceType: OutcomeSourceType.RoleplayingNpcInteraction,
+          sourceId,
+          key: `${OutcomeSourceType.RoleplayingNpcInteraction}:${sourceId}`,
+          title,
+          description: `NPC interaction: ${npcTag}`,
+          category: 'NPC Interaction',
+        };
+      })
+      .filter((target): target is StoryBeatOutcomeEffectTarget => target !== null);
+
+    const informationTargets = this.roleplayingStoryBeatInformation(storyBeat)
+      .map((information) => {
+        const sourceId = this.normalizeText(information.id);
+
+        if (!sourceId) {
+          return null;
+        }
+
+        return {
+          sourceType: OutcomeSourceType.RoleplayingInformation,
+          sourceId,
+          key: `${OutcomeSourceType.RoleplayingInformation}:${sourceId}`,
+          title: this.roleplayingInformationNpcLabel(storyBeat, information),
+          description: `${this.roleplayingInformationCheckLabel(information)} - ${information.information}`,
+          category: 'Discoverable Information',
+        };
+      })
+      .filter((target): target is StoryBeatOutcomeEffectTarget => target !== null);
+
+    return [
+      ...npcReferenceTargets,
+      ...informationTargets,
+    ];
+  }
+
+  protected decisionOutcomeEffectTargets(storyBeat: StoryBeatViewModel): StoryBeatOutcomeEffectTarget[] {
+    return (storyBeat.decision?.decisions ?? [])
+      .map((choice) => {
+        const sourceId = this.normalizeText(choice.id);
+        const title = this.normalizeText(choice.title);
+
+        if (!sourceId || !title) {
+          return null;
+        }
+
+        return {
+          sourceType: OutcomeSourceType.DecisionChoice,
+          sourceId,
+          key: `${OutcomeSourceType.DecisionChoice}:${sourceId}`,
+          title,
+          description: this.normalizeText(choice.description) || 'No description.',
+          category: 'Decision Choice',
+        };
+      })
+      .filter((target): target is StoryBeatOutcomeEffectTarget => target !== null);
+  }
+
+  protected storyBeatOutcomeEffectTargets(storyBeat: StoryBeatViewModel): StoryBeatOutcomeEffectTarget[] {
+    if (this.isRoleplayingStoryBeat(storyBeat)) {
+      return this.roleplayingOutcomeEffectTargets(storyBeat);
+    }
+
+    if (this.isDecisionStoryBeat(storyBeat)) {
+      return this.decisionOutcomeEffectTargets(storyBeat);
+    }
+
+    return [];
+  }
+
+  protected isSelectedStoryBeatEventSource(target: StoryBeatOutcomeEffectTarget): boolean {
+    const selectedSource = this.selectedRoleplayingEventSource();
+
+    return selectedSource?.sourceType === target.sourceType &&
+      selectedSource.sourceId === target.sourceId;
+  }
+
   protected storyBeatNarrativeParagraphs(storyBeat: StoryBeatViewModel): string[] {
     return storyBeat.narrative?.paragraphs ?? [];
   }
@@ -1510,8 +2742,34 @@ export class CampaignContent implements OnInit {
   protected storyBeatDecisionChoices(storyBeat: StoryBeatViewModel): StoryBeatDecisionChoiceDraft[] {
     return (storyBeat.decision?.decisions ?? []).map((choice) => ({
       draftId: choice.orderIndex,
+      id: choice.id ?? null,
       title: choice.title,
       description: choice.description,
+    }));
+  }
+
+  protected combatEnemyLabel(enemy: { monsterId: number; amount: number }): string {
+    const monster = this.combatNpcOptions().find((option) => option.id === enemy.monsterId);
+    const name = monster ? this.combatNpcOptionLabel(monster) : `Monster ${enemy.monsterId}`;
+
+    return `${enemy.amount} x ${name}`;
+  }
+
+  protected combatRewardLines(storyBeat: StoryBeatViewModel): string[] {
+    return this.toRewardLines(storyBeat.combat?.rewards ?? null);
+  }
+
+  protected transitionConclusionRows(storyBeat: StoryBeatViewModel): {
+    key: string;
+    category: string;
+    text: string;
+    sourceTitle: string;
+  }[] {
+    return (storyBeat.transition?.conclusions ?? []).map((conclusion, index) => ({
+      key: `${conclusion.sourceStoryBeatId}-${conclusion.category}-${index}`,
+      category: conclusion.category,
+      text: conclusion.text,
+      sourceTitle: conclusion.sourceTitle,
     }));
   }
 
@@ -1800,6 +3058,28 @@ export class CampaignContent implements OnInit {
     }
 
     this.isCreateQuestDialogOpen.set(false);
+    this.editingQuest.set(null);
+  }
+
+  protected openEditQuestDialog(quest: CampaignQuestModel): void {
+    this.editingQuest.set(quest);
+    this.questTypeDraft.set(this.toQuestType(quest.type));
+    this.questTitleDraft.set(quest.title);
+    this.questDescriptionDraft.set(quest.description);
+    this.questGivenByDraft.set(quest.givenBy);
+    this.questRewardDraft.set(quest.reward);
+    this.questTaskDrafts.set(
+      quest.tasks.length > 0
+        ? quest.tasks.map((task) => ({
+            draftId: this.nextQuestTaskDraftId++,
+            title: task.title,
+            description: task.description,
+            dateCompleted: task.dateCompleted,
+          }))
+        : [this.createEmptyQuestTaskDraft()],
+    );
+    this.questFormStep.set('details');
+    this.isCreateQuestDialogOpen.set(true);
   }
 
   protected showQuestDetailsStep(): void {
@@ -1869,38 +3149,43 @@ export class CampaignContent implements OnInit {
     });
   }
 
-  protected createQuest(): void {
+  protected saveQuest(): void {
     const campaignId = this.getCampaignId();
 
     if (!campaignId || !this.canCreateQuest()) {
       return;
     }
 
-    const request: CreateCampaignQuestRequest = {
+    const editingQuest = this.editingQuest();
+    const request: UpdateCampaignQuestRequest = {
       type: this.questTypeDraft(),
       title: this.normalizeText(this.questTitleDraft()),
       description: this.normalizeText(this.questDescriptionDraft()),
       givenBy: this.normalizeText(this.questGivenByDraft()),
       reward: this.normalizeText(this.questRewardDraft()),
-      completedAt: null,
+      completedAt: editingQuest?.completedAt ?? null,
       tasks: this.questTaskDrafts()
         .map((task) => ({
           title: this.normalizeText(task.title),
           description: this.normalizeText(task.description),
-          dateCompleted: null,
+          dateCompleted: task.dateCompleted,
         }))
         .filter((task) => task.title.length > 0 && task.description.length > 0),
     };
 
     this.isCreatingQuest.set(true);
 
-    this.campaignApiService
-      .createCampaignQuest(campaignId, request)
+    const saveQuest = editingQuest
+      ? this.campaignApiService.updateCampaignQuest(campaignId, editingQuest.questId, request)
+      : this.campaignApiService.createCampaignQuest(campaignId, request);
+
+    saveQuest
       .pipe(finalize(() => this.isCreatingQuest.set(false)))
       .subscribe({
         next: (response) => {
           this.isCreateQuestDialogOpen.set(false);
-          this.loadQuests(response.data?.questId ?? null);
+          this.editingQuest.set(null);
+          this.loadQuests(response.data?.questId ?? editingQuest?.questId ?? null);
         },
         error: (error: unknown) => {
           this.modalHelper.showError(
@@ -2096,6 +3381,8 @@ export class CampaignContent implements OnInit {
           this.storyBlocks.set(storyBlocks);
           this.milestones.set(milestones.data ?? []);
           this.roleplayingNpcs.set(roleplayingNpcs);
+          this.loadStoryBeatRuleSummaries(storyBlocks);
+          this.loadStoryBeatEventEffectSummaries(storyBlocks);
 
           if (
             this.selectedStoryBlockId() &&
@@ -2188,9 +3475,544 @@ export class CampaignContent implements OnInit {
     return this.route.parent?.snapshot.paramMap.get('campaignId') ?? null;
   }
 
+  private reorderDraggedStoryBlock(
+    targetStoryBlockId: string,
+    dropPosition: StoryBlockDropPosition,
+  ): void {
+    const draggedStoryBlockId = this.draggedStoryBlockId();
+
+    if (!draggedStoryBlockId || draggedStoryBlockId === targetStoryBlockId) {
+      this.clearStoryBlockDragState();
+      return;
+    }
+
+    const storyBlocks = this.storyBlocks();
+    const draggedStoryBlock = storyBlocks.find((block) => block.storyBlockId === draggedStoryBlockId);
+
+    if (!draggedStoryBlock) {
+      this.clearStoryBlockDragState();
+      return;
+    }
+
+    const remainingStoryBlocks = storyBlocks.filter((block) => block.storyBlockId !== draggedStoryBlockId);
+    const targetIndex = remainingStoryBlocks.findIndex((block) => block.storyBlockId === targetStoryBlockId);
+
+    if (targetIndex < 0) {
+      this.clearStoryBlockDragState();
+      return;
+    }
+
+    const insertIndex = dropPosition === 'before' ? targetIndex : targetIndex + 1;
+    const nextStoryBlocks = [
+      ...remainingStoryBlocks.slice(0, insertIndex),
+      draggedStoryBlock,
+      ...remainingStoryBlocks.slice(insertIndex),
+    ];
+
+    this.clearStoryBlockDragState();
+    this.commitStoryBlockOrder(nextStoryBlocks, storyBlocks);
+  }
+
+  private commitStoryBlockOrder(
+    nextStoryBlocks: StoryBlockViewModel[],
+    previousStoryBlocks: StoryBlockViewModel[],
+  ): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isReorderingStoryBlocks()) {
+      return;
+    }
+
+    const reindexedStoryBlocks = this.toReindexedStoryBlocks(nextStoryBlocks);
+
+    this.storyBlocks.set(reindexedStoryBlocks);
+    this.isReorderingStoryBlocks.set(true);
+    this.campaignApiService
+      .reorderStoryBlocks(campaignId, {
+        storyBlockIds: reindexedStoryBlocks.map((storyBlock) => storyBlock.storyBlockId),
+      })
+      .pipe(finalize(() => this.isReorderingStoryBlocks.set(false)))
+      .subscribe({
+        next: (response) => {
+          const orderedStoryBlocks = response.data ?? [];
+
+          if (orderedStoryBlocks.length === 0) {
+            return;
+          }
+
+          const blocksById = new Map(
+            this.storyBlocks().map((storyBlock) => [storyBlock.storyBlockId, storyBlock]),
+          );
+
+          this.storyBlocks.set(this.toReindexedStoryBlocks(
+            orderedStoryBlocks.map((storyBlock) => {
+              const existingStoryBlock = blocksById.get(storyBlock.storyBlockId);
+
+              return {
+                ...(existingStoryBlock ?? {}),
+                ...storyBlock,
+                beats: existingStoryBlock?.beats ?? [],
+                displayIndex: existingStoryBlock?.displayIndex ?? storyBlock.orderIndex,
+              };
+            }),
+          ));
+        },
+        error: (error: unknown) => {
+          this.storyBlocks.set(previousStoryBlocks);
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story blocks could not be reordered.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private clearStoryBlockDragState(): void {
+    this.draggedStoryBlockId.set(null);
+    this.storyBlockDropTargetId.set(null);
+    this.storyBlockDropPosition.set('after');
+  }
+
+  private toReindexedStoryBlocks(storyBlocks: StoryBlockViewModel[]): StoryBlockViewModel[] {
+    return storyBlocks.map((storyBlock, index) => ({
+      ...storyBlock,
+      orderIndex: index + 1,
+      displayIndex: index + 1,
+    }));
+  }
+
+  private cloneRuleGroup(group: CampaignRuleGroupRequest): CampaignRuleGroupRequest {
+    return {
+      operator: group.operator,
+      negate: group.negate ?? false,
+      clauses: group.clauses.map((clause) => ({ ...clause })),
+      groups: group.groups.map((childGroup) => this.cloneRuleGroup(childGroup)),
+      isCollapsed: group.isCollapsed ?? false,
+    };
+  }
+
+  private replaceStoryBeatOutcomeEffects(
+    campaignId: string,
+    source: StoryBeatOutcomeEffectSource,
+  ): Observable<OutcomeEffectModel[]> {
+    const deleteRequests = this.storyBeatEventEffects().map((effect) => (
+      this.outcomeEffectsApiService.deleteOutcomeEffect(campaignId, effect.id)
+    ));
+    const createRequests = this.storyBeatEventEffectDrafts()
+      .map((effect, sortOrder) => this.toStoryBeatOutcomeEffectRequest(effect, source, sortOrder + 1))
+      .filter((effect): effect is OutcomeEffectRequest => effect !== null)
+      .map((effect) => this.outcomeEffectsApiService.createOutcomeEffect(campaignId, effect));
+
+    const deleteRequest = deleteRequests.length > 0 ? forkJoin(deleteRequests) : of([]);
+    const createRequest = createRequests.length > 0
+      ? forkJoin(createRequests).pipe(map((responses) => responses.map((response) => response.data).filter((
+        effect,
+      ): effect is OutcomeEffectModel => effect !== null)))
+      : of([] as OutcomeEffectModel[]);
+
+    return deleteRequest.pipe(switchMap(() => createRequest));
+  }
+
+  private loadStoryBeatEventEffectSummaries(storyBlocks: StoryBlockViewModel[]): void {
+    const campaignId = this.getCampaignId();
+    const sources = storyBlocks.flatMap((storyBlock) => (
+      storyBlock.beats.flatMap((storyBeat) => this.storyBeatOutcomeEffectSummarySources(storyBeat))
+    ));
+
+    if (!campaignId || sources.length === 0) {
+      this.storyBeatEventEffectSummaries.set({});
+      return;
+    }
+
+    forkJoin(sources.map((source) => (
+      this.outcomeEffectsApiService
+        .fetchOutcomeEffects(campaignId, source.sourceType, source.sourceId)
+        .pipe(
+          map((response) => ({ source, effects: response.data ?? [] })),
+          catchError(() => of({ source, effects: [] as OutcomeEffectModel[] })),
+        )
+    )))
+      .subscribe((results) => {
+        const summaries: Record<string, StoryBeatOutcomeEffectSummary[]> = {};
+
+        for (const result of results) {
+          if (result.effects.length === 0) {
+            continue;
+          }
+
+          summaries[result.source.storyBeatId] = [
+            ...(summaries[result.source.storyBeatId] ?? []),
+            this.toStoryBeatEventEffectSummary(result.source, result.effects),
+          ];
+        }
+
+        this.storyBeatEventEffectSummaries.set(summaries);
+      });
+  }
+
+  private loadStoryBeatRuleSummaries(storyBlocks: StoryBlockViewModel[]): void {
+    const campaignId = this.getCampaignId();
+    const storyBeats = storyBlocks.flatMap((storyBlock) => storyBlock.beats);
+
+    if (!campaignId || storyBeats.length === 0) {
+      this.storyBeatRuleSummaries.set({});
+      return;
+    }
+
+    forkJoin({
+      events: this.campaignEventsApiService.fetchCampaignEvents(campaignId).pipe(
+        map((response) => response.data ?? []),
+        catchError(() => of([] as CampaignEventModel[])),
+      ),
+      rules: forkJoin(storyBeats.map((storyBeat) => (
+        this.campaignRulesApiService
+          .fetchRules(campaignId, ConditionalTargetType.StoryBeat, storyBeat.storyBeatId)
+          .pipe(
+            map((response) => ({
+              storyBeatId: storyBeat.storyBeatId,
+              rules: response.data ?? [],
+            })),
+            catchError(() => of({
+              storyBeatId: storyBeat.storyBeatId,
+              rules: [] as ConditionalRuleModel[],
+            })),
+          )
+      ))),
+    }).subscribe(({ events, rules }) => {
+      const summaries: Record<string, ConditionalRuleModel[]> = {};
+
+      this.storyBeatRuleSummaryEventOptions.set(events);
+
+      for (const result of rules) {
+        if (result.rules.length > 0) {
+          summaries[result.storyBeatId] = result.rules;
+        }
+      }
+
+      this.storyBeatRuleSummaries.set(summaries);
+    });
+  }
+
+  private setStoryBeatRuleSummary(storyBeat: StoryBeatViewModel, rule: ConditionalRuleModel | null): void {
+    const nextSummaries = { ...this.storyBeatRuleSummaries() };
+    const currentRules = nextSummaries[storyBeat.storyBeatId] ?? [];
+
+    if (rule) {
+      nextSummaries[storyBeat.storyBeatId] = [
+        ...currentRules.filter((candidate) => candidate.id !== rule.id),
+        rule,
+      ];
+    } else {
+      delete nextSummaries[storyBeat.storyBeatId];
+    }
+
+    this.storyBeatRuleSummaries.set(nextSummaries);
+  }
+
+  private removeStoryBeatRuleSummary(storyBeat: StoryBeatViewModel, ruleId: string): void {
+    const nextSummaries = { ...this.storyBeatRuleSummaries() };
+    const remainingRules = (nextSummaries[storyBeat.storyBeatId] ?? [])
+      .filter((rule) => rule.id !== ruleId);
+
+    if (remainingRules.length > 0) {
+      nextSummaries[storyBeat.storyBeatId] = remainingRules;
+    } else {
+      delete nextSummaries[storyBeat.storyBeatId];
+    }
+
+    this.storyBeatRuleSummaries.set(nextSummaries);
+  }
+
+  private toRuleConditionSummaries(group: CampaignRuleGroupRequest): string[] {
+    return [
+      ...group.clauses.map((condition) => this.toRuleConditionSummary(condition)),
+      ...group.groups.flatMap((childGroup) => this.toRuleConditionSummaries(childGroup)),
+    ].filter((summary) => summary.length > 0);
+  }
+
+  private toRuleConditionSummary(condition: RuleConditionRequest): string {
+    const event = this.storyBeatRuleSummaryEventOptions()
+      .find((option) => option.id === condition.eventDefinitionId);
+    const eventLabel = this.normalizeText(event?.name) ||
+      this.normalizeText(event?.key) ||
+      'Event';
+    const comparisonLabel = this.ruleComparisonLabel(condition.comparisonOperator);
+    const valueLabel = this.ruleConditionValueLabel(condition, event);
+
+    return valueLabel ? `${eventLabel} ${comparisonLabel} ${valueLabel}` : `${eventLabel} ${comparisonLabel}`;
+  }
+
+  private ruleGroupOperatorLabel(operator: RuleGroupOperator): string {
+    if (operator === RuleGroupOperator.Or) {
+      return 'OR';
+    }
+
+    if (operator === RuleGroupOperator.ExactlyOne) {
+      return 'XOR';
+    }
+
+    return 'AND';
+  }
+
+  private ruleComparisonLabel(comparisonOperator: RuleComparisonOperator): string {
+    switch (comparisonOperator) {
+      case RuleComparisonOperator.NotEquals:
+        return '!=';
+      case RuleComparisonOperator.GreaterThan:
+        return '>';
+      case RuleComparisonOperator.GreaterThanOrEqual:
+        return '>=';
+      case RuleComparisonOperator.LessThan:
+        return '<';
+      case RuleComparisonOperator.LessThanOrEqual:
+        return '<=';
+      case RuleComparisonOperator.IsSet:
+        return 'is set';
+      case RuleComparisonOperator.IsNotSet:
+        return 'not set';
+      default:
+        return '=';
+    }
+  }
+
+  private ruleConditionValueLabel(
+    condition: RuleConditionRequest,
+    event: CampaignEventModel | undefined,
+  ): string {
+    if (
+      condition.comparisonOperator === RuleComparisonOperator.IsSet ||
+      condition.comparisonOperator === RuleComparisonOperator.IsNotSet
+    ) {
+      return '';
+    }
+
+    const selectedOption = event?.options?.find((option) => option.id === condition.expectedOptionId);
+
+    return this.normalizeText(selectedOption?.label) ||
+      this.normalizeText(condition.textValue) ||
+      this.normalizeText(condition.numericValue?.toString()) ||
+      (condition.booleanValue === null || condition.booleanValue === undefined
+        ? ''
+        : condition.booleanValue ? 'true' : 'false');
+  }
+
+  private setStoryBeatEventEffectSummary(
+    storyBeat: StoryBeatViewModel,
+    source: StoryBeatOutcomeEffectSource,
+    effects: OutcomeEffectModel[],
+  ): void {
+    const sourceKey = this.toOutcomeEffectSourceKey(source);
+    const nextSummaries = { ...this.storyBeatEventEffectSummaries() };
+    const currentSummaries = nextSummaries[storyBeat.storyBeatId] ?? [];
+    const remainingSummaries = currentSummaries.filter((summary) => summary.key !== sourceKey);
+
+    if (effects.length > 0) {
+      const summarySource = this.storyBeatOutcomeEffectSummarySources(storyBeat)
+        .find((candidate) => candidate.key === sourceKey) ?? {
+          ...source,
+          storyBeatId: storyBeat.storyBeatId,
+          key: sourceKey,
+          label: this.storyBeatTypeLabel(storyBeat),
+        };
+
+      nextSummaries[storyBeat.storyBeatId] = [
+        ...remainingSummaries,
+        this.toStoryBeatEventEffectSummary(summarySource, effects),
+      ];
+    } else if (remainingSummaries.length > 0) {
+      nextSummaries[storyBeat.storyBeatId] = remainingSummaries;
+    } else {
+      delete nextSummaries[storyBeat.storyBeatId];
+    }
+
+    this.storyBeatEventEffectSummaries.set(nextSummaries);
+  }
+
+  private storyBeatOutcomeEffectSummarySources(storyBeat: StoryBeatViewModel): StoryBeatOutcomeEffectSummarySource[] {
+    if (this.hasNestedStoryBeatEventEffectTargets(storyBeat)) {
+      return this.storyBeatOutcomeEffectTargets(storyBeat).map((target) => ({
+        sourceType: target.sourceType,
+        sourceId: target.sourceId,
+        storyBeatId: storyBeat.storyBeatId,
+        key: this.toOutcomeEffectSourceKey(target),
+        label: `${target.category}: ${target.title}`,
+      }));
+    }
+
+    if (!this.isCombatStoryBeat(storyBeat) && !this.isMilestoneStoryBeat(storyBeat)) {
+      return [];
+    }
+
+    const source = {
+      sourceType: OutcomeSourceType.StoryBeat,
+      sourceId: storyBeat.storyBeatId,
+    };
+
+    return [{
+      ...source,
+      storyBeatId: storyBeat.storyBeatId,
+      key: this.toOutcomeEffectSourceKey(source),
+      label: this.storyBeatTypeLabel(storyBeat),
+    }];
+  }
+
+  private toStoryBeatEventEffectSummary(
+    source: StoryBeatOutcomeEffectSummarySource,
+    effects: OutcomeEffectModel[],
+  ): StoryBeatOutcomeEffectSummary {
+    return {
+      sourceType: source.sourceType,
+      sourceId: source.sourceId,
+      key: source.key,
+      label: source.label,
+      effectCount: effects.length,
+      eventLabels: Array.from(new Set(effects.map((effect) => (
+        this.normalizeText(effect.eventKey) ||
+        this.normalizeText(effect.eventDefinitionId ?? effect.eventId) ||
+        'Unknown event'
+      )))),
+    };
+  }
+
+  private toOutcomeEffectSourceKey(source: StoryBeatOutcomeEffectSource): string {
+    return `${source.sourceType}:${source.sourceId}`;
+  }
+
+  private toOutcomeEffectDraft(effect: OutcomeEffectModel): OutcomeEffectRequest {
+    const operation = this.toOutcomeEffectOperation(effect.operationType ?? effect.operation);
+    const eventDefinitionId = effect.eventDefinitionId ?? effect.eventId ?? null;
+
+    return {
+      sourceType: this.toOutcomeSourceType(effect.sourceType) ?? OutcomeSourceType.StoryBeat,
+      sourceId: effect.sourceId,
+      eventDefinitionId: eventDefinitionId ?? undefined,
+      eventId: eventDefinitionId,
+      eventKey: effect.eventKey,
+      operationType: operation,
+      operation,
+      booleanValue: effect.booleanValue ?? null,
+      selectedOptionId: effect.selectedOptionId ?? null,
+      textValue: effect.textValue ?? null,
+      numericValue: effect.numericValue ?? null,
+      value: effect.value ?? effect.booleanValue ?? effect.selectedOptionId ?? effect.textValue ?? effect.numericValue ?? null,
+      sortOrder: effect.sortOrder,
+    };
+  }
+
+  private toStoryBeatOutcomeEffectRequest(
+    effect: OutcomeEffectRequest,
+    source: StoryBeatOutcomeEffectSource,
+    sortOrder: number,
+  ): OutcomeEffectRequest | null {
+    const eventDefinitionId = effect.eventDefinitionId ?? effect.eventId;
+
+    if (!eventDefinitionId) {
+      return null;
+    }
+
+    const operation = this.toOutcomeEffectOperation(effect.operationType ?? effect.operation);
+
+    return {
+      sourceType: source.sourceType,
+      sourceId: source.sourceId,
+      eventDefinitionId,
+      eventId: eventDefinitionId,
+      eventKey: effect.eventKey,
+      operationType: operation,
+      operation,
+      booleanValue: operation === OutcomeEffectOperation.Clear ? null : effect.booleanValue ?? null,
+      selectedOptionId: operation === OutcomeEffectOperation.Clear ? null : effect.selectedOptionId ?? null,
+      textValue: operation === OutcomeEffectOperation.Clear ? null : effect.textValue ?? null,
+      numericValue: operation === OutcomeEffectOperation.Clear ? null : effect.numericValue ?? null,
+      value: operation === OutcomeEffectOperation.Clear ? null : effect.value ?? null,
+      sortOrder,
+    };
+  }
+
+  private toStoryBeatOutcomeEffectSource(
+    source: StoryBeatViewModel | StoryBeatOutcomeEffectTarget,
+  ): StoryBeatOutcomeEffectSource {
+    if ('sourceType' in source) {
+      return {
+        sourceType: source.sourceType,
+        sourceId: source.sourceId,
+      };
+    }
+
+    if (this.hasNestedStoryBeatEventEffectTargets(source)) {
+      return this.selectedRoleplayingEventSource() ?? {
+        sourceType: OutcomeSourceType.StoryBeat,
+        sourceId: source.storyBeatId,
+      };
+    }
+
+    return {
+      sourceType: OutcomeSourceType.StoryBeat,
+      sourceId: source.storyBeatId,
+    };
+  }
+
+  private toOutcomeSourceType(
+    value: OutcomeEffectModel['sourceType'] | OutcomeEffectRequest['sourceType'],
+  ): OutcomeSourceType | undefined {
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+
+    if (
+      value === OutcomeSourceType.DecisionChoice ||
+      value === 'DecisionChoice'
+    ) {
+      return OutcomeSourceType.DecisionChoice;
+    }
+
+    if (
+      value === OutcomeSourceType.RoleplayingNpcInteraction ||
+      value === 'RoleplayingNpcInteraction'
+    ) {
+      return OutcomeSourceType.RoleplayingNpcInteraction;
+    }
+
+    if (
+      value === OutcomeSourceType.RoleplayingInformation ||
+      value === 'RoleplayingInformation'
+    ) {
+      return OutcomeSourceType.RoleplayingInformation;
+    }
+
+    if (typeof value === 'number') {
+      return value as OutcomeSourceType;
+    }
+
+    const parsedValue = Number(value);
+
+    if (Number.isFinite(parsedValue)) {
+      return parsedValue as OutcomeSourceType;
+    }
+
+    return OutcomeSourceType[value as keyof typeof OutcomeSourceType] as OutcomeSourceType | undefined;
+  }
+
+  private toOutcomeEffectOperation(
+    operation: OutcomeEffectOperation | keyof typeof OutcomeEffectOperation | string | number,
+  ): OutcomeEffectOperation {
+    if (typeof operation === 'number') {
+      return operation as OutcomeEffectOperation;
+    }
+
+    const parsedOperation = Number(operation);
+
+    if (Number.isFinite(parsedOperation)) {
+      return parsedOperation as OutcomeEffectOperation;
+    }
+
+    return OutcomeEffectOperation[operation as keyof typeof OutcomeEffectOperation] ?? OutcomeEffectOperation.Set;
+  }
+
   private resetStoryBeatDialogState(): void {
     this.storyBeatDialogBlock.set(null);
     this.editingStoryBeat.set(null);
+    this.siblingStoryBeatDraftSource.set(null);
     this.storyBeatTitleDraft.set('');
     this.storyBeatTypeDraft.set(StoryBeatType.Information);
     this.storyBeatNarrativeDraft.set('');
@@ -2199,6 +4021,10 @@ export class CampaignContent implements OnInit {
     this.storyBeatOptionalInformationDrafts.set([]);
     this.storyBeatRoleplayingInformationDrafts.set([]);
     this.storyBeatDecisionDescriptionDraft.set('');
+    this.storyBeatCombatDescriptionDraft.set('');
+    this.storyBeatTransitionDescriptionDraft.set('');
+    this.storyBeatCombatRewardDrafts.set([]);
+    this.storyBeatCombatEnemyNpcDrafts.set([]);
     const decisionChoiceDraft = this.createStoryBeatDecisionChoiceDraft();
 
     this.storyBeatDecisionChoiceDrafts.set([decisionChoiceDraft]);
@@ -2274,6 +4100,36 @@ export class CampaignContent implements OnInit {
     );
   }
 
+  private loadCombatNpcOptions(): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingCombatNpcOptions() || this.combatNpcOptions().length > 0) {
+      return;
+    }
+
+    this.isLoadingCombatNpcOptions.set(true);
+
+    this.monsterApiService
+      .fetchCampaignMonsterDetails(campaignId)
+      .pipe(finalize(() => this.isLoadingCombatNpcOptions.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.combatNpcOptions.set(response.data ?? []);
+          this.storyBeatCombatEnemyNpcDrafts.update((drafts) => drafts.map((draft) => (
+            draft.monsterId === null
+              ? { ...draft, monsterId: this.firstAvailableCombatNpcId(draft.draftId) }
+              : draft
+          )));
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Combat NPCs could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   private toRoleplayingNpcRows(
     npcs: CampaignNpcModel[],
   ): CampaignRoleplayingNpcTableRow[] {
@@ -2315,6 +4171,7 @@ export class CampaignContent implements OnInit {
 
     return {
       title: this.normalizeText(this.storyBeatTitleDraft()),
+      ...this.createStoryBeatOrderDraft(),
       information: {
         narrative,
         optionalInformation: [
@@ -2325,9 +4182,21 @@ export class CampaignContent implements OnInit {
     };
   }
 
+  private createStoryBeatOrderDraft(): CreateStoryBeatOrderDraft {
+    const siblingSource = this.siblingStoryBeatDraftSource();
+
+    return siblingSource
+      ? {
+        orderIndex: siblingSource.orderIndex,
+        secondaryOrderIndex: null,
+      }
+      : {};
+  }
+
   private toNarrativeStoryBeatRequest(): CreateNarrativeStoryBeatRequest {
     return {
       title: this.normalizeText(this.storyBeatTitleDraft()),
+      ...this.createStoryBeatOrderDraft(),
       narrative: {
         paragraphs: this.storyBeatNarrativeParagraphDrafts()
           .map((draft) => this.normalizeText(draft.text))
@@ -2340,6 +4209,7 @@ export class CampaignContent implements OnInit {
     CreateRoleplayingStoryBeatRequest | UpdateRoleplayingStoryBeatRequest {
     return {
       title: this.normalizeText(this.storyBeatTitleDraft()),
+      ...this.createStoryBeatOrderDraft(),
       roleplaying: {
         mainDescription: this.normalizeText(this.storyBeatRoleplayingDraft()),
         npcTags: this.roleplayingNpcOptions().map((npc) => npc.key),
@@ -2366,9 +4236,11 @@ export class CampaignContent implements OnInit {
   private toDecisionStoryBeatRequest(): CreateDecisionStoryBeatRequest | UpdateDecisionStoryBeatRequest {
     return {
       title: this.normalizeText(this.storyBeatTitleDraft()),
+      ...this.createStoryBeatOrderDraft(),
       decision: {
         description: this.normalizeText(this.storyBeatDecisionDescriptionDraft()),
         decisions: this.storyBeatDecisionChoiceDrafts().map((draft) => ({
+          id: draft.id,
           title: this.normalizeText(draft.title),
           description: this.normalizeText(draft.description),
           isSelected: false,
@@ -2377,9 +4249,69 @@ export class CampaignContent implements OnInit {
     };
   }
 
+  private toCombatStoryBeatRequest(): CreateCombatStoryBeatRequest | UpdateCombatStoryBeatRequest {
+    return {
+      title: this.normalizeText(this.storyBeatTitleDraft()),
+      ...this.createStoryBeatOrderDraft(),
+      combat: {
+        description: this.normalizeText(this.storyBeatCombatDescriptionDraft()),
+        rewards: this.toNullableCombatRewardRequests(),
+        enemyNpcs: this.storyBeatCombatEnemyNpcDrafts()
+          .filter((draft) => draft.monsterId !== null && draft.amount >= 1)
+          .map((draft) => ({
+            monsterId: draft.monsterId ?? 0,
+            amount: draft.amount,
+          })),
+      },
+    };
+  }
+
+  private toTransitionStoryBeatRequest():
+    CreateTransitionStoryBeatRequest | UpdateTransitionStoryBeatRequest {
+    return {
+      title: this.normalizeText(this.storyBeatTitleDraft()),
+      ...this.createStoryBeatOrderDraft(),
+      transition: {
+        description: this.normalizeText(this.storyBeatTransitionDescriptionDraft()),
+      },
+    };
+  }
+
+  private toNullableCombatRewardRequests(): (string | null)[] | null {
+    const rewards = this.storyBeatCombatRewardDrafts()
+      .map((draft) => this.normalizeText(draft.text))
+      .filter((reward) => reward.length > 0);
+
+    return rewards.length > 0 ? rewards : null;
+  }
+
+  private toCombatRewardDrafts(rewards: unknown): StoryBeatCombatRewardDraft[] {
+    return this.toRewardLines(rewards).map((reward) => (
+      this.createStoryBeatCombatRewardDraft(reward)
+    ));
+  }
+
+  private toRewardLines(rewards: unknown): string[] {
+    if (Array.isArray(rewards)) {
+      return rewards
+        .map((reward) => typeof reward === 'string' ? this.normalizeText(reward) : '')
+        .filter((reward) => reward.length > 0);
+    }
+
+    if (typeof rewards === 'string') {
+      return rewards
+        .split(/\r?\n/)
+        .map((reward) => this.normalizeText(reward))
+        .filter((reward) => reward.length > 0);
+    }
+
+    return [];
+  }
+
   private toMilestoneStoryBeatRequest(): CreateMilestoneStoryBeatRequest {
     return {
       title: this.normalizeText(this.storyBeatTitleDraft()),
+      ...this.createStoryBeatOrderDraft(),
       milestoneId: this.storyBeatMilestoneDraft() ?? 0,
     };
   }
@@ -2427,7 +4359,7 @@ export class CampaignContent implements OnInit {
     );
   }
 
-  private toNarrativePreviewParts(value: string): StoryBeatNarrativePart[] {
+  private toNarrativePreviewParts(value: string, tokenKeyPrefix: string | null = null): StoryBeatNarrativePart[] {
     const parts: StoryBeatNarrativePart[] = [];
     const tokenExpression = /\[([A-Za-z ]+)-(\d{1,2}): ([^\]]+)\]/g;
     let lastIndex = 0;
@@ -2442,9 +4374,15 @@ export class CampaignContent implements OnInit {
 
       const skill = this.toSkillByLabel(match[1]);
       const difficultyClass = Number(match[2]);
+      const skillLabel = skill ? this.getSkillLabel(skill) : match[1];
+      const information = match[3];
+      const tokenKey = tokenKeyPrefix ? `${tokenKeyPrefix}:${match.index}:${match[0]}` : undefined;
 
       parts.push({
         text: match[0],
+        compactText: `[${skillLabel}-${difficultyClass}]`,
+        detailText: information,
+        tokenKey,
         className: skill
           ? this.getSkillTokenClass(skill, difficultyClass)
           : null,
@@ -2595,9 +4533,38 @@ export class CampaignContent implements OnInit {
     };
   }
 
+  private createStoryBeatCombatRewardDraft(text = ''): StoryBeatCombatRewardDraft {
+    return {
+      draftId: this.nextStoryBeatCombatRewardDraftId++,
+      text,
+    };
+  }
+
+  private createStoryBeatCombatEnemyNpcDraft(monsterId: number | null = null): StoryBeatCombatEnemyNpcDraft {
+    return {
+      draftId: this.nextStoryBeatCombatEnemyNpcDraftId++,
+      monsterId,
+      amount: 1,
+    };
+  }
+
+  private firstAvailableCombatNpcId(excludingDraftId: number | null = null): number | null {
+    const selectedMonsterIds = new Set(
+      this.storyBeatCombatEnemyNpcDrafts()
+        .filter((draft) => draft.draftId !== excludingDraftId)
+        .map((draft) => draft.monsterId)
+        .filter((monsterId): monsterId is number => monsterId !== null),
+    );
+
+    return this.combatNpcOptions()
+      .find((monster) => !selectedMonsterIds.has(monster.id))
+      ?.id ?? null;
+  }
+
   private createStoryBeatDecisionChoiceDraft(): StoryBeatDecisionChoiceDraft {
     return {
       draftId: this.nextStoryBeatDecisionChoiceDraftId++,
+      id: null,
       title: '',
       description: '',
     };
@@ -2650,9 +4617,43 @@ export class CampaignContent implements OnInit {
   private toStoryBeatViewModels(storyBeats: StoryBeatModel[]): StoryBeatViewModel[] {
     return storyBeats.map((storyBeat, index) => ({
       ...storyBeat,
+      orderIndex: storyBeat.orderIndex ?? index + 1,
+      secondaryOrderIndex: storyBeat.secondaryOrderIndex ?? 1,
       milestone: storyBeat.milestone ?? null,
-      displayIndex: index + 1,
+      displayIndex: storyBeat.orderIndex ?? index + 1,
     }));
+  }
+
+  private storyBeatRowKey(storyBlockId: string, orderIndex: number): string {
+    return `${storyBlockId}:${orderIndex}`;
+  }
+
+  private setStoryBeatAlternativeIndex(
+    storyBeatRow: StoryBeatRowViewModel,
+    index: number,
+  ): void {
+    this.setStoryBeatAlternativeIndexByKey(
+      storyBeatRow.key,
+      this.clampStoryBeatAlternativeIndex(index, storyBeatRow.beats),
+    );
+  }
+
+  private setStoryBeatAlternativeIndexByKey(key: string, index: number): void {
+    this.storyBeatAlternativeIndexes.update((indexes) => ({
+      ...indexes,
+      [key]: Math.max(0, index),
+    }));
+  }
+
+  private clampStoryBeatAlternativeIndex(
+    index: number,
+    beats: StoryBeatViewModel[],
+  ): number {
+    if (beats.length === 0) {
+      return 0;
+    }
+
+    return Math.min(Math.max(0, index), beats.length - 1);
   }
 
   private toQuestType(type: CampaignQuestModel['type']): CampaignQuestType {

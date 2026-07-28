@@ -26,8 +26,23 @@ export class MonsterApiService {
     return this.apiClient.get<ApiResponse<MonsterListModel[]>>('/api/monsters');
   }
 
+  fetchCampaignMonsters(campaignId: string): Observable<ApiResponse<MonsterListModel[]>> {
+    return this.apiClient.get<ApiResponse<MonsterListModel[]>>(`/api/campaigns/${campaignId}/monsters`);
+  }
+
+  fetchCampaignMonsterDetails(campaignId: string): Observable<ApiResponse<MonsterModel[]>> {
+    return this.apiClient.get<ApiResponse<MonsterModel[]>>(`/api/campaigns/${campaignId}/monsters/details`);
+  }
+
   fetchMonster(monsterId: number): Observable<ApiResponse<MonsterModel>> {
     return this.apiClient.get<ApiResponse<MonsterModel>>(`/api/monsters/${monsterId}`);
+  }
+
+  addMonsterToCampaign(campaignId: string, monsterId: number): Observable<ApiResponse<MonsterModel>> {
+    return this.apiClient.post<ApiResponse<MonsterModel>, null>(
+      `/api/campaigns/${campaignId}/monsters/${monsterId}`,
+      null,
+    );
   }
 
   createMonster(request: CreateMonsterRequest): Observable<ApiResponse<MonsterModel>> {

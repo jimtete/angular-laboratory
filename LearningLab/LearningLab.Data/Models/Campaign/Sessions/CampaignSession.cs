@@ -1,4 +1,7 @@
-﻿namespace LearningLab.Data.Models.Campaign.Sessions;
+using LearningLab.Data.Models.Campaign.Rules;
+using LearningLab.Data.Models.Campaign.Presentation;
+
+namespace LearningLab.Data.Models.Campaign.Sessions;
 
 public class CampaignSession
 {
@@ -11,4 +14,7 @@ public class CampaignSession
     public DateTimeOffset UpdatedAt { get; set; }
     public Campaign Campaign { get; set; } = null!;
     public ICollection<SessionNote> Notes { get; set; } = [];
+    public ICollection<CampaignEventState> EventStates { get; set; } = [];
+    public ICollection<CampaignChoiceSelection> ChoiceSelections { get; set; } = [];
+    public CampaignPresentation? Presentation { get; set; }
 }

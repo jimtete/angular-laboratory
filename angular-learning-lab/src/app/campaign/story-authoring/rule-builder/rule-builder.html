@@ -1,0 +1,149 @@
+<section class="rule-builder" aria-label="Conditional rule builder">
+  @if (editableRule(); as rootRule) {
+    <ng-container
+      *ngTemplateOutlet="groupTemplate; context: { $implicit: rootRule, depth: 0, isRoot: true }"
+    />
+  } @else {
+    <div class="rule-builder-empty">
+      <p>No conditional rule configured.</p>
+      <button type="button" (click)="createRule()">Add Rule</button>
+    </div>
+  }
+</section>
+
+<ng-template #groupTemplate let-group let-depth="depth" let-isRoot="isRoot">
+  <article class="rule-group" [style.margin-left]="indent(depth)">
+    <header class="rule-group-header">
+      <button
+        type="button"
+        class="rule-group-collapse"
+        [attr.aria-label]="group.isCollapsed ? 'Expand rule group' : 'Collapse rule group'"
+        (click)="toggleGroup(group)"
+      >
+        {{ group.isCollapsed ? '+' : '-' }}
+      </button>
+
+      <label>
+        <span>Operator</span>
+        <select
+          [ngModel]="group.operator"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="setGroupOperator(group, $event)"
+        >
+          @for (operator of groupOperators; track operator.value) {
+            <option [ngValue]="operator.value">{{ operator.label }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="rule-group-actions">
+        <button type="button" (click)="addCondition(group)">Condition</button>
+        <button type="button" (click)="addGroup(group)">Group</button>
+        @if (isRoot) {
+          <button type="button" class="rule-danger" (click)="clearRule()">Clear</button>
+        }
+      </div>
+    </header>
+
+    @if (!group.isCollapsed) {
+      <div class="rule-group-body">
+        @for (condition of group.clauses; track trackIndex($index); let conditionIndex = $index) {
+          <div class="rule-condition">
+            <label>
+              <span>Campaign Event</span>
+              <select
+                [ngModel]="condition.eventDefinitionId"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="setConditionEvent(condition, $event)"
+              >
+                <option [ngValue]="null">Select event</option>
+                @for (event of eventOptions; track event.id) {
+                  <option [ngValue]="event.id">{{ event.name }} ({{ event.key }})</option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Comparison</span>
+              <select
+                [ngModel]="condition.comparisonOperator"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="setComparisonOperator(condition, $event)"
+              >
+                @for (comparison of comparisonOptions(condition); track comparison.value) {
+                  <option [ngValue]="comparison.value">{{ comparison.label }}</option>
+                }
+              </select>
+            </label>
+
+            <label>
+              <span>Expected Value</span>
+              @if (isBooleanEvent(condition)) {
+                <select
+                  [ngModel]="condition.booleanValue === null ? '' : (condition.booleanValue ? 'true' : 'false')"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="setBooleanValue(condition, $event)"
+                >
+                  <option value="">Any value</option>
+                  <option value="true">True</option>
+                  <option value="false">False</option>
+                </select>
+              } @else if (isSingleChoiceEvent(condition)) {
+                <select
+                  [ngModel]="condition.expectedOptionId"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="setOptionValue(condition, $event)"
+                >
+                  <option [ngValue]="null">Select option</option>
+                  @for (option of selectedEvent(condition)?.options ?? []; track option.id) {
+                    <option [ngValue]="option.id">{{ option.label }}</option>
+                  }
+                </select>
+              } @else if (isNumericEvent(condition)) {
+                <input
+                  type="number"
+                  [ngModel]="condition.numericValue"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="setNumericValue(condition, $event)"
+                />
+              } @else {
+                <input
+                  type="text"
+                  [ngModel]="condition.textValue"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="setTextValue(condition, $event)"
+                />
+              }
+            </label>
+
+            <button
+              type="button"
+              class="rule-danger"
+              aria-label="Delete condition"
+              (click)="removeCondition(group, conditionIndex)"
+            >
+              Delete
+            </button>
+          </div>
+        }
+
+        @for (childGroup of group.groups; track trackIndex($index); let childGroupIndex = $index) {
+          <div class="rule-child-group">
+            <button
+              type="button"
+              class="rule-danger rule-child-delete"
+              aria-label="Delete rule group"
+              (click)="removeGroup(group, childGroupIndex)"
+            >
+              Delete Group
+            </button>
+
+            <ng-container
+              *ngTemplateOutlet="groupTemplate; context: { $implicit: childGroup, depth: depth + 1, isRoot: false }"
+            />
+          </div>
+        }
+      </div>
+    }
+  </article>
+</ng-template>

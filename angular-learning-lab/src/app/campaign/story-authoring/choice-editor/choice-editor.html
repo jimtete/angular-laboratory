@@ -1,0 +1,98 @@
+<section class="choice-editor" aria-label="Choice editor">
+  <div class="choice-editor-grid">
+    <label>
+      <span>Title</span>
+      <input
+        type="text"
+        [ngModel]="editableChoice().title"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="updateChoice({ title: $event })"
+      />
+    </label>
+
+    <label>
+      <span>Selection Mode</span>
+      <select
+        [ngModel]="editableChoice().selectionMode"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="updateChoice({ selectionMode: $event })"
+      >
+        @for (mode of selectionModes; track mode.value) {
+          <option [ngValue]="mode.value">{{ mode.label }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  <label>
+    <span>Description</span>
+    <textarea
+      rows="3"
+      [ngModel]="editableChoice().description"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="updateChoice({ description: $event })"
+    ></textarea>
+  </label>
+
+  <details class="choice-editor-section" open>
+    <summary>Options</summary>
+    <div class="choice-option-list">
+      @for (option of editableChoice().options; track trackOption($index); let optionIndex = $index) {
+        <article class="choice-option">
+          <div class="choice-option-grid">
+            <label>
+              <span>Option Title</span>
+              <input
+                type="text"
+                [ngModel]="option.title"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="updateOption(optionIndex, { title: $event })"
+              />
+            </label>
+
+            <label>
+              <span>Linked Beat ID</span>
+              <input
+                type="text"
+                [ngModel]="option.linkedStoryBeatId"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="updateOption(optionIndex, { linkedStoryBeatId: $event || null })"
+              />
+            </label>
+          </div>
+
+          <label>
+            <span>Option Description</span>
+            <textarea
+              rows="2"
+              [ngModel]="option.description"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="updateOption(optionIndex, { description: $event })"
+            ></textarea>
+          </label>
+
+          <app-outcome-effect-editor
+            [effects]="option.outcomeEffects"
+            [eventOptions]="eventOptions"
+            (effectsChange)="updateOption(optionIndex, { outcomeEffects: $event })"
+          />
+
+          <button type="button" class="choice-danger" (click)="removeOption(optionIndex)">
+            Remove Option
+          </button>
+        </article>
+      }
+    </div>
+
+    <button type="button" class="choice-add" (click)="addOption()">Add Option</button>
+  </details>
+
+  <details class="choice-editor-section">
+    <summary>Visible When</summary>
+    <app-rule-builder
+      [rule]="editableChoice().conditionalRule"
+      [eventOptions]="eventOptions"
+      (ruleChange)="updateChoice({ conditionalRule: $event })"
+    />
+  </details>
+</section>

@@ -4,7 +4,7 @@ import { authGuard, masterRoleGuard, pendingChangesGuard } from './Infrastructur
 import { Campaign } from './campaign/campaign';
 import { CampaignAssets } from './campaign/campaign-assets/campaign-assets';
 import { MonsterEditor } from './campaign/campaign-assets/monster-editor/monster-editor';
-import { CampaignContent } from './campaign/campaign-content/campaign-content';
+import { MonsterPresentationSheet } from './campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet';
 import { CampaignHome } from './campaign/campaign-home/campaign-home';
 import { CampaignMemberProficiencies } from './campaign/campaign-members/campaign-member-proficiencies/campaign-member-proficiencies';
 import { CampaignMembers } from './campaign/campaign-members/campaign-members';
@@ -63,6 +63,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'assets/monsters/:monsterId/presentation',
+    component: MonsterPresentationSheet,
+    canActivate: [authGuard, masterRoleGuard]
+  },
+  {
     path: 'assets/monsters/:monsterId',
     component: MonsterEditor,
     canActivate: [authGuard, masterRoleGuard]
@@ -92,7 +97,8 @@ export const routes: Routes = [
       },
       {
         path: 'campaign-content',
-        component: CampaignContent,
+        loadComponent: () => import('./campaign/campaign-content/campaign-content')
+          .then((module) => module.CampaignContent),
         canActivate: [masterRoleGuard]
       },
       {
@@ -100,6 +106,7 @@ export const routes: Routes = [
         component: CampaignSessions,
         canActivate: [masterRoleGuard]
       },
+
       {
         path: 'campaign-sessions/:sessionNumber',
         component: CampaignSession,
@@ -114,3 +121,5 @@ export const routes: Routes = [
     ]
   }
 ];
+
+

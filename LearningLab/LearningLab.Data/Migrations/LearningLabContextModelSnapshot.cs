@@ -427,6 +427,161 @@ namespace LearningLab.Data.Migrations
                     b.ToTable("PlayerCampaignParticipation", (string)null);
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_presentation_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid?>("ActiveStoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("active_story_block_id");
+
+                    b.Property<int>("CampaignSessionId")
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_session_id");
+
+                    b.Property<Guid?>("CurrentStoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("current_story_beat_id");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ended_at");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("started_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActiveStoryBlockId");
+
+                    b.HasIndex("CampaignSessionId")
+                        .IsUnique();
+
+                    b.HasIndex("CurrentStoryBeatId");
+
+                    b.HasIndex("Status", "UpdatedAt");
+
+                    b.ToTable("CampaignPresentations", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentationEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("campaign_presentation_entry_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("CampaignPresentationId")
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_presentation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("EntryType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("entry_type");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid?>("StoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
+                    b.Property<Guid>("StoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoryBeatId");
+
+                    b.HasIndex("StoryBlockId");
+
+                    b.HasIndex("CampaignPresentationId", "CreatedAt");
+
+                    b.HasIndex("CampaignPresentationId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("CampaignPresentationEntries", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentationStoryBeatSelection", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("campaign_presentation_story_beat_selection_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("CampaignPresentationId")
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_presentation_id");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("order_index");
+
+                    b.Property<DateTimeOffset>("SelectedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("selected_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<int>("SelectedSecondaryOrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("selected_secondary_order_index");
+
+                    b.Property<Guid>("SelectedStoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("selected_story_beat_id");
+
+                    b.Property<Guid>("StoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SelectedStoryBeatId");
+
+                    b.HasIndex("StoryBlockId");
+
+                    b.HasIndex("CampaignPresentationId", "StoryBlockId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("CampaignPresentationStoryBeatSelections", (string)null);
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Quests.CampaignQuest", b =>
                 {
                     b.Property<Guid>("QuestId")
@@ -547,6 +702,498 @@ namespace LearningLab.Data.Migrations
                     b.HasIndex("QuestId", "Title");
 
                     b.ToTable("CampaignQuestTasks", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_choice_definition_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SelectionMode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("selection_mode");
+
+                    b.Property<Guid?>("StoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
+                    b.Property<Guid?>("StoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("StoryBeatId");
+
+                    b.HasIndex("StoryBlockId");
+
+                    b.ToTable("CampaignChoiceDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_choice_option_id");
+
+                    b.Property<Guid>("CampaignChoiceDefinitionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_choice_definition_id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("key");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("label");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid?>("StoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoryBeatId");
+
+                    b.HasIndex("CampaignChoiceDefinitionId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("CampaignChoiceOptions", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceSelection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_choice_selection_id");
+
+                    b.Property<Guid>("CampaignChoiceDefinitionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_choice_definition_id");
+
+                    b.Property<Guid>("CampaignChoiceOptionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_choice_option_id");
+
+                    b.Property<int>("CampaignSessionId")
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_session_id");
+
+                    b.Property<DateTimeOffset>("SelectedAtUtc")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("selected_at_utc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignChoiceDefinitionId");
+
+                    b.HasIndex("CampaignChoiceOptionId");
+
+                    b.HasIndex("CampaignSessionId", "CampaignChoiceDefinitionId", "CampaignChoiceOptionId")
+                        .IsUnique();
+
+                    b.ToTable("CampaignChoiceSelections", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignEventDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_event_definition_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at_utc")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("event_type");
+
+                    b.Property<bool>("IsRepeatable")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_repeatable");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("key");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at_utc")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("CampaignEventDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignEventOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_event_option_id");
+
+                    b.Property<Guid>("CampaignEventDefinitionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_event_definition_id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("key");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("label");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignEventDefinitionId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("CampaignEventOptions", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignEventState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_event_state_id");
+
+                    b.Property<bool?>("BooleanValue")
+                        .HasColumnType("bit")
+                        .HasColumnName("boolean_value");
+
+                    b.Property<Guid>("CampaignEventDefinitionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_event_definition_id");
+
+                    b.Property<int>("CampaignSessionId")
+                        .HasColumnType("int")
+                        .HasColumnName("campaign_session_id");
+
+                    b.Property<decimal?>("NumericValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("numeric_value");
+
+                    b.Property<DateTimeOffset>("ResolvedAtUtc")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("resolved_at_utc");
+
+                    b.Property<Guid?>("SelectedOptionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("selected_option_id");
+
+                    b.Property<Guid?>("SourceStoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("source_story_beat_id");
+
+                    b.Property<Guid?>("SourceStoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("source_story_block_id");
+
+                    b.Property<string>("TextValue")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("text_value");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignEventDefinitionId");
+
+                    b.HasIndex("SelectedOptionId");
+
+                    b.HasIndex("SourceStoryBeatId");
+
+                    b.HasIndex("SourceStoryBlockId");
+
+                    b.HasIndex("CampaignSessionId", "CampaignEventDefinitionId")
+                        .IsUnique();
+
+                    b.ToTable("CampaignEventStates", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.ConditionClause", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("condition_clause_id");
+
+                    b.Property<bool?>("BooleanValue")
+                        .HasColumnType("bit")
+                        .HasColumnName("boolean_value");
+
+                    b.Property<Guid>("CampaignEventDefinitionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_event_definition_id");
+
+                    b.Property<string>("ComparisonOperator")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("comparison_operator");
+
+                    b.Property<Guid>("ConditionGroupId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("condition_group_id");
+
+                    b.Property<Guid?>("ExpectedOptionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("expected_option_id");
+
+                    b.Property<decimal?>("NumericValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("numeric_value");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("TextValue")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("text_value");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignEventDefinitionId");
+
+                    b.HasIndex("ConditionGroupId");
+
+                    b.HasIndex("ExpectedOptionId");
+
+                    b.ToTable("ConditionClauses", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.ConditionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("condition_group_id");
+
+                    b.Property<bool>("Negate")
+                        .HasColumnType("bit")
+                        .HasColumnName("negate");
+
+                    b.Property<string>("Operator")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("operator");
+
+                    b.Property<Guid?>("ParentConditionGroupId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("parent_condition_group_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentConditionGroupId");
+
+                    b.ToTable("ConditionGroups", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.ConditionalRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("conditional_rule_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at_utc")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("EffectType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("effect_type");
+
+                    b.Property<Guid>("RootConditionGroupId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("root_condition_group_id");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("target_id");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("target_type");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at_utc")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("RootConditionGroupId");
+
+                    b.HasIndex("TargetType", "TargetId");
+
+                    b.ToTable("ConditionalRules", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.StoryOutcomeEffect", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_outcome_effect_id");
+
+                    b.Property<bool?>("BooleanValue")
+                        .HasColumnType("bit")
+                        .HasColumnName("boolean_value");
+
+                    b.Property<Guid>("CampaignEventDefinitionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_event_definition_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<decimal?>("NumericValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("numeric_value");
+
+                    b.Property<string>("OperationType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("operation_type");
+
+                    b.Property<Guid?>("SelectedOptionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("selected_option_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("source_id");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("source_type");
+
+                    b.Property<string>("TextValue")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("text_value");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignEventDefinitionId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("SelectedOptionId");
+
+                    b.HasIndex("SourceType", "SourceId");
+
+                    b.ToTable("StoryOutcomeEffects", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", b =>
@@ -729,6 +1376,12 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("order_index");
 
+                    b.Property<int>("SecondaryOrderIndex")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1)
+                        .HasColumnName("secondary_order_index");
+
                     b.Property<string>("StoryBeatType")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -755,7 +1408,7 @@ namespace LearningLab.Data.Migrations
 
                     b.HasIndex("StoryBlockId");
 
-                    b.HasIndex("StoryBlockId", "OrderIndex")
+                    b.HasIndex("StoryBlockId", "OrderIndex", "SecondaryOrderIndex")
                         .IsUnique();
 
                     b.ToTable("StoryBeats", (string)null);
@@ -772,6 +1425,10 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("campaign_id");
 
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("order_index");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -783,6 +1440,9 @@ namespace LearningLab.Data.Migrations
                     b.HasKey("StoryBlockId");
 
                     b.HasIndex("CampaignId");
+
+                    b.HasIndex("CampaignId", "OrderIndex")
+                        .IsUnique();
 
                     b.ToTable("StoryBlocks", (string)null);
                 });
@@ -1437,6 +2097,84 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentation", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "ActiveStoryBlock")
+                        .WithMany("ActivePresentations")
+                        .HasForeignKey("ActiveStoryBlockId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", "CampaignSession")
+                        .WithOne("Presentation")
+                        .HasForeignKey("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentation", "CampaignSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "CurrentStoryBeat")
+                        .WithMany("CurrentPresentations")
+                        .HasForeignKey("CurrentStoryBeatId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ActiveStoryBlock");
+
+                    b.Navigation("CampaignSession");
+
+                    b.Navigation("CurrentStoryBeat");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentationEntry", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentation", "CampaignPresentation")
+                        .WithMany("Entries")
+                        .HasForeignKey("CampaignPresentationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "StoryBeat")
+                        .WithMany("PresentationEntries")
+                        .HasForeignKey("StoryBeatId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "StoryBlock")
+                        .WithMany("PresentationEntries")
+                        .HasForeignKey("StoryBlockId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CampaignPresentation");
+
+                    b.Navigation("StoryBeat");
+
+                    b.Navigation("StoryBlock");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentationStoryBeatSelection", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentation", "CampaignPresentation")
+                        .WithMany("StoryBeatSelections")
+                        .HasForeignKey("CampaignPresentationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "SelectedStoryBeat")
+                        .WithMany("SelectedInPresentations")
+                        .HasForeignKey("SelectedStoryBeatId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "StoryBlock")
+                        .WithMany("PresentationStoryBeatSelections")
+                        .HasForeignKey("StoryBlockId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CampaignPresentation");
+
+                    b.Navigation("SelectedStoryBeat");
+
+                    b.Navigation("StoryBlock");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Quests.CampaignQuest", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
@@ -1457,6 +2195,219 @@ namespace LearningLab.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("CampaignQuest");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("ChoiceDefinitions")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "StoryBeat")
+                        .WithMany()
+                        .HasForeignKey("StoryBeatId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "StoryBlock")
+                        .WithMany()
+                        .HasForeignKey("StoryBlockId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("StoryBeat");
+
+                    b.Navigation("StoryBlock");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceOption", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", "CampaignChoiceDefinition")
+                        .WithMany("Options")
+                        .HasForeignKey("CampaignChoiceDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "StoryBeat")
+                        .WithMany()
+                        .HasForeignKey("StoryBeatId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CampaignChoiceDefinition");
+
+                    b.Navigation("StoryBeat");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceSelection", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", "CampaignChoiceDefinition")
+                        .WithMany()
+                        .HasForeignKey("CampaignChoiceDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceOption", "CampaignChoiceOption")
+                        .WithMany()
+                        .HasForeignKey("CampaignChoiceOptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", "CampaignSession")
+                        .WithMany("ChoiceSelections")
+                        .HasForeignKey("CampaignSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CampaignChoiceDefinition");
+
+                    b.Navigation("CampaignChoiceOption");
+
+                    b.Navigation("CampaignSession");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignEventDefinition", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("EventDefinitions")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignEventOption", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignEventDefinition", "CampaignEventDefinition")
+                        .WithMany("Options")
+                        .HasForeignKey("CampaignEventDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CampaignEventDefinition");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignEventState", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignEventDefinition", "CampaignEventDefinition")
+                        .WithMany("States")
+                        .HasForeignKey("CampaignEventDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", "CampaignSession")
+                        .WithMany("EventStates")
+                        .HasForeignKey("CampaignSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignEventOption", "SelectedOption")
+                        .WithMany()
+                        .HasForeignKey("SelectedOptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "SourceStoryBeat")
+                        .WithMany()
+                        .HasForeignKey("SourceStoryBeatId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "SourceStoryBlock")
+                        .WithMany()
+                        .HasForeignKey("SourceStoryBlockId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CampaignEventDefinition");
+
+                    b.Navigation("CampaignSession");
+
+                    b.Navigation("SelectedOption");
+
+                    b.Navigation("SourceStoryBeat");
+
+                    b.Navigation("SourceStoryBlock");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.ConditionClause", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignEventDefinition", "CampaignEventDefinition")
+                        .WithMany()
+                        .HasForeignKey("CampaignEventDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.ConditionGroup", "ConditionGroup")
+                        .WithMany("Clauses")
+                        .HasForeignKey("ConditionGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignEventOption", "ExpectedOption")
+                        .WithMany()
+                        .HasForeignKey("ExpectedOptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CampaignEventDefinition");
+
+                    b.Navigation("ConditionGroup");
+
+                    b.Navigation("ExpectedOption");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.ConditionGroup", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.ConditionGroup", "ParentConditionGroup")
+                        .WithMany("Groups")
+                        .HasForeignKey("ParentConditionGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentConditionGroup");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.ConditionalRule", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("ConditionalRules")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.ConditionGroup", "RootConditionGroup")
+                        .WithMany()
+                        .HasForeignKey("RootConditionGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("RootConditionGroup");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.StoryOutcomeEffect", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignEventDefinition", "CampaignEventDefinition")
+                        .WithMany()
+                        .HasForeignKey("CampaignEventDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("OutcomeEffects")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Rules.CampaignEventOption", "SelectedOption")
+                        .WithMany()
+                        .HasForeignKey("SelectedOptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("CampaignEventDefinition");
+
+                    b.Navigation("SelectedOption");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", b =>
@@ -1524,6 +2475,48 @@ namespace LearningLab.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsOne("LearningLab.Data.Models.Campaign.Story.StoryBeatCombat", "Combat", b1 =>
+                        {
+                            b1.Property<Guid>("StoryBeatId");
+
+                            b1.Property<string>("Description")
+                                .IsRequired();
+
+                            b1.Property<string>("Rewards");
+
+                            b1.HasKey("StoryBeatId");
+
+                            b1.ToTable("StoryBeats");
+
+                            b1
+                                .ToJson("combat")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StoryBeatId");
+
+                            b1.OwnsMany("LearningLab.Data.Models.Campaign.Story.StoryBeatCombatEnemyNpc", "EnemyNpcs", b2 =>
+                                {
+                                    b2.Property<Guid>("StoryBeatCombatStoryBeatId");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAddOrUpdate();
+
+                                    b2.Property<int>("Amount");
+
+                                    b2.Property<int>("MonsterId");
+
+                                    b2.HasKey("StoryBeatCombatStoryBeatId", "__synthesizedOrdinal");
+
+                                    b2.ToTable("StoryBeats");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("StoryBeatCombatStoryBeatId");
+                                });
+
+                            b1.Navigation("EnemyNpcs");
+                        });
+
                     b.OwnsOne("LearningLab.Data.Models.Campaign.Story.StoryBeatDecision", "Decision", b1 =>
                         {
                             b1.Property<Guid>("StoryBeatId");
@@ -1551,6 +2544,8 @@ namespace LearningLab.Data.Migrations
 
                                     b2.Property<string>("Description")
                                         .IsRequired();
+
+                                    b2.Property<Guid>("Id");
 
                                     b2.Property<bool>("IsSelected");
 
@@ -1596,6 +2591,8 @@ namespace LearningLab.Data.Migrations
                                         .ValueGeneratedOnAddOrUpdate();
 
                                     b2.Property<int>("DifficultyClass");
+
+                                    b2.Property<Guid>("Id");
 
                                     b2.Property<string>("Information")
                                         .IsRequired();
@@ -1689,6 +2686,8 @@ namespace LearningLab.Data.Migrations
 
                                     b2.Property<int?>("DifficultyClass");
 
+                                    b2.Property<Guid>("Id");
+
                                     b2.Property<string>("Information")
                                         .IsRequired();
 
@@ -1712,6 +2711,8 @@ namespace LearningLab.Data.Migrations
                                     b2.Property<int>("__synthesizedOrdinal")
                                         .ValueGeneratedOnAddOrUpdate();
 
+                                    b2.Property<Guid>("Id");
+
                                     b2.Property<string>("NpcTag")
                                         .IsRequired();
 
@@ -1728,6 +2729,27 @@ namespace LearningLab.Data.Migrations
                             b1.Navigation("NpcReferences");
                         });
 
+                    b.OwnsOne("LearningLab.Data.Models.Campaign.Story.StoryBeatTransition", "Transition", b1 =>
+                        {
+                            b1.Property<Guid>("StoryBeatId");
+
+                            b1.Property<string>("Description")
+                                .IsRequired();
+
+                            b1.HasKey("StoryBeatId");
+
+                            b1.ToTable("StoryBeats");
+
+                            b1
+                                .ToJson("transition")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StoryBeatId");
+                        });
+
+                    b.Navigation("Combat");
+
                     b.Navigation("Decision");
 
                     b.Navigation("Information");
@@ -1739,6 +2761,8 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Roleplaying");
 
                     b.Navigation("StoryBlock");
+
+                    b.Navigation("Transition");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlock", b =>
@@ -1895,11 +2919,19 @@ namespace LearningLab.Data.Migrations
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
                 {
+                    b.Navigation("ChoiceDefinitions");
+
+                    b.Navigation("ConditionalRules");
+
+                    b.Navigation("EventDefinitions");
+
                     b.Navigation("Milestones");
 
                     b.Navigation("NpcParticipations");
 
                     b.Navigation("Npcs");
+
+                    b.Navigation("OutcomeEffects");
 
                     b.Navigation("ParticipationInvites");
 
@@ -1920,14 +2952,46 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("StoryBlockMilestones");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentation", b =>
+                {
+                    b.Navigation("Entries");
+
+                    b.Navigation("StoryBeatSelections");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Quests.CampaignQuest", b =>
                 {
                     b.Navigation("Tasks");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", b =>
+                {
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignEventDefinition", b =>
+                {
+                    b.Navigation("Options");
+
+                    b.Navigation("States");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.ConditionGroup", b =>
+                {
+                    b.Navigation("Clauses");
+
+                    b.Navigation("Groups");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.CampaignSession", b =>
                 {
+                    b.Navigation("ChoiceSelections");
+
+                    b.Navigation("EventStates");
+
                     b.Navigation("Notes");
+
+                    b.Navigation("Presentation");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNote", b =>
@@ -1937,11 +3001,26 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("MechanicsChanges");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
+                {
+                    b.Navigation("CurrentPresentations");
+
+                    b.Navigation("PresentationEntries");
+
+                    b.Navigation("SelectedInPresentations");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlock", b =>
                 {
+                    b.Navigation("ActivePresentations");
+
                     b.Navigation("Beats");
 
                     b.Navigation("Milestones");
+
+                    b.Navigation("PresentationEntries");
+
+                    b.Navigation("PresentationStoryBeatSelections");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Monsters.Monster", b =>

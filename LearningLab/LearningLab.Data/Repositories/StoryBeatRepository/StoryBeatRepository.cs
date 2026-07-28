@@ -21,6 +21,7 @@ public sealed class StoryBeatRepository : IStoryBeatRepository
             .Include(beat => beat.Milestone)
             .Where(beat => beat.StoryBlockId == storyBlockId)
             .OrderBy(beat => beat.OrderIndex)
+            .ThenBy(beat => beat.SecondaryOrderIndex)
             .ThenBy(beat => beat.Id)
             .ToListAsync(cancellationToken);
     }
@@ -36,6 +37,19 @@ public sealed class StoryBeatRepository : IStoryBeatRepository
                 beat => beat.StoryBlockId == storyBlockId
                     && beat.Id == storyBeatId,
                 cancellationToken);
+    }
+
+    public Task<StoryBeat?> GetFirstByStoryBlockIdAsync(
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBeats
+            .AsNoTracking()
+            .Where(beat => beat.StoryBlockId == storyBlockId)
+            .OrderBy(beat => beat.OrderIndex)
+            .ThenBy(beat => beat.SecondaryOrderIndex)
+            .ThenBy(beat => beat.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public Task<StoryBeat?> GetByCampaignIdAndStoryBeatIdAsync(
@@ -78,6 +92,65 @@ public sealed class StoryBeatRepository : IStoryBeatRepository
                 cancellationToken);
     }
 
+    public Task<int?> GetLatestSecondaryOrderIndexByStoryBlockIdAndOrderIndexAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBeats
+            .AsNoTracking()
+            .Where(beat => beat.StoryBlockId == storyBlockId
+                && beat.OrderIndex == orderIndex)
+            .MaxAsync(
+                beat => (int?)beat.SecondaryOrderIndex,
+                cancellationToken);
+    }
+
+    public Task<bool> OrderExistsAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        int secondaryOrderIndex,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBeats
+            .AsNoTracking()
+            .AnyAsync(
+                beat => beat.StoryBlockId == storyBlockId
+                    && beat.OrderIndex == orderIndex
+                    && beat.SecondaryOrderIndex == secondaryOrderIndex,
+                cancellationToken);
+    }
+
+    public Task<bool> TransitionExistsByStoryBlockIdAsync(
+        Guid storyBlockId,
+        Guid? excludedStoryBeatId = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBeats
+            .AsNoTracking()
+            .AnyAsync(
+                beat => beat.StoryBlockId == storyBlockId
+                    && beat.StoryBeatType == StoryBeatType.Transition
+                    && (excludedStoryBeatId == null || beat.Id != excludedStoryBeatId),
+                cancellationToken);
+    }
+
+    public Task<bool> HasStoryBeatAfterAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        int secondaryOrderIndex,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBeats
+            .AsNoTracking()
+            .AnyAsync(
+                beat => beat.StoryBlockId == storyBlockId
+                    && (beat.OrderIndex > orderIndex
+                        || (beat.OrderIndex == orderIndex
+                            && beat.SecondaryOrderIndex > secondaryOrderIndex)),
+                cancellationToken);
+    }
+
     public async Task AddAsync(
         StoryBeat storyBeat,
         CancellationToken cancellationToken = default)
@@ -85,12 +158,35 @@ public sealed class StoryBeatRepository : IStoryBeatRepository
         await _context.StoryBeats.AddAsync(storyBeat, cancellationToken);
     }
 
-    public Task DecrementOrderAfterAsync(
+    public async Task DecrementOrderAfterAsync(
         Guid storyBlockId,
         int orderIndex,
+        int secondaryOrderIndex,
         CancellationToken cancellationToken = default)
     {
-        return _context.StoryBeats
+        var primaryOrderExists = await _context.StoryBeats
+            .AsNoTracking()
+            .AnyAsync(
+                beat => beat.StoryBlockId == storyBlockId
+                    && beat.OrderIndex == orderIndex,
+                cancellationToken);
+
+        if (primaryOrderExists)
+        {
+            await _context.StoryBeats
+                .Where(beat => beat.StoryBlockId == storyBlockId
+                    && beat.OrderIndex == orderIndex
+                    && beat.SecondaryOrderIndex > secondaryOrderIndex)
+                .ExecuteUpdateAsync(
+                    updates => updates.SetProperty(
+                        beat => beat.SecondaryOrderIndex,
+                        beat => beat.SecondaryOrderIndex - 1),
+                    cancellationToken);
+
+            return;
+        }
+
+        await _context.StoryBeats
             .Where(beat => beat.StoryBlockId == storyBlockId
                 && beat.OrderIndex > orderIndex)
             .ExecuteUpdateAsync(

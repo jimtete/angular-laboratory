@@ -1,0 +1,28 @@
+<button
+  type="button"
+  class="combat-monster-card"
+  [attr.aria-label]="'Open presentation sheet for ' + monster().name"
+  (click)="selectMonster()"
+>
+  <h3>{{ monster().name }}</h3>
+
+  <dl class="combat-monster-card-details">
+    <div>
+      <dt>Race</dt>
+      <dd>{{ monster().race }}</dd>
+    </div>
+    <div>
+      <dt>Class</dt>
+      <dd>{{ monster().className }}</dd>
+    </div>
+  </dl>
+
+  <div class="combat-monster-card-stats" aria-label="Monster ability scores">
+    @for (stat of monster().stats; track $index) {
+      <span>
+        <strong>{{ stat }}</strong>
+        <small>{{ statLabels[$index] }}</small>
+      </span>
+    }
+  </div>
+</button>

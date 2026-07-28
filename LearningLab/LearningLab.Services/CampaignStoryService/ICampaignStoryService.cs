@@ -24,6 +24,12 @@ public interface ICampaignStoryService
         UpdateStoryBlockTitleRequest? request,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<StoryBlockResponse>>> ReorderStoryBlocksAsync(
+        Guid userId,
+        Guid campaignId,
+        ReorderStoryBlocksRequest? request,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<object>> DeleteStoryBlockAsync(
         Guid userId,
         Guid campaignId,
@@ -84,6 +90,20 @@ public interface ICampaignStoryService
         CreateDecisionStoryBeatRequest? request,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<StoryBeatResponse>> CreateCombatStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        CreateCombatStoryBeatRequest? request,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<StoryBeatResponse>> CreateTransitionStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        CreateTransitionStoryBeatRequest? request,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<StoryBeatResponse>> CreateMilestoneStoryBeatAsync(
         Guid userId,
         Guid campaignId,
@@ -121,6 +141,22 @@ public interface ICampaignStoryService
         Guid storyBlockId,
         Guid storyBeatId,
         UpdateDecisionStoryBeatRequest? request,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<StoryBeatResponse>> UpdateCombatStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        Guid storyBeatId,
+        UpdateCombatStoryBeatRequest? request,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<StoryBeatResponse>> UpdateTransitionStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        Guid storyBeatId,
+        UpdateTransitionStoryBeatRequest? request,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<StoryBeatResponse>> UpdateMilestoneStoryBeatAsync(

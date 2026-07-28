@@ -1,0 +1,80 @@
+<section class="combat-npcs-page" aria-label="Combat Npcs">
+  <div class="combat-npcs-grid">
+    @if (isLoadingCampaignMonsters()) {
+      <p class="combat-npcs-status">Loading combat NPCs...</p>
+    } @else {
+      @for (monster of combatMonsterCards(); track monster.monsterId) {
+      <app-combat-monster-card
+        [monster]="monster"
+        (selected)="openMonsterPresentation($event)"
+      />
+      }
+
+      <button
+        type="button"
+        class="combat-npcs-add-card"
+        aria-label="Add combat NPC"
+        (click)="openMonsterSearch()"
+      >
+        <span aria-hidden="true">+</span>
+        <strong>Add Combat NPC</strong>
+      </button>
+    }
+  </div>
+
+  @if (isMonsterSearchOpen()) {
+    <div class="combat-npcs-dialog-backdrop" role="presentation">
+      <section class="combat-npcs-dialog" role="dialog" aria-modal="true" aria-label="Add combat NPC">
+        <label class="combat-npcs-search-field">
+          <span>Search Monsters</span>
+          <input
+            type="search"
+            placeholder="Monster name, race, class, tag"
+            [value]="monsterSearchDraft()"
+            [disabled]="isAddingMonster()"
+            (input)="setMonsterSearchDraft($event)"
+          />
+        </label>
+
+        <div class="combat-npcs-search-results" aria-label="Monster search results">
+          @if (isLoadingMonsterSearch()) {
+            <p class="combat-npcs-status">Loading monsters...</p>
+          } @else {
+            @for (result of filteredMonsterSearchResults(); track result.monster.id) {
+              <button
+                type="button"
+                class="combat-npcs-search-result"
+                [class.combat-npcs-search-result-loaded]="result.isSelected"
+                [class.combat-npcs-search-result-selected]="isSelectedMonsterDraft(result.monster)"
+                [disabled]="result.isSelected || isAddingMonster()"
+                (click)="selectMonsterSearchResult(result)"
+              >
+                <strong>{{ result.monster.name }}</strong>
+                <span>{{ monsterSummary(result.monster) || 'No summary' }}</span>
+                @if (result.isSelected) {
+                  <small>Loaded</small>
+                }
+              </button>
+            } @empty {
+              <p class="combat-npcs-status">No monsters found.</p>
+            }
+          }
+        </div>
+
+        <div class="combat-npcs-dialog-actions">
+          <button type="button" class="combat-npcs-close" [disabled]="isAddingMonster()" (click)="closeMonsterSearch()">
+            Close
+          </button>
+          <button
+            type="button"
+            class="combat-npcs-load"
+            [disabled]="!selectedMonsterDraft() || isAddingMonster()"
+            (click)="addSelectedMonsterToCampaign()"
+          >
+            {{ isAddingMonster() ? 'Loading...' : 'Load' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

@@ -7,6 +7,7 @@ using LearningLab.Data.Models.DTOs.Campaign.Story;
 using LearningLab.Data.Repositories.CampaignMilestoneRepository;
 using LearningLab.Data.Repositories.CampaignNpcRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
+using LearningLab.Data.Repositories.MonsterRepository;
 using LearningLab.Data.Repositories.StoryBeatRepository;
 using LearningLab.Data.Repositories.StoryBlockMilestoneRepository;
 using LearningLab.Data.Repositories.StoryBlockRepository;
@@ -16,6 +17,8 @@ namespace LearningLab.Services.CampaignStoryService;
 
 public sealed class CampaignStoryService : ICampaignStoryService
 {
+    private readonly record struct StoryBeatOrder(int OrderIndex, int SecondaryOrderIndex);
+
     private const int MaximumStoryBlockTitleLength = 256;
     private const int MaximumStoryBeatTitleLength = 256;
     private const int MaximumCampaignNpcTagLength = 128;
@@ -27,6 +30,10 @@ public sealed class CampaignStoryService : ICampaignStoryService
     private const int MaximumDecisionDescriptionLength = 2048;
     private const int MaximumDecisionOptionTitleLength = 256;
     private const int MaximumDecisionOptionDescriptionLength = 2048;
+    private const int MaximumCombatDescriptionLength = 2048;
+    private const int MaximumCombatRewardsLength = 2048;
+    private const int MaximumCombatEnemyNpcCount = 50;
+    private const int MaximumTransitionDescriptionLength = 2048;
 
     private readonly IStoryBlockRepository _storyBlockRepository;
     private readonly IStoryBeatRepository _storyBeatRepository;
@@ -34,6 +41,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
     private readonly ICampaignMilestoneRepository _campaignMilestoneRepository;
     private readonly ICampaignNpcRepository _campaignNpcRepository;
     private readonly ICampaignRepository _campaignRepository;
+    private readonly IMonsterRepository _monsterRepository;
     private readonly IUserRepository _userRepository;
 
     public CampaignStoryService(
@@ -43,6 +51,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
         ICampaignMilestoneRepository campaignMilestoneRepository,
         ICampaignNpcRepository campaignNpcRepository,
         ICampaignRepository campaignRepository,
+        IMonsterRepository monsterRepository,
         IUserRepository userRepository)
     {
         _storyBlockRepository = storyBlockRepository;
@@ -51,6 +60,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
         _campaignMilestoneRepository = campaignMilestoneRepository;
         _campaignNpcRepository = campaignNpcRepository;
         _campaignRepository = campaignRepository;
+        _monsterRepository = monsterRepository;
         _userRepository = userRepository;
     }
 
@@ -77,11 +87,16 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBlockResponse>(validationStatusCode.Value);
         }
 
+        var latestOrderIndex = await _storyBlockRepository.GetLatestOrderIndexByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
         var storyBlock = new StoryBlock
         {
             StoryBlockId = Guid.NewGuid(),
             CampaignId = campaignId,
-            Title = title!
+            Title = title!,
+            OrderIndex = (latestOrderIndex ?? 0) + 1
         };
 
         await _storyBlockRepository.AddAsync(storyBlock, cancellationToken);
@@ -159,6 +174,52 @@ public sealed class CampaignStoryService : ICampaignStoryService
             ToResponse(storyBlock));
     }
 
+    public async Task<ServiceResult<IReadOnlyList<StoryBlockResponse>>> ReorderStoryBlocksAsync(
+        Guid userId,
+        Guid campaignId,
+        ReorderStoryBlocksRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request?.StoryBlockIds is null
+            || request.StoryBlockIds.Count == 0
+            || request.StoryBlockIds.Distinct().Count() != request.StoryBlockIds.Count)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockResponse>>(ApplicationStatusCode.InvalidStoryBlock);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockResponse>>(validationStatusCode.Value);
+        }
+
+        var storyBlocks = await _storyBlockRepository.ListTrackedByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
+        if (storyBlocks.Count != request.StoryBlockIds.Count
+            || storyBlocks.Select(block => block.StoryBlockId).Except(request.StoryBlockIds).Any())
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockResponse>>(ApplicationStatusCode.InvalidStoryBlock);
+        }
+
+        await ApplyStoryBlockOrderAsync(
+            storyBlocks,
+            request.StoryBlockIds,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<StoryBlockResponse>>(
+            ApplicationStatusCode.Success,
+            storyBlocks
+                .OrderBy(block => block.OrderIndex)
+                .Select(ToResponse)
+                .ToList());
+    }
+
     public async Task<ServiceResult<object>> DeleteStoryBlockAsync(
         Guid userId,
         Guid campaignId,
@@ -187,6 +248,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
         _storyBlockRepository.Remove(storyBlock);
         await _storyBlockRepository.SaveChangesAsync(cancellationToken);
+        await CompactStoryBlockOrderAsync(campaignId, cancellationToken);
 
         return new ServiceResult<object>(ApplicationStatusCode.Success);
     }
@@ -417,26 +479,44 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
         }
 
+        if (await _storyBeatRepository.TransitionExistsByStoryBlockIdAsync(
+                storyBlockId,
+                cancellationToken: cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
         if (!TryBuildStoryBeatInformation(request, out var information))
         {
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
         }
 
-        var latestOrderIndex = await _storyBeatRepository.GetLatestOrderIndexByStoryBlockIdAsync(
+        var order = await ResolveCreateStoryBeatOrderAsync(
             storyBlockId,
+            request?.OrderIndex,
+            request?.SecondaryOrderIndex,
             cancellationToken);
+
+        if (order is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
 
         var storyBeat = new StoryBeat
         {
             Id = Guid.NewGuid(),
             StoryBlockId = storyBlockId,
-            OrderIndex = (latestOrderIndex ?? 0) + 1,
+            OrderIndex = order.Value.OrderIndex,
+            SecondaryOrderIndex = order.Value.SecondaryOrderIndex,
             Title = title!,
             StoryBeatType = StoryBeatType.Information,
             Information = information,
             Narrative = null,
             Roleplaying = null,
             Decision = null,
+            Combat = null,
+            Transition = null,
             CampaignMilestoneId = null,
             Milestone = null
         };
@@ -483,26 +563,44 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
         }
 
+        if (await _storyBeatRepository.TransitionExistsByStoryBlockIdAsync(
+                storyBlockId,
+                cancellationToken: cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
         if (!TryBuildStoryBeatNarrative(request, out var narrative))
         {
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
         }
 
-        var latestOrderIndex = await _storyBeatRepository.GetLatestOrderIndexByStoryBlockIdAsync(
+        var order = await ResolveCreateStoryBeatOrderAsync(
             storyBlockId,
+            request?.OrderIndex,
+            request?.SecondaryOrderIndex,
             cancellationToken);
+
+        if (order is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
 
         var storyBeat = new StoryBeat
         {
             Id = Guid.NewGuid(),
             StoryBlockId = storyBlockId,
-            OrderIndex = (latestOrderIndex ?? 0) + 1,
+            OrderIndex = order.Value.OrderIndex,
+            SecondaryOrderIndex = order.Value.SecondaryOrderIndex,
             Title = title!,
             StoryBeatType = StoryBeatType.Narrative,
             Information = null,
             Narrative = narrative,
             Roleplaying = null,
             Decision = null,
+            Combat = null,
+            Transition = null,
             CampaignMilestoneId = null,
             Milestone = null
         };
@@ -549,9 +647,18 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
         }
 
+        if (await _storyBeatRepository.TransitionExistsByStoryBlockIdAsync(
+                storyBlockId,
+                cancellationToken: cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
         var roleplaying = await BuildStoryBeatRoleplayingAsync(
             campaignId,
             request,
+            null,
             cancellationToken);
 
         if (roleplaying is null)
@@ -559,21 +666,31 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
         }
 
-        var latestOrderIndex = await _storyBeatRepository.GetLatestOrderIndexByStoryBlockIdAsync(
+        var order = await ResolveCreateStoryBeatOrderAsync(
             storyBlockId,
+            request?.OrderIndex,
+            request?.SecondaryOrderIndex,
             cancellationToken);
+
+        if (order is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
 
         var storyBeat = new StoryBeat
         {
             Id = Guid.NewGuid(),
             StoryBlockId = storyBlockId,
-            OrderIndex = (latestOrderIndex ?? 0) + 1,
+            OrderIndex = order.Value.OrderIndex,
+            SecondaryOrderIndex = order.Value.SecondaryOrderIndex,
             Title = title!,
             StoryBeatType = StoryBeatType.Roleplaying,
             Information = null,
             Narrative = null,
             Roleplaying = roleplaying,
             Decision = null,
+            Combat = null,
+            Transition = null,
             CampaignMilestoneId = null,
             Milestone = null
         };
@@ -596,7 +713,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
         var title = request?.Title?.Trim();
 
         if (!IsValidStoryBeatTitle(title)
-            || !TryBuildStoryBeatDecision(request, out var decision))
+            || !TryBuildStoryBeatDecision(request, null, out var decision))
         {
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
         }
@@ -621,21 +738,39 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
         }
 
-        var latestOrderIndex = await _storyBeatRepository.GetLatestOrderIndexByStoryBlockIdAsync(
+        if (await _storyBeatRepository.TransitionExistsByStoryBlockIdAsync(
+                storyBlockId,
+                cancellationToken: cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
+        var order = await ResolveCreateStoryBeatOrderAsync(
             storyBlockId,
+            request?.OrderIndex,
+            request?.SecondaryOrderIndex,
             cancellationToken);
+
+        if (order is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
 
         var storyBeat = new StoryBeat
         {
             Id = Guid.NewGuid(),
             StoryBlockId = storyBlockId,
-            OrderIndex = (latestOrderIndex ?? 0) + 1,
+            OrderIndex = order.Value.OrderIndex,
+            SecondaryOrderIndex = order.Value.SecondaryOrderIndex,
             Title = title!,
             StoryBeatType = StoryBeatType.Decision,
             Information = null,
             Narrative = null,
             Roleplaying = null,
             Decision = decision,
+            Combat = null,
+            Transition = null,
             CampaignMilestoneId = null,
             Milestone = null
         };
@@ -646,6 +781,178 @@ public sealed class CampaignStoryService : ICampaignStoryService
         return new ServiceResult<StoryBeatResponse>(
             ApplicationStatusCode.Success,
             ToResponse(storyBeat));
+    }
+
+    public async Task<ServiceResult<StoryBeatResponse>> CreateCombatStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        CreateCombatStoryBeatRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        var title = request?.Title?.Trim();
+
+        if (!IsValidStoryBeatTitle(title)
+            || !TryBuildStoryBeatCombat(request, out var combat, out var monsterIds))
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<StoryBeatResponse>(validationStatusCode.Value);
+        }
+
+        var storyBlock = await _storyBlockRepository.GetByCampaignIdAndStoryBlockIdAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        if (storyBlock is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
+        }
+
+        if (await _storyBeatRepository.TransitionExistsByStoryBlockIdAsync(
+                storyBlockId,
+                cancellationToken: cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
+        if (!await AllMonstersAreEnabledForCampaignAsync(
+                campaignId,
+                monsterIds,
+                cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.CampaignMonsterNotFound);
+        }
+
+        var order = await ResolveCreateStoryBeatOrderAsync(
+            storyBlockId,
+            request?.OrderIndex,
+            request?.SecondaryOrderIndex,
+            cancellationToken);
+
+        if (order is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        var storyBeat = new StoryBeat
+        {
+            Id = Guid.NewGuid(),
+            StoryBlockId = storyBlockId,
+            OrderIndex = order.Value.OrderIndex,
+            SecondaryOrderIndex = order.Value.SecondaryOrderIndex,
+            Title = title!,
+            StoryBeatType = StoryBeatType.Combat,
+            Information = null,
+            Narrative = null,
+            Roleplaying = null,
+            Decision = null,
+            Combat = combat,
+            Transition = null,
+            CampaignMilestoneId = null,
+            Milestone = null
+        };
+
+        await _storyBeatRepository.AddAsync(storyBeat, cancellationToken);
+        await _storyBeatRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<StoryBeatResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(storyBeat));
+    }
+
+    public async Task<ServiceResult<StoryBeatResponse>> CreateTransitionStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        CreateTransitionStoryBeatRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        var title = request?.Title?.Trim();
+
+        if (!IsValidStoryBeatTitle(title)
+            || !TryBuildStoryBeatTransition(request, out var transition))
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<StoryBeatResponse>(validationStatusCode.Value);
+        }
+
+        var storyBlock = await _storyBlockRepository.GetByCampaignIdAndStoryBlockIdAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        if (storyBlock is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
+        }
+
+        if (await _storyBeatRepository.TransitionExistsByStoryBlockIdAsync(
+                storyBlockId,
+                cancellationToken: cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionAlreadyExists);
+        }
+
+        var order = await ResolveCreateStoryBeatOrderAsync(
+            storyBlockId,
+            null,
+            null,
+            cancellationToken);
+
+        if (order is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        var storyBeat = new StoryBeat
+        {
+            Id = Guid.NewGuid(),
+            StoryBlockId = storyBlockId,
+            OrderIndex = order.Value.OrderIndex,
+            SecondaryOrderIndex = order.Value.SecondaryOrderIndex,
+            Title = title!,
+            StoryBeatType = StoryBeatType.Transition,
+            Information = null,
+            Narrative = null,
+            Roleplaying = null,
+            Decision = null,
+            Combat = null,
+            Transition = transition,
+            CampaignMilestoneId = null,
+            Milestone = null
+        };
+
+        await _storyBeatRepository.AddAsync(storyBeat, cancellationToken);
+        await _storyBeatRepository.SaveChangesAsync(cancellationToken);
+
+        var storyBeats = await _storyBeatRepository.ListByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
+
+        return new ServiceResult<StoryBeatResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(storyBeat, storyBeats));
     }
 
     public async Task<ServiceResult<StoryBeatResponse>> CreateMilestoneStoryBeatAsync(
@@ -662,6 +969,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
         }
 
+        var milestoneId = request.MilestoneId;
+
         var validationStatusCode = await ValidateMasterCampaignAccessAsync(
             userId,
             campaignId,
@@ -682,9 +991,17 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
         }
 
+        if (await _storyBeatRepository.TransitionExistsByStoryBlockIdAsync(
+                storyBlockId,
+                cancellationToken: cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
         var milestone = await _campaignMilestoneRepository.GetByCampaignIdAndMilestoneIdAsync(
             campaignId,
-            request!.MilestoneId,
+            milestoneId,
             cancellationToken);
 
         if (milestone is null)
@@ -694,7 +1011,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
         var existingMilestoneBeat = await _storyBeatRepository.GetByCampaignIdAndCampaignMilestoneIdAsync(
             campaignId,
-            request.MilestoneId,
+            milestoneId,
             cancellationToken);
 
         if (existingMilestoneBeat is not null)
@@ -702,22 +1019,32 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBeatMilestoneAlreadyExists);
         }
 
-        var latestOrderIndex = await _storyBeatRepository.GetLatestOrderIndexByStoryBlockIdAsync(
+        var order = await ResolveCreateStoryBeatOrderAsync(
             storyBlockId,
+            request?.OrderIndex,
+            request?.SecondaryOrderIndex,
             cancellationToken);
+
+        if (order is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
 
         var storyBeat = new StoryBeat
         {
             Id = Guid.NewGuid(),
             StoryBlockId = storyBlockId,
-            OrderIndex = (latestOrderIndex ?? 0) + 1,
+            OrderIndex = order.Value.OrderIndex,
+            SecondaryOrderIndex = order.Value.SecondaryOrderIndex,
             Title = title!,
             StoryBeatType = StoryBeatType.Milestone,
             Information = null,
             Narrative = null,
             Roleplaying = null,
             Decision = null,
-            CampaignMilestoneId = request.MilestoneId,
+            Combat = null,
+            Transition = null,
+            CampaignMilestoneId = milestoneId,
             Milestone = milestone
         };
 
@@ -727,6 +1054,66 @@ public sealed class CampaignStoryService : ICampaignStoryService
         return new ServiceResult<StoryBeatResponse>(
             ApplicationStatusCode.Success,
             ToResponse(storyBeat));
+    }
+
+    private async Task<StoryBeatOrder?> ResolveCreateStoryBeatOrderAsync(
+        Guid storyBlockId,
+        int? requestedOrderIndex,
+        int? requestedSecondaryOrderIndex,
+        CancellationToken cancellationToken)
+    {
+        if (requestedOrderIndex is <= 0 || requestedSecondaryOrderIndex is <= 0)
+        {
+            return null;
+        }
+
+        if (requestedOrderIndex is null && requestedSecondaryOrderIndex is not null)
+        {
+            return null;
+        }
+
+        var latestOrderIndex = await _storyBeatRepository.GetLatestOrderIndexByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
+
+        if (requestedOrderIndex is null)
+        {
+            return new StoryBeatOrder((latestOrderIndex ?? 0) + 1, 1);
+        }
+
+        if (requestedOrderIndex > (latestOrderIndex ?? 0) + 1)
+        {
+            return null;
+        }
+
+        var latestSecondaryOrderIndex = await _storyBeatRepository
+            .GetLatestSecondaryOrderIndexByStoryBlockIdAndOrderIndexAsync(
+                storyBlockId,
+                requestedOrderIndex.Value,
+                cancellationToken);
+
+        if (latestSecondaryOrderIndex is null)
+        {
+            return requestedSecondaryOrderIndex is null or 1
+                ? new StoryBeatOrder(requestedOrderIndex.Value, 1)
+                : null;
+        }
+
+        if (requestedSecondaryOrderIndex is null)
+        {
+            return new StoryBeatOrder(requestedOrderIndex.Value, latestSecondaryOrderIndex.Value + 1);
+        }
+
+        if (await _storyBeatRepository.OrderExistsAsync(
+                storyBlockId,
+                requestedOrderIndex.Value,
+                requestedSecondaryOrderIndex.Value,
+                cancellationToken))
+        {
+            return null;
+        }
+
+        return new StoryBeatOrder(requestedOrderIndex.Value, requestedSecondaryOrderIndex.Value);
     }
 
     public async Task<ServiceResult<StoryBeatResponse>> UpdateInformationStoryBeatAsync(
@@ -785,6 +1172,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
         storyBeat.Narrative = null;
         storyBeat.Roleplaying = null;
         storyBeat.Decision = null;
+        storyBeat.Combat = null;
+        storyBeat.Transition = null;
         storyBeat.CampaignMilestoneId = null;
         storyBeat.Milestone = null;
 
@@ -851,6 +1240,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
         storyBeat.Narrative = narrative;
         storyBeat.Roleplaying = null;
         storyBeat.Decision = null;
+        storyBeat.Combat = null;
+        storyBeat.Transition = null;
         storyBeat.CampaignMilestoneId = null;
         storyBeat.Milestone = null;
 
@@ -909,6 +1300,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
         var roleplaying = await BuildStoryBeatRoleplayingAsync(
             campaignId,
             request,
+            storyBeat.Roleplaying,
             cancellationToken);
 
         if (storyBeat.StoryBeatType != StoryBeatType.Roleplaying
@@ -922,6 +1314,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
         storyBeat.Narrative = null;
         storyBeat.Roleplaying = roleplaying;
         storyBeat.Decision = null;
+        storyBeat.Combat = null;
+        storyBeat.Transition = null;
         storyBeat.CampaignMilestoneId = null;
         storyBeat.Milestone = null;
 
@@ -942,8 +1336,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
     {
         var title = request?.Title?.Trim();
 
-        if (!IsValidStoryBeatTitle(title)
-            || !TryBuildStoryBeatDecision(request, out var decision))
+        if (!IsValidStoryBeatTitle(title))
         {
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
         }
@@ -983,11 +1376,18 @@ public sealed class CampaignStoryService : ICampaignStoryService
             return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
         }
 
+        if (!TryBuildStoryBeatDecision(request, storyBeat.Decision, out var decision))
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
         storyBeat.Title = title!;
         storyBeat.Information = null;
         storyBeat.Narrative = null;
         storyBeat.Roleplaying = null;
         storyBeat.Decision = decision;
+        storyBeat.Combat = null;
+        storyBeat.Transition = null;
         storyBeat.CampaignMilestoneId = null;
         storyBeat.Milestone = null;
 
@@ -996,6 +1396,164 @@ public sealed class CampaignStoryService : ICampaignStoryService
         return new ServiceResult<StoryBeatResponse>(
             ApplicationStatusCode.Success,
             ToResponse(storyBeat));
+    }
+
+    public async Task<ServiceResult<StoryBeatResponse>> UpdateCombatStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        Guid storyBeatId,
+        UpdateCombatStoryBeatRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        var title = request?.Title?.Trim();
+
+        if (!IsValidStoryBeatTitle(title)
+            || !TryBuildStoryBeatCombat(request, out var combat, out var monsterIds))
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<StoryBeatResponse>(validationStatusCode.Value);
+        }
+
+        var storyBlock = await _storyBlockRepository.GetByCampaignIdAndStoryBlockIdAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        if (storyBlock is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByStoryBlockIdAndStoryBeatIdAsync(
+            storyBlockId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        if (storyBeat.StoryBeatType != StoryBeatType.Combat)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        if (!await AllMonstersAreEnabledForCampaignAsync(
+                campaignId,
+                monsterIds,
+                cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.CampaignMonsterNotFound);
+        }
+
+        storyBeat.Title = title!;
+        storyBeat.Information = null;
+        storyBeat.Narrative = null;
+        storyBeat.Roleplaying = null;
+        storyBeat.Decision = null;
+        storyBeat.Combat = combat;
+        storyBeat.Transition = null;
+        storyBeat.CampaignMilestoneId = null;
+        storyBeat.Milestone = null;
+
+        await _storyBeatRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<StoryBeatResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(storyBeat));
+    }
+
+    public async Task<ServiceResult<StoryBeatResponse>> UpdateTransitionStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        Guid storyBeatId,
+        UpdateTransitionStoryBeatRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        var title = request?.Title?.Trim();
+
+        if (!IsValidStoryBeatTitle(title)
+            || !TryBuildStoryBeatTransition(request, out var transition))
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<StoryBeatResponse>(validationStatusCode.Value);
+        }
+
+        var storyBlock = await _storyBlockRepository.GetByCampaignIdAndStoryBlockIdAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        if (storyBlock is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBlockNotFound);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByStoryBlockIdAndStoryBeatIdAsync(
+            storyBlockId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        if (storyBeat.StoryBeatType != StoryBeatType.Transition)
+        {
+            return new ServiceResult<StoryBeatResponse>(ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        if (await _storyBeatRepository.HasStoryBeatAfterAsync(
+                storyBlockId,
+                storyBeat.OrderIndex,
+                storyBeat.SecondaryOrderIndex,
+                cancellationToken))
+        {
+            return new ServiceResult<StoryBeatResponse>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
+        storyBeat.Title = title!;
+        storyBeat.Information = null;
+        storyBeat.Narrative = null;
+        storyBeat.Roleplaying = null;
+        storyBeat.Decision = null;
+        storyBeat.Combat = null;
+        storyBeat.Transition = transition;
+        storyBeat.CampaignMilestoneId = null;
+        storyBeat.Milestone = null;
+
+        await _storyBeatRepository.SaveChangesAsync(cancellationToken);
+
+        var storyBeats = await _storyBeatRepository.ListByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
+
+        return new ServiceResult<StoryBeatResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(storyBeat, storyBeats));
     }
 
     public async Task<ServiceResult<StoryBeatResponse>> UpdateMilestoneStoryBeatAsync(
@@ -1073,6 +1631,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
         storyBeat.Narrative = null;
         storyBeat.Roleplaying = null;
         storyBeat.Decision = null;
+        storyBeat.Combat = null;
+        storyBeat.Transition = null;
         storyBeat.CampaignMilestoneId = request.MilestoneId;
         storyBeat.Milestone = milestone;
 
@@ -1121,12 +1681,14 @@ public sealed class CampaignStoryService : ICampaignStoryService
         }
 
         var removedOrderIndex = storyBeat.OrderIndex;
+        var removedSecondaryOrderIndex = storyBeat.SecondaryOrderIndex;
 
         _storyBeatRepository.Remove(storyBeat);
         await _storyBeatRepository.SaveChangesAsync(cancellationToken);
         await _storyBeatRepository.DecrementOrderAfterAsync(
             storyBlockId,
             removedOrderIndex,
+            removedSecondaryOrderIndex,
             cancellationToken);
 
         return new ServiceResult<object>(ApplicationStatusCode.Success);
@@ -1165,7 +1727,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
         return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
             ApplicationStatusCode.Success,
-            storyBeats.Select(ToResponse).ToList());
+            storyBeats.Select(storyBeat => ToResponse(storyBeat, storyBeats)).ToList());
     }
 
     public async Task<ServiceResult<IReadOnlyList<CampaignNpcResponse>>>
@@ -1414,6 +1976,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
             optionalInformation.Add(new StoryBeatOptionalInformation
             {
+                Id = Guid.NewGuid(),
                 Skill = optionalRequest.Skill,
                 DifficultyClass = optionalRequest.DifficultyClass,
                 Information = revealedInformation,
@@ -1491,24 +2054,29 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
     private static bool TryBuildStoryBeatDecision(
         CreateDecisionStoryBeatRequest? request,
+        StoryBeatDecision? existingDecision,
         out StoryBeatDecision decision)
     {
         return TryBuildStoryBeatDecision(
             request?.Decision,
+            existingDecision,
             out decision);
     }
 
     private static bool TryBuildStoryBeatDecision(
         UpdateDecisionStoryBeatRequest? request,
+        StoryBeatDecision? existingDecision,
         out StoryBeatDecision decision)
     {
         return TryBuildStoryBeatDecision(
             request?.Decision,
+            existingDecision,
             out decision);
     }
 
     private static bool TryBuildStoryBeatDecision(
         StoryBeatDecisionRequest? request,
+        StoryBeatDecision? existingDecision,
         out StoryBeatDecision decision)
     {
         decision = new StoryBeatDecision();
@@ -1525,6 +2093,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
         }
 
         var decisions = new List<StoryBeatDecisionOption>();
+        var usedDecisionIds = new HashSet<Guid>();
 
         for (var index = 0; index < request.Decisions.Count; index++)
         {
@@ -1540,8 +2109,22 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 return false;
             }
 
+            var decisionId = ResolveDecisionOptionId(
+                optionRequest,
+                index + 1,
+                title,
+                optionDescription,
+                existingDecision,
+                usedDecisionIds);
+
+            if (decisionId == Guid.Empty || !usedDecisionIds.Add(decisionId))
+            {
+                return false;
+            }
+
             decisions.Add(new StoryBeatDecisionOption
             {
+                Id = decisionId,
                 OrderIndex = index + 1,
                 Title = title,
                 Description = optionDescription,
@@ -1558,31 +2141,204 @@ public sealed class CampaignStoryService : ICampaignStoryService
         return true;
     }
 
+    private static Guid ResolveDecisionOptionId(
+        StoryBeatDecisionOptionRequest request,
+        int orderIndex,
+        string title,
+        string description,
+        StoryBeatDecision? existingDecision,
+        IReadOnlySet<Guid> usedDecisionIds)
+    {
+        if (request.Id is { } requestId && requestId != Guid.Empty)
+        {
+            return requestId;
+        }
+
+        var samePositionId = existingDecision?.Decisions
+            .FirstOrDefault(item =>
+                item.Id != Guid.Empty
+                && !usedDecisionIds.Contains(item.Id)
+                && item.OrderIndex == orderIndex)
+            ?.Id;
+
+        if (samePositionId is { } positionId)
+        {
+            return positionId;
+        }
+
+        return existingDecision?.Decisions
+            .FirstOrDefault(item =>
+                item.Id != Guid.Empty
+                && !usedDecisionIds.Contains(item.Id)
+                && string.Equals(item.Title, title, StringComparison.Ordinal)
+                && string.Equals(item.Description, description, StringComparison.Ordinal))
+            ?.Id ?? Guid.NewGuid();
+    }
+
+    private static bool TryBuildStoryBeatCombat(
+        CreateCombatStoryBeatRequest? request,
+        out StoryBeatCombat combat,
+        out IReadOnlyCollection<int> monsterIds)
+    {
+        return TryBuildStoryBeatCombat(
+            request?.Combat,
+            out combat,
+            out monsterIds);
+    }
+
+    private static bool TryBuildStoryBeatCombat(
+        UpdateCombatStoryBeatRequest? request,
+        out StoryBeatCombat combat,
+        out IReadOnlyCollection<int> monsterIds)
+    {
+        return TryBuildStoryBeatCombat(
+            request?.Combat,
+            out combat,
+            out monsterIds);
+    }
+
+    private static bool TryBuildStoryBeatCombat(
+        StoryBeatCombatRequest? request,
+        out StoryBeatCombat combat,
+        out IReadOnlyCollection<int> monsterIds)
+    {
+        combat = new StoryBeatCombat();
+        monsterIds = [];
+
+        var description = request?.Description?.Trim();
+        var rewards = string.IsNullOrWhiteSpace(request?.Rewards)
+            ? null
+            : request.Rewards.Trim();
+
+        if (request is null
+            || string.IsNullOrWhiteSpace(description)
+            || description.Length > MaximumCombatDescriptionLength
+            || rewards is not null && rewards.Length > MaximumCombatRewardsLength
+            || request.EnemyNpcs.Count is 0 or > MaximumCombatEnemyNpcCount
+            || request.EnemyNpcs.Any(enemyNpc => enemyNpc is null))
+        {
+            return false;
+        }
+
+        var enemyNpcs = new List<StoryBeatCombatEnemyNpc>();
+        var monsterIdSet = new HashSet<int>();
+
+        foreach (var enemyNpcRequest in request.EnemyNpcs)
+        {
+            if (enemyNpcRequest.MonsterId < 1
+                || enemyNpcRequest.Amount < 1
+                || !monsterIdSet.Add(enemyNpcRequest.MonsterId))
+            {
+                return false;
+            }
+
+            enemyNpcs.Add(new StoryBeatCombatEnemyNpc
+            {
+                MonsterId = enemyNpcRequest.MonsterId,
+                Amount = enemyNpcRequest.Amount
+            });
+        }
+
+        combat = new StoryBeatCombat
+        {
+            Description = description,
+            Rewards = rewards,
+            EnemyNpcs = enemyNpcs
+        };
+        monsterIds = monsterIdSet;
+
+        return true;
+    }
+
+    private static bool TryBuildStoryBeatTransition(
+        CreateTransitionStoryBeatRequest? request,
+        out StoryBeatTransition transition)
+    {
+        return TryBuildStoryBeatTransition(
+            request?.Transition,
+            out transition);
+    }
+
+    private static bool TryBuildStoryBeatTransition(
+        UpdateTransitionStoryBeatRequest? request,
+        out StoryBeatTransition transition)
+    {
+        return TryBuildStoryBeatTransition(
+            request?.Transition,
+            out transition);
+    }
+
+    private static bool TryBuildStoryBeatTransition(
+        StoryBeatTransitionRequest? request,
+        out StoryBeatTransition transition)
+    {
+        transition = new StoryBeatTransition();
+
+        var description = request?.Description?.Trim();
+
+        if (request is null
+            || string.IsNullOrWhiteSpace(description)
+            || description.Length > MaximumTransitionDescriptionLength)
+        {
+            return false;
+        }
+
+        transition = new StoryBeatTransition
+        {
+            Description = description
+        };
+
+        return true;
+    }
+
+    private async Task<bool> AllMonstersAreEnabledForCampaignAsync(
+        Guid campaignId,
+        IReadOnlyCollection<int> monsterIds,
+        CancellationToken cancellationToken)
+    {
+        if (monsterIds.Count == 0)
+        {
+            return false;
+        }
+
+        var enabledMonsterCount = await _monsterRepository.CountCampaignParticipationsByMonsterIdsAsync(
+            campaignId,
+            monsterIds,
+            cancellationToken);
+
+        return enabledMonsterCount == monsterIds.Count;
+    }
+
     private Task<StoryBeatRoleplaying?> BuildStoryBeatRoleplayingAsync(
         Guid campaignId,
         CreateRoleplayingStoryBeatRequest? request,
+        StoryBeatRoleplaying? existingRoleplaying,
         CancellationToken cancellationToken)
     {
         return BuildStoryBeatRoleplayingAsync(
             campaignId,
             request?.Roleplaying,
+            existingRoleplaying,
             cancellationToken);
     }
 
     private Task<StoryBeatRoleplaying?> BuildStoryBeatRoleplayingAsync(
         Guid campaignId,
         UpdateRoleplayingStoryBeatRequest? request,
+        StoryBeatRoleplaying? existingRoleplaying,
         CancellationToken cancellationToken)
     {
         return BuildStoryBeatRoleplayingAsync(
             campaignId,
             request?.Roleplaying,
+            existingRoleplaying,
             cancellationToken);
     }
 
     private async Task<StoryBeatRoleplaying?> BuildStoryBeatRoleplayingAsync(
         Guid campaignId,
         StoryBeatRoleplayingRequest? request,
+        StoryBeatRoleplaying? existingRoleplaying,
         CancellationToken cancellationToken)
     {
         var mainDescription = request?.MainDescription?.Trim();
@@ -1617,6 +2373,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
         var npcTagSet = new HashSet<string>(npcTags!, StringComparer.OrdinalIgnoreCase);
         var discoverableInformation = new List<StoryBeatRoleplayingInformation>();
+        var usedInformationIds = new HashSet<Guid>();
 
         foreach (var informationRequest in request.DiscoverableInformation)
         {
@@ -1631,8 +2388,20 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 return null;
             }
 
+            var informationId = ResolveRoleplayingInformationId(
+                informationRequest,
+                npcTag,
+                information,
+                existingRoleplaying);
+
+            if (informationId == Guid.Empty || !usedInformationIds.Add(informationId))
+            {
+                return null;
+            }
+
             discoverableInformation.Add(new StoryBeatRoleplayingInformation
             {
+                Id = informationId,
                 NpcTag = npcTag,
                 CheckType = informationRequest.CheckType,
                 Skill = informationRequest.CheckType == StoryBeatRoleplayingCheckType.Skill
@@ -1654,11 +2423,49 @@ public sealed class CampaignStoryService : ICampaignStoryService
             NpcReferences = npcTags!
                 .Select(tag => new StoryBeatRoleplayingNpcReference
                 {
+                    Id = ResolveRoleplayingNpcReferenceId(tag!, existingRoleplaying),
                     NpcTag = tag!
                 })
                 .ToList(),
             DiscoverableInformation = discoverableInformation
         };
+    }
+
+    private static Guid ResolveRoleplayingNpcReferenceId(
+        string npcTag,
+        StoryBeatRoleplaying? existingRoleplaying)
+    {
+        return existingRoleplaying?.NpcReferences
+            .FirstOrDefault(item => string.Equals(
+                item.NpcTag,
+                npcTag,
+                StringComparison.OrdinalIgnoreCase))
+            ?.Id is { } existingId && existingId != Guid.Empty
+                ? existingId
+                : Guid.NewGuid();
+    }
+
+    private static Guid ResolveRoleplayingInformationId(
+        StoryBeatRoleplayingInformationRequest request,
+        string npcTag,
+        string information,
+        StoryBeatRoleplaying? existingRoleplaying)
+    {
+        if (request.Id is { } requestId && requestId != Guid.Empty)
+        {
+            return requestId;
+        }
+
+        return existingRoleplaying?.DiscoverableInformation
+            .FirstOrDefault(item =>
+                item.Id != Guid.Empty
+                && string.Equals(item.NpcTag, npcTag, StringComparison.OrdinalIgnoreCase)
+                && item.CheckType == request.CheckType
+                && item.Skill == request.Skill
+                && item.Ability == request.Ability
+                && item.DifficultyClass == request.DifficultyClass
+                && string.Equals(item.Information, information, StringComparison.Ordinal))
+            ?.Id ?? Guid.NewGuid();
     }
 
     private static bool IsValidRoleplayingCheck(StoryBeatRoleplayingInformationRequest request)
@@ -1757,13 +2564,60 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 StringComparison.OrdinalIgnoreCase));
     }
 
+    private async Task ApplyStoryBlockOrderAsync(
+        IReadOnlyList<StoryBlock> storyBlocks,
+        IReadOnlyList<Guid> orderedStoryBlockIds,
+        CancellationToken cancellationToken)
+    {
+        var blocksById = storyBlocks.ToDictionary(block => block.StoryBlockId);
+
+        for (var index = 0; index < storyBlocks.Count; index++)
+        {
+            storyBlocks[index].OrderIndex = -(index + 1);
+        }
+
+        await _storyBlockRepository.SaveChangesAsync(cancellationToken);
+
+        for (var index = 0; index < orderedStoryBlockIds.Count; index++)
+        {
+            blocksById[orderedStoryBlockIds[index]].OrderIndex = index + 1;
+        }
+
+        await _storyBlockRepository.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task CompactStoryBlockOrderAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var storyBlocks = await _storyBlockRepository.ListTrackedByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
+        if (storyBlocks.Count == 0)
+        {
+            return;
+        }
+
+        var orderedStoryBlockIds = storyBlocks
+            .OrderBy(block => block.OrderIndex)
+            .Select(block => block.StoryBlockId)
+            .ToList();
+
+        await ApplyStoryBlockOrderAsync(
+            storyBlocks,
+            orderedStoryBlockIds,
+            cancellationToken);
+    }
+
     private static StoryBlockResponse ToResponse(StoryBlock storyBlock)
     {
         return new StoryBlockResponse
         {
             StoryBlockId = storyBlock.StoryBlockId,
             CampaignId = storyBlock.CampaignId,
-            Title = storyBlock.Title
+            Title = storyBlock.Title,
+            OrderIndex = storyBlock.OrderIndex
         };
     }
 
@@ -1810,13 +2664,16 @@ public sealed class CampaignStoryService : ICampaignStoryService
         };
     }
 
-    private static StoryBeatResponse ToResponse(StoryBeat storyBeat)
+    private static StoryBeatResponse ToResponse(
+        StoryBeat storyBeat,
+        IReadOnlyList<StoryBeat>? storyBlockBeats = null)
     {
         return new StoryBeatResponse
         {
             StoryBeatId = storyBeat.Id,
             StoryBlockId = storyBeat.StoryBlockId,
             OrderIndex = storyBeat.OrderIndex,
+            SecondaryOrderIndex = storyBeat.SecondaryOrderIndex,
             Title = storyBeat.Title,
             StoryBeatType = storyBeat.StoryBeatType,
             Information = storyBeat.Information is null
@@ -1830,7 +2687,13 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 : ToResponse(storyBeat.Roleplaying),
             Decision = storyBeat.Decision is null
                 ? null
-                : ToResponse(storyBeat.Decision),
+                : ToResponse(storyBeat.Decision, storyBeat.Id),
+            Combat = storyBeat.Combat is null
+                ? null
+                : ToResponse(storyBeat.Combat),
+            Transition = storyBeat.Transition is null
+                ? null
+                : ToResponse(storyBeat.Transition, storyBeat, storyBlockBeats ?? []),
             Milestone = storyBeat.Milestone is null
                 ? null
                 : ToResponse(storyBeat.Milestone)
@@ -1853,6 +2716,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
     {
         return new StoryBeatOptionalInformationResponse
         {
+            Id = optionalInformation.Id,
             Skill = optionalInformation.Skill,
             DifficultyClass = optionalInformation.DifficultyClass,
             Information = optionalInformation.Information,
@@ -1869,6 +2733,13 @@ public sealed class CampaignStoryService : ICampaignStoryService
             NpcTags = roleplaying.NpcReferences
                 .Select(npc => npc.NpcTag)
                 .ToList(),
+            NpcReferences = roleplaying.NpcReferences
+                .Select(npc => new StoryBeatRoleplayingNpcReferenceResponse
+                {
+                    Id = npc.Id,
+                    NpcTag = npc.NpcTag
+                })
+                .ToList(),
             DiscoverableInformation = roleplaying.DiscoverableInformation
                 .Select(ToResponse)
                 .ToList()
@@ -1880,6 +2751,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
     {
         return new StoryBeatRoleplayingInformationResponse
         {
+            Id = information.Id,
             NpcTag = string.IsNullOrWhiteSpace(information.NpcTag)
                 ? string.Empty
                 : information.NpcTag,
@@ -1891,26 +2763,289 @@ public sealed class CampaignStoryService : ICampaignStoryService
         };
     }
 
-    private static StoryBeatDecisionResponse ToResponse(StoryBeatDecision decision)
+    private static StoryBeatDecisionResponse ToResponse(
+        StoryBeatDecision decision,
+        Guid storyBeatId)
     {
         return new StoryBeatDecisionResponse
         {
             Description = decision.Description,
             Decisions = decision.Decisions
                 .OrderBy(option => option.OrderIndex)
+                .Select(option => ToResponse(option, storyBeatId))
+                .ToList()
+        };
+    }
+
+    private static StoryBeatDecisionOptionResponse ToResponse(
+        StoryBeatDecisionOption decision,
+        Guid storyBeatId)
+    {
+        return new StoryBeatDecisionOptionResponse
+        {
+            Id = ResolveDecisionOptionResponseId(decision, storyBeatId),
+            OrderIndex = decision.OrderIndex,
+            Title = decision.Title,
+            Description = decision.Description,
+            IsSelected = decision.IsSelected
+        };
+    }
+
+    private static Guid ResolveDecisionOptionResponseId(
+        StoryBeatDecisionOption decision,
+        Guid storyBeatId)
+    {
+        return decision.Id != Guid.Empty
+            ? decision.Id
+            : CreateDeterministicDecisionOptionId(storyBeatId, decision.OrderIndex);
+    }
+
+    private static Guid CreateDeterministicDecisionOptionId(
+        Guid storyBeatId,
+        int orderIndex)
+    {
+        var input = $"{storyBeatId:N}:decision:{orderIndex}";
+        var hash = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(input));
+        var guidBytes = new byte[16];
+        Array.Copy(hash, guidBytes, guidBytes.Length);
+
+        return new Guid(guidBytes);
+    }
+
+    private static StoryBeatCombatResponse ToResponse(StoryBeatCombat combat)
+    {
+        return new StoryBeatCombatResponse
+        {
+            Description = combat.Description,
+            Rewards = combat.Rewards,
+            EnemyNpcs = combat.EnemyNpcs
                 .Select(ToResponse)
                 .ToList()
         };
     }
 
-    private static StoryBeatDecisionOptionResponse ToResponse(StoryBeatDecisionOption decision)
+    private static StoryBeatCombatEnemyNpcResponse ToResponse(StoryBeatCombatEnemyNpc enemyNpc)
     {
-        return new StoryBeatDecisionOptionResponse
+        return new StoryBeatCombatEnemyNpcResponse
         {
-            OrderIndex = decision.OrderIndex,
-            Title = decision.Title,
-            Description = decision.Description,
-            IsSelected = decision.IsSelected
+            MonsterId = enemyNpc.MonsterId,
+            Amount = enemyNpc.Amount
+        };
+    }
+
+    private static StoryBeatTransitionResponse ToResponse(
+        StoryBeatTransition transition,
+        StoryBeat transitionBeat,
+        IReadOnlyList<StoryBeat> storyBlockBeats)
+    {
+        return new StoryBeatTransitionResponse
+        {
+            Description = transition.Description,
+            Conclusions = BuildTransitionConclusions(transitionBeat, storyBlockBeats)
+        };
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse> BuildTransitionConclusions(
+        StoryBeat transitionBeat,
+        IReadOnlyList<StoryBeat> storyBlockBeats)
+    {
+        return storyBlockBeats
+            .Where(beat => beat.StoryBlockId == transitionBeat.StoryBlockId
+                && IsBefore(beat, transitionBeat))
+            .OrderBy(beat => beat.OrderIndex)
+            .ThenBy(beat => beat.SecondaryOrderIndex)
+            .ThenBy(beat => beat.Id)
+            .SelectMany(BuildTransitionConclusions)
+            .ToList();
+    }
+
+    private static bool IsBefore(
+        StoryBeat beat,
+        StoryBeat comparisonBeat)
+    {
+        return beat.OrderIndex < comparisonBeat.OrderIndex
+            || (beat.OrderIndex == comparisonBeat.OrderIndex
+                && beat.SecondaryOrderIndex < comparisonBeat.SecondaryOrderIndex);
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse> BuildTransitionConclusions(
+        StoryBeat storyBeat)
+    {
+        return storyBeat.StoryBeatType switch
+        {
+            StoryBeatType.Information => BuildInformationTransitionConclusions(storyBeat),
+            StoryBeatType.Narrative => BuildNarrativeTransitionConclusions(storyBeat),
+            StoryBeatType.Roleplaying => BuildRoleplayingTransitionConclusions(storyBeat),
+            StoryBeatType.Decision => BuildDecisionTransitionConclusions(storyBeat),
+            StoryBeatType.Combat => BuildCombatTransitionConclusions(storyBeat),
+            StoryBeatType.Milestone => BuildMilestoneTransitionConclusions(storyBeat),
+            _ => []
+        };
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse>
+        BuildInformationTransitionConclusions(StoryBeat storyBeat)
+    {
+        if (storyBeat.Information is null)
+        {
+            return [];
+        }
+
+        var conclusions = new List<StoryBeatTransitionConclusionResponse>
+        {
+            CreateTransitionConclusion(
+                storyBeat,
+                "Information Shown",
+                storyBeat.Information.Narrative)
+        };
+
+        conclusions.AddRange(storyBeat.Information.OptionalInformation
+            .OrderBy(information => information.Placement)
+            .ThenBy(information => information.NarrativeOffset ?? int.MaxValue)
+            .Select(information => CreateTransitionConclusion(
+                storyBeat,
+                "Passive Check",
+                $"{information.Skill}-{information.DifficultyClass}: {information.Information}")));
+
+        return conclusions;
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse>
+        BuildNarrativeTransitionConclusions(StoryBeat storyBeat)
+    {
+        if (storyBeat.Narrative is null)
+        {
+            return [];
+        }
+
+        return storyBeat.Narrative.Paragraphs
+            .OrderBy(paragraph => paragraph.OrderIndex)
+            .Select(paragraph => CreateTransitionConclusion(
+                storyBeat,
+                "Narrative",
+                paragraph.Text))
+            .ToList();
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse>
+        BuildRoleplayingTransitionConclusions(StoryBeat storyBeat)
+    {
+        if (storyBeat.Roleplaying is null)
+        {
+            return [];
+        }
+
+        var npcConclusions = storyBeat.Roleplaying.NpcReferences
+            .Select(npc => CreateTransitionConclusion(
+                storyBeat,
+                "NPC Talked",
+                npc.NpcTag))
+            .ToList();
+
+        var informationConclusions = storyBeat.Roleplaying.DiscoverableInformation
+            .Select(information => CreateTransitionConclusion(
+                storyBeat,
+                "Roleplaying Check",
+                $"{RoleplayingCheckLabel(information)}: {information.Information}"));
+
+        npcConclusions.AddRange(informationConclusions);
+
+        return npcConclusions;
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse>
+        BuildDecisionTransitionConclusions(StoryBeat storyBeat)
+    {
+        if (storyBeat.Decision is null)
+        {
+            return [];
+        }
+
+        return storyBeat.Decision.Decisions
+            .OrderBy(decision => decision.OrderIndex)
+            .Select(decision => CreateTransitionConclusion(
+                storyBeat,
+                decision.IsSelected ? "Decision Taken" : "Decision Shown",
+                $"{decision.Title}: {decision.Description}"))
+            .ToList();
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse>
+        BuildCombatTransitionConclusions(StoryBeat storyBeat)
+    {
+        if (storyBeat.Combat is null)
+        {
+            return [];
+        }
+
+        var conclusions = new List<StoryBeatTransitionConclusionResponse>
+        {
+            CreateTransitionConclusion(
+                storyBeat,
+                "Encounter",
+                storyBeat.Combat.Description)
+        };
+
+        conclusions.AddRange(storyBeat.Combat.EnemyNpcs
+            .Select(enemyNpc => CreateTransitionConclusion(
+                storyBeat,
+                "Encounter Enemy",
+                $"{enemyNpc.Amount} x Monster {enemyNpc.MonsterId}")));
+
+        if (!string.IsNullOrWhiteSpace(storyBeat.Combat.Rewards))
+        {
+            conclusions.Add(CreateTransitionConclusion(
+                storyBeat,
+                "Combat Reward",
+                storyBeat.Combat.Rewards));
+        }
+
+        return conclusions;
+    }
+
+    private static IReadOnlyList<StoryBeatTransitionConclusionResponse>
+        BuildMilestoneTransitionConclusions(StoryBeat storyBeat)
+    {
+        if (storyBeat.Milestone is null)
+        {
+            return [];
+        }
+
+        return
+        [
+            CreateTransitionConclusion(
+                storyBeat,
+                "Milestone",
+                $"{storyBeat.Milestone.Title}: {storyBeat.Milestone.Description ?? string.Empty}".Trim())
+        ];
+    }
+
+    private static StoryBeatTransitionConclusionResponse CreateTransitionConclusion(
+        StoryBeat storyBeat,
+        string category,
+        string text)
+    {
+        return new StoryBeatTransitionConclusionResponse
+        {
+            SourceStoryBeatId = storyBeat.Id,
+            SourceTitle = storyBeat.Title,
+            SourceStoryBeatType = storyBeat.StoryBeatType,
+            Category = category,
+            Text = text
+        };
+    }
+
+    private static string RoleplayingCheckLabel(StoryBeatRoleplayingInformation information)
+    {
+        return information.CheckType switch
+        {
+            StoryBeatRoleplayingCheckType.None => string.IsNullOrWhiteSpace(information.NpcTag)
+                ? "No check"
+                : $"{information.NpcTag} - No check",
+            StoryBeatRoleplayingCheckType.Skill => $"{information.NpcTag} - {information.Skill}-{information.DifficultyClass}",
+            StoryBeatRoleplayingCheckType.Ability => $"{information.NpcTag} - {information.Ability}-{information.DifficultyClass}",
+            _ => information.NpcTag
         };
     }
 

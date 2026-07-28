@@ -1,0 +1,580 @@
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: CombatNpcsPage is not used within the template of CampaignContent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:132:12:
+[37m      132 │   imports: [[32mCombatNpcsPage[37m, LucideCheck, LucidePencil, LucidePlus...
+          ╵             [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'monsters' does not exist on type 'CombatNpcsPage'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/combat-npcs-page/combat-npcs-page.html:3:21:
+[37m      3 │     @for (monster of [32mmonsters[37m; track monster.monsterId) {
+        ╵                      [32m~~~~~~~~[0m
+
+  Error occurs in the template of component CombatNpcsPage.
+
+    src/app/campaign/campaign-content/combat-npcs-page/combat-npcs-page.ts:20:15:
+[37m      20 │   templateUrl: [32m'./combat-npcs-page.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: All imports are unused[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.ts:19:2:
+[37m      19 │   [32mimports[37m: [LucideArrowLeft],
+         ╵   [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'backToAssets' does not exist on type 'MonsterPresentationSheet'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.html:2:67:
+[37m      2 │ ...monster-presentation-back" (click)="[32mbackToAssets[37m()">Assets</button>
+        ╵                                        [32m~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component MonsterPresentationSheet.
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.ts:20:15:
+[37m      20 │   templateUrl: [32m'./monster-presentation-sheet.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'name' does not exist on type 'MonsterPresentationSheet'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.html:6:11:
+[37m      6 │     <h1>{{ [32mname[37m() }}</h1>
+        ╵            [32m~~~~[0m
+
+  Error occurs in the template of component MonsterPresentationSheet.
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.ts:20:15:
+[37m      20 │   templateUrl: [32m'./monster-presentation-sheet.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'race' does not exist on type 'MonsterPresentationSheet'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.html:11:15:
+[37m      11 │         <dd>{{ [32mrace[37m() }}</dd>
+         ╵                [32m~~~~[0m
+
+  Error occurs in the template of component MonsterPresentationSheet.
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.ts:20:15:
+[37m      20 │   templateUrl: [32m'./monster-presentation-sheet.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'monsterClass' does not exist on type 'MonsterPresentationSheet'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.html:15:15:
+[37m      15 │         <dd>{{ [32mmonsterClass[37m() }}</dd>
+         ╵                [32m~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component MonsterPresentationSheet.
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.ts:20:15:
+[37m      20 │   templateUrl: [32m'./monster-presentation-sheet.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'stats' does not exist on type 'MonsterPresentationSheet'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.html:20:20:
+[37m      20 │       @for (stat of [32mstats[37m; track $index) {
+         ╵                     [32m~~~~~[0m
+
+  Error occurs in the template of component MonsterPresentationSheet.
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.ts:20:15:
+[37m      20 │   templateUrl: [32m'./monster-presentation-sheet.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'statLabels' does not exist on type 'MonsterPresentationSheet'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.html:23:20:
+[37m      23 │           <small>{{ [32mstatLabels[37m[$index] }}</small>
+         ╵                     [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component MonsterPresentationSheet.
+
+    src/app/campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet.ts:20:15:
+[37m      20 │   templateUrl: [32m'./monster-presentation-sheet.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadCombatNpcOptions' does not exist on type 'CampaignContent'. Did you mean 'combatNpcOptions'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:897:11:
+[37m      897 │       this.[32mloadCombatNpcOptions[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'combatNpcOptions' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:204:21:
+[37m      204 │   protected readonly [32mcombatNpcOptions[37m = signal<MonsterModel[]>([]);
+          ╵                      [32m~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadCombatNpcOptions' does not exist on type 'CampaignContent'. Did you mean 'combatNpcOptions'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:962:11:
+[37m      962 │       this.[32mloadCombatNpcOptions[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'combatNpcOptions' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:204:21:
+[37m      204 │   protected readonly [32mcombatNpcOptions[37m = signal<MonsterModel[]>([]);
+          ╵                      [32m~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'createStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatEnemyNpcDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:964:43:
+[37m      964 │ ...length > 0 ? drafts : [this.[32mcreateStoryBeatCombatEnemyNpcDraft[37m()]
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'storyBeatCombatEnemyNpcDrafts' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:203:21:
+[37m      203 │ ...otected readonly [32mstoryBeatCombatEnemyNpcDrafts[37m = signal<StoryB...
+          ╵                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadCombatNpcOptions' does not exist on type 'CampaignContent'. Did you mean 'combatNpcOptions'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:897:11:
+[37m      897 │       this.[32mloadCombatNpcOptions[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'combatNpcOptions' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:204:21:
+[37m      204 │   protected readonly [32mcombatNpcOptions[37m = signal<MonsterModel[]>([]);
+          ╵                      [32m~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadCombatNpcOptions' does not exist on type 'CampaignContent'. Did you mean 'combatNpcOptions'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:962:11:
+[37m      962 │       this.[32mloadCombatNpcOptions[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'combatNpcOptions' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:204:21:
+[37m      204 │   protected readonly [32mcombatNpcOptions[37m = signal<MonsterModel[]>([]);
+          ╵                      [32m~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'createStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'removeStoryBeatCombatEnemyNpcDraft'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:964:43:
+[37m      964 │ ...length > 0 ? drafts : [this.[32mcreateStoryBeatCombatEnemyNpcDraft[37m()]
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'removeStoryBeatCombatEnemyNpcDraft' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:1051:12:
+[37m      1051 │   protected [32mremoveStoryBeatCombatEnemyNpcDraft[37m(draftId: number):...
+           ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'createStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'removeStoryBeatCombatEnemyNpcDraft'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:1047:11:
+[37m      1047 │       this.[32mcreateStoryBeatCombatEnemyNpcDraft[37m(),
+           ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'removeStoryBeatCombatEnemyNpcDraft' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:1051:12:
+[37m      1051 │   protected [32mremoveStoryBeatCombatEnemyNpcDraft[37m(draftId: number):...
+           ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'toCombatStoryBeatRequest' does not exist on type 'CampaignContent'. Did you mean 'toInformationStoryBeatRequest'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:1370:19:
+[37m      1370 │               this.[32mtoCombatStoryBeatRequest[37m(),
+           ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'toInformationStoryBeatRequest' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:2468:10:
+[37m      2468 │   private [32mtoInformationStoryBeatRequest[37m(): CreateInformationStor...
+           ╵           [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'toCombatStoryBeatRequest' does not exist on type 'CampaignContent'. Did you mean 'toInformationStoryBeatRequest'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:1463:19:
+[37m      1463 │               this.[32mtoCombatStoryBeatRequest[37m(),
+           ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'toInformationStoryBeatRequest' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:2468:10:
+[37m      2468 │   private [32mtoInformationStoryBeatRequest[37m(): CreateInformationStor...
+           ╵           [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type 'string[] | ""' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:841:41:
+[37m      841 │ ...storyBeatCombatRewardsDraft.set([32mstoryBeat.combat?.rewards ?? ''[37m);
+          ╵                                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type 'string | null' is not assignable to type '(string | null)[] | null'.
+  Type 'string' is not assignable to type '(string | null)[]'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:2576:8:
+[37m      2576 │         [32mrewards[37m: this.toNullableText(this.storyBeatCombatRewards...
+           ╵         [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:731:25:
+[37m      731 │                 [value]="[32mstoryBeatCombatRewardsDraft[37m()"
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:847:9:
+[37m      847 │     this.[32mstoryBeatCombatRewardsDraft[37m.set(storyBeat.combat?.reward...
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'storyBeatCombatRewardDrafts' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:207:21:
+[37m      207 │   protected readonly [32mstoryBeatCombatRewardDrafts[37m = signal<StoryBe...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:1047:9:
+[37m      1047 │     this.[32mstoryBeatCombatRewardsDraft[37m.set((event.target as HTMLTe...
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'storyBeatCombatRewardDrafts' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:207:21:
+[37m      207 │   protected readonly [32mstoryBeatCombatRewardDrafts[37m = signal<StoryBe...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:2367:9:
+[37m      2367 │     this.[32mstoryBeatCombatRewardsDraft[37m.set('');
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'storyBeatCombatRewardDrafts' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:207:21:
+[37m      207 │   protected readonly [32mstoryBeatCombatRewardDrafts[37m = signal<StoryBe...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type 'string | null' is not assignable to type '(string | null)[] | null'.
+  Type 'string' is not assignable to type '(string | null)[]'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:2582:8:
+[37m      2582 │         [32mrewards[37m: this.toNullableText(this.storyBeatCombatRewards...
+           ╵         [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:2582:42:
+[37m      2582 │ ...ewards: this.toNullableText(this.[32mstoryBeatCombatRewardsDraft[37m()),
+           ╵                                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'storyBeatCombatRewardDrafts' is declared here.
+
+    src/app/campaign/campaign-content/campaign-content.ts:207:21:
+[37m      207 │   protected readonly [32mstoryBeatCombatRewardDrafts[37m = signal<StoryBe...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:731:25:
+[37m      731 │                 [value]="[32mstoryBeatCombatRewardsDraft[37m()"
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setStoryBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'setStoryBeatCombatRewardDraft'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:732:25:
+[37m      732 │                 (input)="[32msetStoryBeatCombatRewardsDraft[37m($event)"
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setStoryBeatCombatEnemyMonster' does not exist on type 'CampaignContent'. Did you mean 'setStoryBeatCombatEnemyAmount'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:748:34:
+[37m      748 │ ...      (change)="[32msetStoryBeatCombatEnemyMonster[37m(enemy.draftId, ...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isCombatNpcSelectedByOtherDraft' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:754:40:
+[37m      754 │ ...    [disabled]="[32misCombatNpcSelectedByOtherDraft[37m(enemy.draftId,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'removeStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatEnemyNpcDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:778:31:
+[37m      778 │ ...      (click)="[32mremoveStoryBeatCombatEnemyNpcDraft[37m(enemy.draftId)"
+          ╵                   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'addStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatEnemyNpcDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:790:27:
+[37m      790 │                   (click)="[32maddStoryBeatCombatEnemyNpcDraft[37m()"
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'toCombatRewardDrafts' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:848:11:
+[37m      848 │       this.[32mtoCombatRewardDrafts[37m(storyBeat.combat?.rewards ?? null),
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'toNullableCombatRewardRequests' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:2592:22:
+[37m      2592 │         rewards: this.[32mtoNullableCombatRewardRequests[37m(),
+           ╵                       [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:731:25:
+[37m      731 │                 [value]="[32mstoryBeatCombatRewardsDraft[37m()"
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setStoryBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'setStoryBeatCombatRewardDraft'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:732:25:
+[37m      732 │                 (input)="[32msetStoryBeatCombatRewardsDraft[37m($event)"
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setStoryBeatCombatEnemyMonster' does not exist on type 'CampaignContent'. Did you mean 'setStoryBeatCombatEnemyAmount'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:748:34:
+[37m      748 │ ...      (change)="[32msetStoryBeatCombatEnemyMonster[37m(enemy.draftId, ...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isCombatNpcSelectedByOtherDraft' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:754:40:
+[37m      754 │ ...    [disabled]="[32misCombatNpcSelectedByOtherDraft[37m(enemy.draftId,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'removeStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatEnemyNpcDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:778:31:
+[37m      778 │ ...      (click)="[32mremoveStoryBeatCombatEnemyNpcDraft[37m(enemy.draftId)"
+          ╵                   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'addStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatEnemyNpcDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:790:27:
+[37m      790 │                   (click)="[32maddStoryBeatCombatEnemyNpcDraft[37m()"
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'toCombatRewardDrafts' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:848:11:
+[37m      848 │       this.[32mtoCombatRewardDrafts[37m(storyBeat.combat?.rewards ?? null),
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'toRewardLines' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:1693:16:
+[37m      1693 │     return this.[32mtoRewardLines[37m(storyBeat.combat?.rewards ?? null);
+           ╵                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'toNullableCombatRewardRequests' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.ts:2596:22:
+[37m      2596 │         rewards: this.[32mtoNullableCombatRewardRequests[37m(),
+           ╵                       [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'storyBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatRewardDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:731:25:
+[37m      731 │                 [value]="[32mstoryBeatCombatRewardsDraft[37m()"
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setStoryBeatCombatRewardsDraft' does not exist on type 'CampaignContent'. Did you mean 'setStoryBeatCombatRewardDraft'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:732:25:
+[37m      732 │                 (input)="[32msetStoryBeatCombatRewardsDraft[37m($event)"
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'setStoryBeatCombatEnemyMonster' does not exist on type 'CampaignContent'. Did you mean 'setStoryBeatCombatEnemyAmount'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:748:34:
+[37m      748 │ ...      (change)="[32msetStoryBeatCombatEnemyMonster[37m(enemy.draftId, ...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isCombatNpcSelectedByOtherDraft' does not exist on type 'CampaignContent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:754:40:
+[37m      754 │ ...    [disabled]="[32misCombatNpcSelectedByOtherDraft[37m(enemy.draftId,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'removeStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatEnemyNpcDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:778:31:
+[37m      778 │ ...      (click)="[32mremoveStoryBeatCombatEnemyNpcDraft[37m(enemy.draftId)"
+          ╵                   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'addStoryBeatCombatEnemyNpcDraft' does not exist on type 'CampaignContent'. Did you mean 'storyBeatCombatEnemyNpcDrafts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-content/campaign-content.html:790:27:
+[37m      790 │                   (click)="[32maddStoryBeatCombatEnemyNpcDraft[37m()"
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignContent.
+
+    src/app/campaign/campaign-content/campaign-content.ts:148:15:
+[37m      148 │   templateUrl: [32m'./campaign-content.html'[37m,
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+

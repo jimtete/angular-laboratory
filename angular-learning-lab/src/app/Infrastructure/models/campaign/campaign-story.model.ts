@@ -31,6 +31,7 @@ export interface StoryBlockModel {
   storyBlockId: string;
   campaignId: string;
   title: string;
+  orderIndex: number;
 }
 
 export interface CreateStoryBlockRequest {
@@ -39,6 +40,10 @@ export interface CreateStoryBlockRequest {
 
 export interface UpdateStoryBlockTitleRequest {
   title: string | null;
+}
+
+export interface ReorderStoryBlocksRequest {
+  storyBlockIds: string[];
 }
 
 export interface StoryBeatOptionalInformationModel {
@@ -65,12 +70,20 @@ export enum StoryBeatRoleplayingCheckType {
 }
 
 export interface StoryBeatRoleplayingNpcModel {
+  id?: string;
   tag: string;
   name: string;
   description: string;
 }
 
+export interface StoryBeatRoleplayingNpcReferenceModel {
+  id: string;
+  npcTag: string;
+  tag?: string;
+}
+
 export interface StoryBeatRoleplayingInformationModel {
+  id?: string;
   npcTag: string;
   npcName?: string;
   checkType: StoryBeatRoleplayingCheckType | keyof typeof StoryBeatRoleplayingCheckType | string | number;
@@ -83,11 +96,13 @@ export interface StoryBeatRoleplayingInformationModel {
 export interface StoryBeatRoleplayingModel {
   mainDescription: string;
   npcTags: string[];
+  npcReferences?: StoryBeatRoleplayingNpcReferenceModel[];
   npcs?: StoryBeatRoleplayingNpcModel[];
   discoverableInformation: StoryBeatRoleplayingInformationModel[];
 }
 
 export interface StoryBeatDecisionOptionModel {
+  id: string;
   orderIndex: number;
   title: string;
   description: string;
@@ -97,6 +112,30 @@ export interface StoryBeatDecisionOptionModel {
 export interface StoryBeatDecisionModel {
   description: string;
   decisions: StoryBeatDecisionOptionModel[];
+}
+
+export interface StoryBeatCombatEnemyNpcModel {
+  monsterId: number;
+  amount: number;
+}
+
+export interface StoryBeatCombatModel {
+  description: string;
+  rewards: string[] | null;
+  enemyNpcs: StoryBeatCombatEnemyNpcModel[];
+}
+
+export interface StoryBeatTransitionConclusionModel {
+  sourceStoryBeatId: string;
+  sourceTitle: string;
+  sourceStoryBeatType: StoryBeatType | keyof typeof StoryBeatType | string | number;
+  category: string;
+  text: string;
+}
+
+export interface StoryBeatTransitionModel {
+  description: string;
+  conclusions: StoryBeatTransitionConclusionModel[];
 }
 
 export interface CampaignNpcModel {
@@ -127,12 +166,16 @@ export interface UpdateCampaignNpcRequest {
 export interface StoryBeatModel {
   storyBeatId: string;
   storyBlockId: string;
+  orderIndex: number;
+  secondaryOrderIndex: number;
   title: string;
   storyBeatType: StoryBeatType | keyof typeof StoryBeatType | string | number;
   information: StoryBeatInformationModel | null;
   narrative: StoryBeatNarrativeModel | null;
   roleplaying: StoryBeatRoleplayingModel | null;
   decision: StoryBeatDecisionModel | null;
+  combat: StoryBeatCombatModel | null;
+  transition: StoryBeatTransitionModel | null;
   milestone: CampaignMilestoneModel | null;
 }
 
@@ -175,6 +218,7 @@ export interface StoryBeatRoleplayingRequest {
 }
 
 export interface StoryBeatDecisionOptionRequest {
+  id?: string | null;
   title: string | null;
   description: string | null;
   isSelected: boolean;
@@ -185,8 +229,25 @@ export interface StoryBeatDecisionRequest {
   decisions: StoryBeatDecisionOptionRequest[];
 }
 
+export interface StoryBeatCombatEnemyNpcRequest {
+  monsterId: number;
+  amount: number;
+}
+
+export interface StoryBeatCombatRequest {
+  description: string | null;
+  rewards: (string | null)[] | null;
+  enemyNpcs: StoryBeatCombatEnemyNpcRequest[];
+}
+
+export interface StoryBeatTransitionRequest {
+  description: string | null;
+}
+
 export interface CreateInformationStoryBeatRequest {
   title: string | null;
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
   information: StoryBeatInformationRequest | null;
 }
 
@@ -197,6 +258,8 @@ export interface UpdateInformationStoryBeatRequest {
 
 export interface CreateNarrativeStoryBeatRequest {
   title: string | null;
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
   narrative: StoryBeatNarrativeRequest | null;
 }
 
@@ -207,6 +270,8 @@ export interface UpdateNarrativeStoryBeatRequest {
 
 export interface CreateRoleplayingStoryBeatRequest {
   title: string | null;
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
   roleplaying: StoryBeatRoleplayingRequest | null;
 }
 
@@ -217,6 +282,8 @@ export interface UpdateRoleplayingStoryBeatRequest {
 
 export interface CreateDecisionStoryBeatRequest {
   title: string | null;
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
   decision: StoryBeatDecisionRequest | null;
 }
 
@@ -225,8 +292,34 @@ export interface UpdateDecisionStoryBeatRequest {
   decision: StoryBeatDecisionRequest | null;
 }
 
+export interface CreateCombatStoryBeatRequest {
+  title: string | null;
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
+  combat: StoryBeatCombatRequest | null;
+}
+
+export interface UpdateCombatStoryBeatRequest {
+  title: string | null;
+  combat: StoryBeatCombatRequest | null;
+}
+
+export interface CreateTransitionStoryBeatRequest {
+  title: string | null;
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
+  transition: StoryBeatTransitionRequest | null;
+}
+
+export interface UpdateTransitionStoryBeatRequest {
+  title: string | null;
+  transition: StoryBeatTransitionRequest | null;
+}
+
 export interface CreateMilestoneStoryBeatRequest {
   title: string | null;
+  orderIndex?: number | null;
+  secondaryOrderIndex?: number | null;
   milestoneId: number;
 }
 

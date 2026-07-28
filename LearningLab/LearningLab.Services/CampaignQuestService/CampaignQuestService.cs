@@ -86,6 +86,67 @@ public sealed class CampaignQuestService : ICampaignQuestService
             ToResponse(quest));
     }
 
+    public async Task<ServiceResult<CampaignQuestResponse>> UpdateCampaignQuestAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid questId,
+        UpdateCampaignQuestRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (questId == Guid.Empty
+            || !TryBuildCampaignQuestUpdate(
+                questId,
+                request,
+                DateTimeOffset.UtcNow,
+                out var updatedQuest))
+        {
+            return new ServiceResult<CampaignQuestResponse>(
+                ApplicationStatusCode.InvalidCampaignQuest);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignQuestResponse>(
+                validationStatusCode.Value);
+        }
+
+        var quest = await _campaignQuestRepository.GetByCampaignIdAndQuestIdAsync(
+            campaignId,
+            questId,
+            cancellationToken);
+
+        if (quest is null)
+        {
+            return new ServiceResult<CampaignQuestResponse>(
+                ApplicationStatusCode.CampaignQuestNotFound);
+        }
+
+        quest.Type = updatedQuest.Type;
+        quest.Title = updatedQuest.Title;
+        quest.Description = updatedQuest.Description;
+        quest.GivenBy = updatedQuest.GivenBy;
+        quest.Reward = updatedQuest.Reward;
+        quest.CompletedAt = updatedQuest.CompletedAt;
+        quest.UpdatedAt = updatedQuest.UpdatedAt;
+
+        quest.Tasks.Clear();
+        foreach (var task in updatedQuest.Tasks)
+        {
+            quest.Tasks.Add(task);
+        }
+
+        await _campaignQuestRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<CampaignQuestResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(quest));
+    }
+
     private async Task<ApplicationStatusCode?> ValidateMasterCampaignAccessAsync(
         Guid userId,
         Guid campaignId,
@@ -176,6 +237,72 @@ public sealed class CampaignQuestService : ICampaignQuestService
             CompletedAt = request.CompletedAt,
             Tasks = tasks,
             CreatedAt = timestamp,
+            UpdatedAt = timestamp
+        };
+
+        return true;
+    }
+
+    private static bool TryBuildCampaignQuestUpdate(
+        Guid questId,
+        UpdateCampaignQuestRequest? request,
+        DateTimeOffset timestamp,
+        out CampaignQuest quest)
+    {
+        quest = new CampaignQuest();
+
+        var title = request?.Title?.Trim();
+        var description = request?.Description?.Trim();
+        var givenBy = request?.GivenBy?.Trim();
+        var reward = request?.Reward?.Trim();
+
+        if (request is null
+            || !Enum.IsDefined(request.Type)
+            || string.IsNullOrWhiteSpace(title)
+            || string.IsNullOrWhiteSpace(description)
+            || string.IsNullOrWhiteSpace(givenBy)
+            || string.IsNullOrWhiteSpace(reward)
+            || request.Tasks.Count == 0
+            || request.Tasks.Any(task => task is null))
+        {
+            return false;
+        }
+
+        var tasks = new List<CampaignQuestTask>();
+
+        foreach (var taskRequest in request.Tasks)
+        {
+            var taskTitle = taskRequest.Title?.Trim();
+            var taskDescription = taskRequest.Description?.Trim();
+
+            if (string.IsNullOrWhiteSpace(taskTitle)
+                || string.IsNullOrWhiteSpace(taskDescription))
+            {
+                return false;
+            }
+
+            tasks.Add(new CampaignQuestTask
+            {
+                QuestTaskId = Guid.NewGuid(),
+                QuestId = questId,
+                Title = taskTitle,
+                Description = taskDescription,
+                DateCompleted = taskRequest.DateCompleted,
+                CreatedAt = timestamp,
+                UpdatedAt = timestamp
+            });
+        }
+
+        quest = new CampaignQuest
+        {
+            QuestId = questId,
+            Type = request.Type,
+            Title = title,
+            Description = description,
+            GivenBy = givenBy,
+            Reward = reward,
+            CompletedAt = request.CompletedAt,
+            Tasks = tasks,
             UpdatedAt = timestamp
         };
 

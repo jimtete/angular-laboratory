@@ -1,14 +1,18 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 
 import {
   ApiError,
   CampaignApiService,
   CampaignCacheService,
   CampaignInformationCacheService,
+  CampaignNpcModel,
   CampaignSettingsModel,
   CampaignSessionModel,
+  MonsterApiService,
+  MonsterModel,
+  StoryBlockModel,
   TokenStorageService,
 } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
@@ -22,14 +26,20 @@ export class CampaignHome implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly campaignApiService = inject(CampaignApiService);
+  private readonly monsterApiService = inject(MonsterApiService);
   private readonly campaignCache = inject(CampaignCacheService);
   private readonly campaignInformationCache = inject(CampaignInformationCacheService);
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly modalHelper = inject(ModalHelper);
 
   protected readonly sessions = signal<CampaignSessionModel[]>([]);
+  protected readonly storyBlocks = signal<StoryBlockModel[]>([]);
+  protected readonly combatNpcs = signal<MonsterModel[]>([]);
+  protected readonly roleplayingNpcs = signal<CampaignNpcModel[]>([]);
   protected readonly campaignSettings = signal<CampaignSettingsModel | null>(null);
   protected readonly isLoadingSessions = signal(false);
+  protected readonly isLoadingStoryBlocks = signal(false);
+  protected readonly isLoadingNpcs = signal(false);
   protected readonly isLoadingSettings = signal(false);
   protected readonly isCreatingSession = signal(false);
   protected readonly campaignId = computed(() => {
@@ -46,6 +56,10 @@ export class CampaignHome implements OnInit {
   protected readonly currentMembers = computed(
     () => this.campaignInformationCache.joinedMembers().length,
   );
+  protected readonly storyBlockCount = computed(() => this.storyBlocks().length);
+  protected readonly combatNpcCount = computed(() => this.combatNpcs().length);
+  protected readonly roleplayingNpcCount = computed(() => this.roleplayingNpcs().length);
+  protected readonly npcCount = computed(() => this.combatNpcCount() + this.roleplayingNpcCount());
   protected readonly maxMembers = computed(() => (
     this.campaignSettings()?.maxNumberOfPlayers ?? 1
   ));
@@ -75,17 +89,24 @@ export class CampaignHome implements OnInit {
 
     this.loadSettings();
     this.loadSessions();
+    this.loadStoryBlocks();
+    this.loadNpcs();
   }
 
   refreshCampaignPage(): boolean {
     this.loadSettings(true);
     this.loadSessions();
+    this.loadStoryBlocks();
+    this.loadNpcs();
 
     return false;
   }
 
   isRefreshingCampaignPage(): boolean {
-    return this.isLoadingSettings() || this.isLoadingSessions();
+    return this.isLoadingSettings() ||
+      this.isLoadingSessions() ||
+      this.isLoadingStoryBlocks() ||
+      this.isLoadingNpcs();
   }
 
   protected openLatestSession(): void {
@@ -102,6 +123,16 @@ export class CampaignHome implements OnInit {
       'campaign-sessions',
       latestSession.sessionNumber,
     ]);
+  }
+
+  protected goToStoryBlocks(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId) {
+      return;
+    }
+
+    void this.router.navigate(['/campaigns', campaignId, 'campaign-content']);
   }
 
   protected createSession(): void {
@@ -165,6 +196,59 @@ export class CampaignHome implements OnInit {
         error: (error: unknown) => {
           this.modalHelper.showError(
             this.getErrorMessage(error, 'Campaign sessions could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private loadStoryBlocks(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId || !this.isMaster() || this.isLoadingStoryBlocks()) {
+      return;
+    }
+
+    this.isLoadingStoryBlocks.set(true);
+
+    this.campaignApiService
+      .fetchStoryBlocks(campaignId)
+      .pipe(finalize(() => this.isLoadingStoryBlocks.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.storyBlocks.set(response.data ?? []);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story blocks could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  private loadNpcs(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId || !this.isMaster() || this.isLoadingNpcs()) {
+      return;
+    }
+
+    this.isLoadingNpcs.set(true);
+
+    forkJoin({
+      combatNpcs: this.monsterApiService.fetchCampaignMonsterDetails(campaignId),
+      roleplayingNpcs: this.campaignApiService.fetchRoleplayingStoryBeatNpcs(campaignId),
+    })
+      .pipe(finalize(() => this.isLoadingNpcs.set(false)))
+      .subscribe({
+        next: ({ combatNpcs, roleplayingNpcs }) => {
+          this.combatNpcs.set(combatNpcs.data ?? []);
+          this.roleplayingNpcs.set(roleplayingNpcs.data ?? []);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign NPC counts could not be loaded.'),
             { statusCode: this.getErrorStatus(error) },
           );
         },

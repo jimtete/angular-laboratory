@@ -6,5 +6,7 @@ public sealed class StoryBeatRoleplayingResponse
 
     public IReadOnlyList<string> NpcTags { get; init; } = [];
 
+    public IReadOnlyList<StoryBeatRoleplayingNpcReferenceResponse> NpcReferences { get; init; } = [];
+
     public IReadOnlyList<StoryBeatRoleplayingInformationResponse> DiscoverableInformation { get; init; } = [];
 }

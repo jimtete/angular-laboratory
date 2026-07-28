@@ -1,0 +1,160 @@
+<section class="campaign-events-page" aria-label="Campaign Events">
+  <header class="campaign-events-header">
+    <div>
+      <p>Campaign Events</p>
+      <h2>Story State</h2>
+    </div>
+    <span>{{ events().length }}</span>
+  </header>
+
+  <section class="campaign-events-layout">
+    <div class="campaign-events-list" aria-label="Event definitions">
+      @if (isLoading()) {
+        <p class="campaign-events-status">Loading campaign events...</p>
+      } @else {
+        @for (event of sortedEvents(); track event.id) {
+          <article class="campaign-event-card">
+            <button type="button" (click)="startEdit(event)">
+              <strong>{{ event.name }}</strong>
+              <code>{{ event.key }}</code>
+              <span>{{ typeLabel(event) }}</span>
+              @if (toCampaignEventType(event.eventType ?? event.type) === CampaignEventType.SingleChoice && event.options.length > 0) {
+                <div class="campaign-event-option-summary" aria-label="Single choice options">
+                  @for (option of event.options; track option.id) {
+                    <small>{{ option.label }}</small>
+                  }
+                </div>
+              }
+              @if (event.description) {
+                <p>{{ event.description }}</p>
+              }
+            </button>
+
+            <button
+              type="button"
+              class="campaign-event-delete"
+              [disabled]="deletingEventId() === event.id"
+              (click)="deleteEvent(event)"
+            >
+              {{ deletingEventId() === event.id ? 'Deleting' : 'Delete' }}
+            </button>
+          </article>
+        } @empty {
+          <p class="campaign-events-status">No campaign events yet.</p>
+        }
+      }
+    </div>
+
+    <form class="campaign-event-form" (ngSubmit)="saveEvent()">
+      <header>
+        <h3>{{ editingEventId() ? 'Edit Event' : 'Create Event' }}</h3>
+        @if (editingEventId()) {
+          <button type="button" (click)="startCreate()">New Event</button>
+        }
+      </header>
+
+      <label>
+        <span>Name</span>
+        <input
+          type="text"
+          [ngModel]="nameDraft()"
+          name="eventName"
+          (ngModelChange)="setNameDraft($event)"
+        />
+      </label>
+
+      <label>
+        <span>Key</span>
+        <input
+          type="text"
+          [ngModel]="keyDraft()"
+          name="eventKey"
+          (ngModelChange)="keyDraft.set($event)"
+        />
+      </label>
+
+      <label>
+        <span>Type</span>
+        <select
+          [ngModel]="typeDraft()"
+          name="eventType"
+          (ngModelChange)="setTypeDraft($event)"
+        >
+          @for (type of eventTypes; track type.value) {
+            <option [ngValue]="type.value">{{ type.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Description</span>
+        <textarea
+          rows="5"
+          [ngModel]="descriptionDraft()"
+          name="eventDescription"
+          (ngModelChange)="descriptionDraft.set($event)"
+        ></textarea>
+      </label>
+
+      @if (isSingleChoiceDraft()) {
+        <section class="campaign-event-options-editor" aria-label="Single choice options">
+          <header>
+            <div>
+              <span>Choices</span>
+              <p>One of these values can be selected for this event during play.</p>
+            </div>
+
+            <button type="button" (click)="addOptionDraft()">Add Choice</button>
+          </header>
+
+          @for (option of optionDrafts(); track option.draftId) {
+            <article class="campaign-event-option-draft">
+              <label>
+                <span>Label</span>
+                <input
+                  type="text"
+                  [ngModel]="option.label"
+                  [name]="'optionLabel' + option.draftId"
+                  (ngModelChange)="setOptionLabelDraft(option.draftId, $event)"
+                />
+              </label>
+
+              <label>
+                <span>Key</span>
+                <input
+                  type="text"
+                  [ngModel]="option.key"
+                  [name]="'optionKey' + option.draftId"
+                  (ngModelChange)="setOptionKeyDraft(option.draftId, $event)"
+                />
+              </label>
+
+              <label>
+                <span>Description</span>
+                <textarea
+                  rows="2"
+                  [ngModel]="option.description"
+                  [name]="'optionDescription' + option.draftId"
+                  (ngModelChange)="setOptionDescriptionDraft(option.draftId, $event)"
+                ></textarea>
+              </label>
+
+              <button
+                type="button"
+                class="campaign-event-option-remove"
+                [disabled]="optionDrafts().length <= 1"
+                (click)="removeOptionDraft(option.draftId)"
+              >
+                Remove Choice
+              </button>
+            </article>
+          }
+        </section>
+      }
+
+      <button type="submit" [disabled]="!canSave()">
+        {{ isSaving() ? 'Saving...' : 'Save Event' }}
+      </button>
+    </form>
+  </section>
+</section>

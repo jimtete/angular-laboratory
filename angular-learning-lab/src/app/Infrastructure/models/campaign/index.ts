@@ -2,6 +2,7 @@ export * from './campaign-information.model';
 export * from './campaign-invite-resolution.model';
 export * from './campaign-member-information.model';
 export * from './campaign-milestone.model';
+export * from './campaign-narration.model';
 export * from './campaign-participation-invite.model';
 export * from './campaign-pending-invite.model';
 export * from './campaign-quest.model';

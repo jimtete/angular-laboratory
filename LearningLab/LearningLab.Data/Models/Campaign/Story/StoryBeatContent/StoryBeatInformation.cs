@@ -12,6 +12,8 @@ public class StoryBeatInformation
 
 public class StoryBeatOptionalInformation
 {
+    public Guid Id { get; set; }
+
     public Skill Skill { get; set; }
 
     [Range(1, 30)]

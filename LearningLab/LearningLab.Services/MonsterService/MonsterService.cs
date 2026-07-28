@@ -1,7 +1,11 @@
 using LearningLab.Data.Models;
+using LearningLab.Data.Models.AccessControl;
+using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.DTOs.Monsters;
 using LearningLab.Data.Models.Monsters;
+using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.MonsterRepository;
+using LearningLab.Data.Repositories.UserRepository;
 
 namespace LearningLab.Services.MonsterService;
 
@@ -10,11 +14,18 @@ public sealed class MonsterService : IMonsterService
     private const int MaximumNameLength = 256;
     private const int MaximumShortTextLength = 128;
 
+    private readonly ICampaignRepository _campaignRepository;
     private readonly IMonsterRepository _monsterRepository;
+    private readonly IUserRepository _userRepository;
 
-    public MonsterService(IMonsterRepository monsterRepository)
+    public MonsterService(
+        ICampaignRepository campaignRepository,
+        IMonsterRepository monsterRepository,
+        IUserRepository userRepository)
     {
+        _campaignRepository = campaignRepository;
         _monsterRepository = monsterRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<ServiceResult<IReadOnlyList<MonsterListResponse>>> GetMonstersAsync(
@@ -25,6 +36,56 @@ public sealed class MonsterService : IMonsterService
         return new ServiceResult<IReadOnlyList<MonsterListResponse>>(
             ApplicationStatusCode.Success,
             monsters.Select(ToListResponse).ToList());
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<MonsterListResponse>>> GetCampaignMonstersAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<MonsterListResponse>>(
+                validationStatusCode.Value);
+        }
+
+        var monsters = await _monsterRepository.ListByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<MonsterListResponse>>(
+            ApplicationStatusCode.Success,
+            monsters.Select(ToListResponse).ToList());
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<MonsterResponse>>> GetCampaignMonsterDetailsAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<MonsterResponse>>(
+                validationStatusCode.Value);
+        }
+
+        var monsters = await _monsterRepository.ListDetailedByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<MonsterResponse>>(
+            ApplicationStatusCode.Success,
+            monsters.Select(ToResponse).ToList());
     }
 
     public async Task<ServiceResult<MonsterResponse>> GetMonsterByIdAsync(
@@ -55,6 +116,61 @@ public sealed class MonsterService : IMonsterService
         }
 
         await _monsterRepository.AddAsync(monster, cancellationToken);
+        await _monsterRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<MonsterResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(monster));
+    }
+
+    public async Task<ServiceResult<MonsterResponse>> AddMonsterToCampaignAsync(
+        Guid userId,
+        Guid campaignId,
+        int monsterId,
+        CancellationToken cancellationToken = default)
+    {
+        if (monsterId < 1)
+        {
+            return new ServiceResult<MonsterResponse>(ApplicationStatusCode.InvalidMonster);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<MonsterResponse>(validationStatusCode.Value);
+        }
+
+        var monster = await _monsterRepository.GetByIdAsync(
+            monsterId,
+            cancellationToken);
+
+        if (monster is null)
+        {
+            return new ServiceResult<MonsterResponse>(ApplicationStatusCode.MonsterNotFound);
+        }
+
+        var alreadyExists = await _monsterRepository.CampaignParticipationExistsAsync(
+            campaignId,
+            monsterId,
+            cancellationToken);
+
+        if (alreadyExists)
+        {
+            return new ServiceResult<MonsterResponse>(
+                ApplicationStatusCode.CampaignMonsterAlreadyExists);
+        }
+
+        await _monsterRepository.AddCampaignParticipationAsync(
+            new CampaignNpcParticipation
+            {
+                CampaignId = campaignId,
+                MonsterId = monsterId
+            },
+            cancellationToken);
         await _monsterRepository.SaveChangesAsync(cancellationToken);
 
         return new ServiceResult<MonsterResponse>(
@@ -709,6 +825,42 @@ public sealed class MonsterService : IMonsterService
         feature.Duration = updatedFeature.Duration;
         feature.Concentration = updatedFeature.Concentration;
         feature.SortOrder = updatedFeature.SortOrder;
+    }
+
+    private async Task<ApplicationStatusCode?> ValidateMasterCampaignAccessAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is null)
+        {
+            return ApplicationStatusCode.UserNotFound;
+        }
+
+        if (!HasRole(user, AccessRoleNames.Master))
+        {
+            return ApplicationStatusCode.CampaignMasterRoleRequired;
+        }
+
+        var campaign = await _campaignRepository.GetByIdForGameMasterAsync(
+            campaignId,
+            userId,
+            cancellationToken);
+
+        return campaign is null
+            ? ApplicationStatusCode.CampaignNotFound
+            : null;
+    }
+
+    private static bool HasRole(User user, string roleName)
+    {
+        return user.UserRoles.Any(userRole =>
+            string.Equals(
+                userRole.Role.Name,
+                roleName,
+                StringComparison.OrdinalIgnoreCase));
     }
 
     private static int GetNextFeatureSortOrder(IEnumerable<MonsterFeature> features)

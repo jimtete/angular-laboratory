@@ -14,11 +14,13 @@ public class StoryBeatRoleplaying
 
 public class StoryBeatRoleplayingNpcReference
 {
+    public Guid Id { get; set; }
     public string NpcTag { get; set; } = string.Empty;
 }
 
 public class StoryBeatRoleplayingInformation
 {
+    public Guid Id { get; set; }
     public string NpcTag { get; set; } = string.Empty;
 
     public StoryBeatRoleplayingCheckType CheckType { get; set; }

@@ -13,3 +13,6 @@
 - Do not run `dotnet ef database update`.
 - Do not create or scaffold migrations unless the user explicitly asks for a migration.
 - When a model change appears to need a migration, mention it to the user and let them decide when to create and apply it.
+- Treat every existing migration file as already applied and immutable.
+- Never edit an existing migration file to fix a migration problem.
+- If a migration needs to be corrected, create a new migration that reverses or adjusts the previous migration's effects.
