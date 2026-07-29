@@ -22,4 +22,29 @@ public interface ICampaignQuestService
         Guid questId,
         UpdateCampaignQuestRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>> GetStoryBeatQuestTasksAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBeatId,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>> GetCampaignStoryBeatQuestTasksAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<StoryBeatQuestTaskResponse>> LinkQuestTaskToStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBeatId,
+        Guid questTaskId,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<object>> UnlinkQuestTaskFromStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBeatId,
+        Guid questTaskId,
+        CancellationToken cancellationToken = default);
 }

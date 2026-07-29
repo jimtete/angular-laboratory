@@ -25,6 +25,8 @@ public sealed class SessionNoteRepository : ISessionNoteRepository
             .AsNoTracking()
             .Include(note => note.Choices)
             .Include(note => note.MechanicsChanges)
+            .Include(note => note.StoryBeat)
+            .Include(note => note.StoryBeatReferences)
             .Where(note => sessionIds.Contains(note.SessionId))
             .OrderBy(note => note.SessionId)
             .ThenBy(note => note.Order)
@@ -40,6 +42,8 @@ public sealed class SessionNoteRepository : ISessionNoteRepository
             .AsNoTracking()
             .Include(note => note.Choices)
             .Include(note => note.MechanicsChanges)
+            .Include(note => note.StoryBeat)
+            .Include(note => note.StoryBeatReferences)
             .Where(note => note.SessionId == sessionId)
             .OrderBy(note => note.Order)
             .ThenBy(note => note.Id)
@@ -54,10 +58,74 @@ public sealed class SessionNoteRepository : ISessionNoteRepository
         return _context.SessionNotes
             .Include(note => note.Choices)
             .Include(note => note.MechanicsChanges)
+            .Include(note => note.StoryBeat)
+            .Include(note => note.StoryBeatReferences)
             .SingleOrDefaultAsync(
                 note => note.SessionId == sessionId
                     && note.Id == noteId,
                 cancellationToken);
+    }
+
+    public Task<SessionNote?> GetBySessionIdAndStoryBeatReferenceAsync(
+        int sessionId,
+        Guid storyBeatId,
+        SessionNoteStoryBeatReferenceType referenceType,
+        Guid? referenceId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.SessionNotes
+            .Include(note => note.Choices)
+            .Include(note => note.MechanicsChanges)
+            .Include(note => note.StoryBeat)
+            .Include(note => note.StoryBeatReferences)
+            .Where(note => note.SessionId == sessionId
+                && note.StoryBeatId == storyBeatId
+                && note.StoryBeatReferences.Any(reference =>
+                    reference.StoryBeatId == storyBeatId
+                    && reference.ReferenceType == referenceType
+                    && reference.ReferenceId == referenceId))
+            .OrderBy(note => note.Order)
+            .ThenBy(note => note.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<SessionNote?> GetBySessionIdAndStoryBeatReferenceTypeAsync(
+        int sessionId,
+        Guid storyBeatId,
+        SessionNoteStoryBeatReferenceType referenceType,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.SessionNotes
+            .Include(note => note.Choices)
+            .Include(note => note.MechanicsChanges)
+            .Include(note => note.StoryBeat)
+            .Include(note => note.StoryBeatReferences)
+            .Where(note => note.SessionId == sessionId
+                && note.StoryBeatId == storyBeatId
+                && note.StoryBeatReferences.Any(reference =>
+                    reference.StoryBeatId == storyBeatId
+                    && reference.ReferenceType == referenceType))
+            .OrderBy(note => note.Order)
+            .ThenBy(note => note.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<SessionNote?> GetBySessionIdAndFullStoryBeatAsync(
+        int sessionId,
+        Guid storyBeatId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.SessionNotes
+            .Include(note => note.Choices)
+            .Include(note => note.MechanicsChanges)
+            .Include(note => note.StoryBeat)
+            .Include(note => note.StoryBeatReferences)
+            .Where(note => note.SessionId == sessionId
+                && note.StoryBeatId == storyBeatId
+                && !note.StoryBeatReferences.Any())
+            .OrderBy(note => note.Order)
+            .ThenBy(note => note.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public Task<int?> GetLatestOrderBySessionIdAsync(
@@ -96,5 +164,10 @@ public sealed class SessionNoteRepository : ISessionNoteRepository
     public void Remove(SessionNote note)
     {
         _context.SessionNotes.Remove(note);
+    }
+
+    public void RemoveStoryBeatReference(SessionNoteStoryBeatReference reference)
+    {
+        _context.SessionNoteStoryBeatReferences.Remove(reference);
     }
 }

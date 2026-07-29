@@ -174,6 +174,13 @@ public interface ICampaignStoryService
         Guid storyBeatId,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<StoryBeatResponse>>> ReorderStoryBeatsAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        ReorderStoryBeatsRequest? request,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<IReadOnlyList<StoryBeatResponse>>> GetStoryBeatsAsync(
         Guid userId,
         Guid campaignId,

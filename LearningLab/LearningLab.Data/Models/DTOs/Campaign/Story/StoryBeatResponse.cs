@@ -30,4 +30,6 @@ public sealed class StoryBeatResponse
     public StoryBeatTransitionResponse? Transition { get; init; }
 
     public CampaignMilestoneResponse? Milestone { get; init; }
+
+    public StoryBeatIndexPathRuleResponse? IndexPathRule { get; init; }
 }

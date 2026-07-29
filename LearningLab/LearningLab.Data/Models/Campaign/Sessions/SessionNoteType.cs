@@ -7,4 +7,5 @@ public enum SessionNoteType
     CampaignMilestone = 3,
     ItemFound = 4,
     LevelUpOrMechanicsChange = 5,
+    StoryBeatPlayed = 6
 }

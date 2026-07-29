@@ -26,6 +26,19 @@ public sealed class StoryBeatRepository : IStoryBeatRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<StoryBeat>> ListTrackedByStoryBlockIdAsync(
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.StoryBeats
+            .Include(beat => beat.Milestone)
+            .Where(beat => beat.StoryBlockId == storyBlockId)
+            .OrderBy(beat => beat.OrderIndex)
+            .ThenBy(beat => beat.SecondaryOrderIndex)
+            .ThenBy(beat => beat.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<StoryBeat?> GetByStoryBlockIdAndStoryBeatIdAsync(
         Guid storyBlockId,
         Guid storyBeatId,
@@ -103,6 +116,19 @@ public sealed class StoryBeatRepository : IStoryBeatRepository
                 && beat.OrderIndex == orderIndex)
             .MaxAsync(
                 beat => (int?)beat.SecondaryOrderIndex,
+                cancellationToken);
+    }
+
+    public Task<int> CountByStoryBlockIdAndOrderIndexAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBeats
+            .AsNoTracking()
+            .CountAsync(
+                beat => beat.StoryBlockId == storyBlockId
+                    && beat.OrderIndex == orderIndex,
                 cancellationToken);
     }
 

@@ -373,10 +373,8 @@ namespace LearningLab.Data.Migrations
 
                     b.Property<string>("PassiveSkillsCheck")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)")
-                        .HasDefaultValue("Manual")
                         .HasColumnName("passive_skills_check");
 
                     b.HasKey("CampaignId");
@@ -702,6 +700,29 @@ namespace LearningLab.Data.Migrations
                     b.HasIndex("QuestId", "Title");
 
                     b.ToTable("CampaignQuestTasks", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Quests.StoryBeatQuestTask", b =>
+                {
+                    b.Property<Guid>("StoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
+                    b.Property<Guid>("QuestTaskId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("quest_task_id");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("linked_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("StoryBeatId", "QuestTaskId");
+
+                    b.HasIndex("QuestTaskId");
+
+                    b.ToTable("StoryBeatQuestTasks", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", b =>
@@ -1269,6 +1290,10 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("session_id");
 
+                    b.Property<Guid?>("StoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -1282,6 +1307,8 @@ namespace LearningLab.Data.Migrations
                         .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("StoryBeatId");
 
                     b.HasIndex("SessionId", "Order")
                         .IsUnique();
@@ -1359,6 +1386,68 @@ namespace LearningLab.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("SessionNoteMechanicsChanges", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNoteStoryBeatReference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("session_note_story_beat_reference_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentSnapshot")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("content_snapshot");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("NpcTag")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("npc_tag");
+
+                    b.Property<Guid?>("ReferenceId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("reference_id");
+
+                    b.Property<string>("ReferenceOutcome")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValue("Presented")
+                        .HasColumnName("reference_outcome");
+
+                    b.Property<string>("ReferenceType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("reference_type");
+
+                    b.Property<int>("SessionNoteId")
+                        .HasColumnType("int")
+                        .HasColumnName("session_note_id");
+
+                    b.Property<Guid>("StoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionNoteId");
+
+                    b.HasIndex("StoryBeatId");
+
+                    b.HasIndex("StoryBeatId", "ReferenceType", "ReferenceId");
+
+                    b.ToTable("SessionNoteStoryBeatReferences", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
@@ -2197,6 +2286,25 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("CampaignQuest");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Quests.StoryBeatQuestTask", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Quests.CampaignQuestTask", "QuestTask")
+                        .WithMany("StoryBeatLinks")
+                        .HasForeignKey("QuestTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "StoryBeat")
+                        .WithMany("QuestTaskLinks")
+                        .HasForeignKey("StoryBeatId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("QuestTask");
+
+                    b.Navigation("StoryBeat");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
@@ -2429,7 +2537,14 @@ namespace LearningLab.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "StoryBeat")
+                        .WithMany()
+                        .HasForeignKey("StoryBeatId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Session");
+
+                    b.Navigation("StoryBeat");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNoteChoice", b =>
@@ -2460,6 +2575,25 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Player");
 
                     b.Navigation("SessionNote");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Sessions.SessionNoteStoryBeatReference", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Sessions.SessionNote", "SessionNote")
+                        .WithMany("StoryBeatReferences")
+                        .HasForeignKey("SessionNoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "StoryBeat")
+                        .WithMany()
+                        .HasForeignKey("StoryBeatId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("SessionNote");
+
+                    b.Navigation("StoryBeat");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
@@ -2964,6 +3098,11 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Tasks");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Quests.CampaignQuestTask", b =>
+                {
+                    b.Navigation("StoryBeatLinks");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Rules.CampaignChoiceDefinition", b =>
                 {
                     b.Navigation("Options");
@@ -2999,6 +3138,8 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Choices");
 
                     b.Navigation("MechanicsChanges");
+
+                    b.Navigation("StoryBeatReferences");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
@@ -3006,6 +3147,8 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("CurrentPresentations");
 
                     b.Navigation("PresentationEntries");
+
+                    b.Navigation("QuestTaskLinks");
 
                     b.Navigation("SelectedInPresentations");
                 });

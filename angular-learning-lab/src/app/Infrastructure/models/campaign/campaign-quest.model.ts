@@ -46,3 +46,13 @@ export interface CreateCampaignQuestRequest {
 }
 
 export interface UpdateCampaignQuestRequest extends CreateCampaignQuestRequest {}
+
+export interface StoryBeatQuestTaskModel {
+  storyBeatId: string;
+  questTaskId: string;
+  questId: string;
+  title: string;
+  description: string;
+  dateCompleted: string | null;
+  linkedAt: string;
+}

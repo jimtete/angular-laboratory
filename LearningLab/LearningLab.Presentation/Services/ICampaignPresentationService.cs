@@ -1,7 +1,7 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.DTOs.Campaign.Presentation;
 
-namespace LearningLab.Services.CampaignPresentationService;
+namespace LearningLab.Presentation.Services;
 
 public interface ICampaignPresentationService
 {
@@ -16,6 +16,12 @@ public interface ICampaignPresentationService
         Guid campaignId,
         int sessionId,
         InitiatePresentationModeRequest? request,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignPresentationResponse>> DisablePresentationModeAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<CampaignPresentationResponse>> PresentStoryBeatAsync(

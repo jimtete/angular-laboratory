@@ -17,6 +17,24 @@ public interface ISessionNoteRepository
         int noteId,
         CancellationToken cancellationToken = default);
 
+    Task<SessionNote?> GetBySessionIdAndStoryBeatReferenceAsync(
+        int sessionId,
+        Guid storyBeatId,
+        SessionNoteStoryBeatReferenceType referenceType,
+        Guid? referenceId,
+        CancellationToken cancellationToken = default);
+
+    Task<SessionNote?> GetBySessionIdAndStoryBeatReferenceTypeAsync(
+        int sessionId,
+        Guid storyBeatId,
+        SessionNoteStoryBeatReferenceType referenceType,
+        CancellationToken cancellationToken = default);
+
+    Task<SessionNote?> GetBySessionIdAndFullStoryBeatAsync(
+        int sessionId,
+        Guid storyBeatId,
+        CancellationToken cancellationToken = default);
+
     Task<int?> GetLatestOrderBySessionIdAsync(
         int sessionId,
         CancellationToken cancellationToken = default);
@@ -31,4 +49,6 @@ public interface ISessionNoteRepository
         CancellationToken cancellationToken = default);
 
     void Remove(SessionNote note);
+
+    void RemoveStoryBeatReference(SessionNoteStoryBeatReference reference);
 }

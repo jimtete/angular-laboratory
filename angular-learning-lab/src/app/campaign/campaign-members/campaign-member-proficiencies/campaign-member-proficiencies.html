@@ -7,6 +7,25 @@
   </header>
 
   @if (member()) {
+    <section class="campaign-member-abilities-panel" aria-label="Ability values">
+      @for (ability of abilityDefinitions; track ability.ability) {
+        <label class="campaign-member-ability-box" [style.--ability-color]="ability.color">
+          <span class="campaign-member-ability-short">{{ ability.shortLabel }}</span>
+          <span class="campaign-member-ability-name">{{ ability.label }}</span>
+          <input
+            type="number"
+            min="1"
+            max="30"
+            step="1"
+            [value]="abilityValueFor(ability.ability)"
+            [disabled]="isSaving()"
+            [attr.aria-label]="ability.label + ' ability value'"
+            (input)="setAbilityValue(ability.ability, $event)"
+          />
+        </label>
+      }
+    </section>
+
     <div class="campaign-member-proficiencies-board">
       <div class="campaign-member-proficiencies-column">
         @for (group of leftSkillGroups; track group.ability) {

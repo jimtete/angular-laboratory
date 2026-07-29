@@ -32,10 +32,12 @@ public class LearningLabContext : DbContext
     public DbSet<SessionNote> SessionNotes { get; set; }
     public DbSet<SessionNoteChoice> SessionNoteChoices { get; set; }
     public DbSet<SessionNoteMechanicsChange> SessionNoteMechanicsChanges { get; set; }
+    public DbSet<SessionNoteStoryBeatReference> SessionNoteStoryBeatReferences { get; set; }
     public DbSet<CampaignMilestone> CampaignMilestones { get; set; }
     public DbSet<Asset> Assets { get; set; }
     public DbSet<StoryBlock> StoryBlocks { get; set; }
     public DbSet<StoryBeat> StoryBeats { get; set; }
+    public DbSet<StoryBeatIndexPathRule> StoryBeatIndexPathRules { get; set; }
     public DbSet<StoryBlockMilestone> StoryBlockMilestones { get; set; }
     public DbSet<CampaignPresentation> CampaignPresentations { get; set; }
     public DbSet<CampaignPresentationEntry> CampaignPresentationEntries { get; set; }
@@ -367,12 +369,79 @@ public class LearningLabContext : DbContext
                 .HasForeignKey(milestone => milestone.StoryBlockId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasMany(block => block.IndexPathRules)
+                .WithOne(rule => rule.StoryBlock)
+                .HasForeignKey(rule => rule.StoryBlockId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(block => block.CampaignId);
 
             entity.HasIndex(block => new
             {
                 block.CampaignId,
                 block.OrderIndex
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<StoryBeatIndexPathRule>(entity =>
+        {
+            entity.ToTable("StoryBeatIndexPathRules");
+
+            entity.HasKey(rule => rule.Id);
+
+            entity.Property(rule => rule.Id)
+                .HasColumnName("story_beat_index_path_rule_id");
+
+            entity.Property(rule => rule.CampaignId)
+                .HasColumnName("campaign_id")
+                .IsRequired();
+
+            entity.Property(rule => rule.StoryBlockId)
+                .HasColumnName("story_block_id")
+                .IsRequired();
+
+            entity.Property(rule => rule.OrderIndex)
+                .HasColumnName("order_index")
+                .IsRequired();
+
+            entity.Property(rule => rule.RelationType)
+                .HasColumnName("relation_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(rule => rule.IsRequired)
+                .HasColumnName("is_required")
+                .IsRequired();
+
+            entity.Property(rule => rule.CreatedAtUtc)
+                .HasColumnName("created_at_utc")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(rule => rule.UpdatedAtUtc)
+                .HasColumnName("updated_at_utc")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(rule => rule.Campaign)
+                .WithMany(campaign => campaign.StoryBeatIndexPathRules)
+                .HasForeignKey(rule => rule.CampaignId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(rule => rule.StoryBlock)
+                .WithMany(block => block.IndexPathRules)
+                .HasForeignKey(rule => rule.StoryBlockId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(rule => rule.CampaignId);
+            entity.HasIndex(rule => rule.StoryBlockId);
+            entity.HasIndex(rule => new
+            {
+                rule.CampaignId,
+                rule.StoryBlockId,
+                rule.OrderIndex
             })
             .IsUnique();
         });
@@ -1140,7 +1209,6 @@ public class LearningLabContext : DbContext
                 .HasColumnName("passive_skills_check")
                 .HasMaxLength(64)
                 .HasConversion<string>()
-                .HasDefaultValue(PassiveSkillsCheck.Manual)
                 .IsRequired();
         });
 
@@ -1480,6 +1548,9 @@ public class LearningLabContext : DbContext
                 .HasColumnName("content")
                 .IsRequired();
 
+            entity.Property(note => note.StoryBeatId)
+                .HasColumnName("story_beat_id");
+
             entity.Property(note => note.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
@@ -1495,6 +1566,11 @@ public class LearningLabContext : DbContext
                 .HasForeignKey(note => note.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasOne(note => note.StoryBeat)
+                .WithMany()
+                .HasForeignKey(note => note.StoryBeatId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             entity.HasMany(note => note.Choices)
                 .WithOne(choice => choice.SessionNote)
                 .HasForeignKey(choice => choice.SessionNoteId)
@@ -1505,12 +1581,80 @@ public class LearningLabContext : DbContext
                 .HasForeignKey(change => change.SessionNoteId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasMany(note => note.StoryBeatReferences)
+                .WithOne(reference => reference.SessionNote)
+                .HasForeignKey(reference => reference.SessionNoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(note => new
             {
                 note.SessionId,
                 note.Order
             })
             .IsUnique();
+
+            entity.HasIndex(note => note.StoryBeatId);
+        });
+
+        modelBuilder.Entity<SessionNoteStoryBeatReference>(entity =>
+        {
+            entity.ToTable("SessionNoteStoryBeatReferences");
+
+            entity.HasKey(reference => reference.Id);
+
+            entity.Property(reference => reference.Id)
+                .HasColumnName("session_note_story_beat_reference_id");
+
+            entity.Property(reference => reference.SessionNoteId)
+                .HasColumnName("session_note_id")
+                .IsRequired();
+
+            entity.Property(reference => reference.StoryBeatId)
+                .HasColumnName("story_beat_id")
+                .IsRequired();
+
+            entity.Property(reference => reference.ReferenceType)
+                .HasColumnName("reference_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(reference => reference.ReferenceId)
+                .HasColumnName("reference_id");
+
+            entity.Property(reference => reference.ReferenceOutcome)
+                .HasColumnName("reference_outcome")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .HasDefaultValue(SessionNoteStoryBeatReferenceOutcome.Presented)
+                .IsRequired();
+
+            entity.Property(reference => reference.NpcTag)
+                .HasColumnName("npc_tag")
+                .HasMaxLength(128);
+
+            entity.Property(reference => reference.ContentSnapshot)
+                .HasColumnName("content_snapshot")
+                .IsRequired();
+
+            entity.Property(reference => reference.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(reference => reference.StoryBeat)
+                .WithMany()
+                .HasForeignKey(reference => reference.StoryBeatId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasIndex(reference => reference.SessionNoteId);
+            entity.HasIndex(reference => reference.StoryBeatId);
+            entity.HasIndex(reference => new
+            {
+                reference.StoryBeatId,
+                reference.ReferenceType,
+                reference.ReferenceId
+            });
         });
 
         modelBuilder.Entity<SessionNoteChoice>(entity =>
@@ -1734,7 +1878,7 @@ public class LearningLabContext : DbContext
             entity.HasOne(link => link.StoryBeat)
                 .WithMany(beat => beat.QuestTaskLinks)
                 .HasForeignKey(link => link.StoryBeatId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(link => link.QuestTask)
                 .WithMany(task => task.StoryBeatLinks)

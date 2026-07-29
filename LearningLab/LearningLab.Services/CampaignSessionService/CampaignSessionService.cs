@@ -4,10 +4,13 @@ using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
 using LearningLab.Data.Repositories.CampaignMilestoneRepository;
 using LearningLab.Data.Models.Campaign.Sessions;
+using LearningLab.Data.Models.Campaign.Story;
+using LearningLab.Data.Models.DTOs.Campaign;
 using LearningLab.Data.Models.DTOs.Campaign.Sessions;
 using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.CampaignSessionRepository;
 using LearningLab.Data.Repositories.SessionNoteRepository;
+using LearningLab.Data.Repositories.StoryBeatRepository;
 using LearningLab.Data.Repositories.UserRepository;
 using LearningLab.Services.Eventing;
 using LearningLab.Services.Eventing.CampaignSessions;
@@ -22,6 +25,7 @@ public sealed class CampaignSessionService : ICampaignSessionService
     private readonly ICampaignSessionRepository _campaignSessionRepository;
     private readonly IApplicationEventHub _applicationEventHub;
     private readonly ISessionNoteRepository _sessionNoteRepository;
+    private readonly IStoryBeatRepository _storyBeatRepository;
     private readonly IUserRepository _userRepository;
 
     public CampaignSessionService(
@@ -31,6 +35,7 @@ public sealed class CampaignSessionService : ICampaignSessionService
         ICampaignSessionRepository campaignSessionRepository,
         IApplicationEventHub applicationEventHub,
         ISessionNoteRepository sessionNoteRepository,
+        IStoryBeatRepository storyBeatRepository,
         IUserRepository userRepository)
     {
         _campaignRepository = campaignRepository;
@@ -39,6 +44,7 @@ public sealed class CampaignSessionService : ICampaignSessionService
         _campaignSessionRepository = campaignSessionRepository;
         _applicationEventHub = applicationEventHub;
         _sessionNoteRepository = sessionNoteRepository;
+        _storyBeatRepository = storyBeatRepository;
         _userRepository = userRepository;
     }
 
@@ -67,12 +73,15 @@ public sealed class CampaignSessionService : ICampaignSessionService
         var notes = await _sessionNoteRepository.ListBySessionIdsAsync(
             sessionIds,
             cancellationToken);
+        var players = await _campaignParticipationInviteRepository.ListParticipantInformationByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
         var notesBySessionId = notes.ToLookup(note => note.SessionId);
 
         return new ServiceResult<IReadOnlyList<CampaignSessionResponse>>(
             ApplicationStatusCode.Success,
             sessions
-                .Select(session => ToResponse(session, notesBySessionId[session.Id]))
+                .Select(session => ToResponse(session, notesBySessionId[session.Id], players))
                 .ToList());
     }
 
@@ -110,7 +119,10 @@ public sealed class CampaignSessionService : ICampaignSessionService
 
         await _campaignSessionRepository.AddAsync(session, cancellationToken);
         await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
-        var response = ToResponse(session, []);
+        var response = await BuildSessionResponseAsync(
+            session,
+            [],
+            cancellationToken);
 
         await _applicationEventHub.PublishAsync(
             new CampaignSessionCreatedEvent(response),
@@ -167,7 +179,10 @@ public sealed class CampaignSessionService : ICampaignSessionService
         var notes = await _sessionNoteRepository.ListBySessionIdsAsync(
             [session.Id],
             cancellationToken);
-        var response = ToResponse(session, notes);
+        var response = await BuildSessionResponseAsync(
+            session,
+            notes,
+            cancellationToken);
 
         await _applicationEventHub.PublishAsync(
             new CampaignSessionUpdatedEvent(response),
@@ -253,6 +268,49 @@ public sealed class CampaignSessionService : ICampaignSessionService
             notes.Select(ToResponse).ToList());
     }
 
+    public async Task<ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>> GetSessionPlayersAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        if (sessionId < 1)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>(
+                ApplicationStatusCode.InvalidCampaignSession);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>(
+                validationStatusCode.Value);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var players = await _campaignParticipationInviteRepository.ListParticipantInformationByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>(
+            ApplicationStatusCode.Success,
+            players);
+    }
+
     public async Task<ServiceResult<CampaignSessionResponse>> CreateGenericSessionNoteAsync(
         Guid userId,
         Guid campaignId,
@@ -312,7 +370,10 @@ public sealed class CampaignSessionService : ICampaignSessionService
         var notes = await _sessionNoteRepository.ListBySessionIdsAsync(
             [session.Id],
             cancellationToken);
-        var response = ToResponse(session, notes);
+        var response = await BuildSessionResponseAsync(
+            session,
+            notes,
+            cancellationToken);
 
         await _applicationEventHub.PublishAsync(
             new CampaignSessionUpdatedEvent(response),
@@ -382,7 +443,10 @@ public sealed class CampaignSessionService : ICampaignSessionService
         var notes = await _sessionNoteRepository.ListBySessionIdsAsync(
             [session.Id],
             cancellationToken);
-        var response = ToResponse(session, notes);
+        var response = await BuildSessionResponseAsync(
+            session,
+            notes,
+            cancellationToken);
 
         await _applicationEventHub.PublishAsync(
             new CampaignSessionUpdatedEvent(response),
@@ -681,6 +745,499 @@ public sealed class CampaignSessionService : ICampaignSessionService
         session.UpdatedAt = dateCreated;
         await _sessionNoteRepository.AddAsync(note, cancellationToken);
         await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+        return await BuildAndPublishUpdatedSessionResponseAsync(
+            session,
+            cancellationToken);
+    }
+
+    public async Task<ServiceResult<CampaignSessionResponse>> CreateStoryBeatPlayedSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        Guid storyBeatId,
+        string? content = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (sessionId < 1 || storyBeatId == Guid.Empty)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                validationStatusCode.Value);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByCampaignIdAndStoryBeatIdAsync(
+            campaignId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        var existingNote = await _sessionNoteRepository.GetBySessionIdAndFullStoryBeatAsync(
+            session.Id,
+            storyBeat.Id,
+            cancellationToken);
+
+        if (existingNote is not null)
+        {
+            return await BuildAndPublishUpdatedSessionResponseAsync(
+                session,
+                cancellationToken);
+        }
+
+        var latestOrder = await _sessionNoteRepository.GetLatestOrderBySessionIdAsync(
+            session.Id,
+            cancellationToken);
+        var nextOrder = (latestOrder ?? 0) + 1;
+        var timestamp = DateTimeOffset.UtcNow;
+        var noteContent = string.IsNullOrWhiteSpace(content)
+            ? BuildStoryBeatPlayedNoteContent(storyBeat.Title)
+            : content.Trim();
+
+        var note = new SessionNote
+        {
+            SessionId = session.Id,
+            Order = nextOrder,
+            Type = SessionNoteType.StoryBeatPlayed,
+            Content = noteContent,
+            StoryBeatId = storyBeat.Id,
+            StoryBeat = storyBeat,
+            CreatedAt = timestamp,
+            UpdatedAt = timestamp
+        };
+
+        session.UpdatedAt = timestamp;
+        await _sessionNoteRepository.AddAsync(note, cancellationToken);
+        await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+        return await BuildAndPublishUpdatedSessionResponseAsync(
+            session,
+            cancellationToken);
+    }
+
+    public async Task<ServiceResult<CampaignSessionResponse>> CreateStoryBeatReferenceSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        Guid storyBeatId,
+        SessionNoteStoryBeatReferenceType referenceType,
+        Guid? referenceId = null,
+        string? content = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (sessionId < 1
+            || storyBeatId == Guid.Empty
+            || !Enum.IsDefined(referenceType))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                validationStatusCode.Value);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByCampaignIdAndStoryBeatIdAsync(
+            campaignId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        if (!TryResolveStoryBeatReference(
+                storyBeat,
+                referenceType,
+                referenceId,
+                out var normalizedReferenceId,
+                out var npcTag,
+                out var contentSnapshot))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var timestamp = DateTimeOffset.UtcNow;
+
+        var existingNote = await _sessionNoteRepository.GetBySessionIdAndStoryBeatReferenceAsync(
+            session.Id,
+            storyBeat.Id,
+            referenceType,
+            normalizedReferenceId,
+            cancellationToken);
+
+        if (existingNote is not null)
+        {
+            return await BuildAndPublishUpdatedSessionResponseAsync(
+                session,
+                cancellationToken);
+        }
+
+        var aggregateNote = await _sessionNoteRepository.GetBySessionIdAndStoryBeatReferenceTypeAsync(
+            session.Id,
+            storyBeat.Id,
+            referenceType,
+            cancellationToken);
+
+        if (aggregateNote is not null)
+        {
+            aggregateNote.StoryBeatReferences.Add(new SessionNoteStoryBeatReference
+            {
+                StoryBeatId = storyBeat.Id,
+                StoryBeat = storyBeat,
+                ReferenceType = referenceType,
+                ReferenceId = normalizedReferenceId,
+                ReferenceOutcome = SessionNoteStoryBeatReferenceOutcome.Presented,
+                NpcTag = npcTag,
+                ContentSnapshot = contentSnapshot,
+                CreatedAt = timestamp
+            });
+            aggregateNote.Content = string.IsNullOrWhiteSpace(content)
+                ? BuildStoryBeatReferenceNoteContent(storyBeat.Title, referenceType)
+                : content.Trim();
+            aggregateNote.UpdatedAt = timestamp;
+            session.UpdatedAt = timestamp;
+
+            await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+            return await BuildAndPublishUpdatedSessionResponseAsync(
+                session,
+                cancellationToken);
+        }
+
+        var latestOrder = await _sessionNoteRepository.GetLatestOrderBySessionIdAsync(
+            session.Id,
+            cancellationToken);
+        var nextOrder = (latestOrder ?? 0) + 1;
+        var noteContent = string.IsNullOrWhiteSpace(content)
+            ? BuildStoryBeatReferenceNoteContent(storyBeat.Title, referenceType)
+            : content.Trim();
+
+        var note = new SessionNote
+        {
+            SessionId = session.Id,
+            Order = nextOrder,
+            Type = SessionNoteType.StoryBeatPlayed,
+            Content = noteContent,
+            StoryBeatId = storyBeat.Id,
+            StoryBeat = storyBeat,
+            CreatedAt = timestamp,
+            UpdatedAt = timestamp,
+            StoryBeatReferences =
+            [
+                new SessionNoteStoryBeatReference
+                {
+                    StoryBeatId = storyBeat.Id,
+                    StoryBeat = storyBeat,
+                    ReferenceType = referenceType,
+                    ReferenceId = normalizedReferenceId,
+                    ReferenceOutcome = SessionNoteStoryBeatReferenceOutcome.Presented,
+                    NpcTag = npcTag,
+                    ContentSnapshot = contentSnapshot,
+                    CreatedAt = timestamp
+                }
+            ]
+        };
+
+        session.UpdatedAt = timestamp;
+        await _sessionNoteRepository.AddAsync(note, cancellationToken);
+        await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+        return await BuildAndPublishUpdatedSessionResponseAsync(
+            session,
+            cancellationToken);
+    }
+
+    public async Task<ServiceResult<CampaignSessionResponse>> TakeDecisionStoryBeatOptionSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        Guid storyBeatId,
+        Guid decisionOptionId,
+        string? content = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (sessionId < 1
+            || storyBeatId == Guid.Empty
+            || decisionOptionId == Guid.Empty)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                validationStatusCode.Value);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByCampaignIdAndStoryBeatIdAsync(
+            campaignId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        if (storyBeat.StoryBeatType != StoryBeatType.Decision
+            || storyBeat.Decision is null
+            || storyBeat.Decision.Decisions.Count == 0)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var decisions = storyBeat.Decision.Decisions
+            .OrderBy(decision => decision.OrderIndex)
+            .ToList();
+        var selectedDecision = decisions
+            .SingleOrDefault(decision => ResolveDecisionOptionId(storyBeat.Id, decision) == decisionOptionId);
+
+        if (selectedDecision is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var timestamp = DateTimeOffset.UtcNow;
+        var note = await _sessionNoteRepository.GetBySessionIdAndStoryBeatReferenceTypeAsync(
+            session.Id,
+            storyBeat.Id,
+            SessionNoteStoryBeatReferenceType.DecisionOption,
+            cancellationToken);
+
+        if (note is null)
+        {
+            var latestOrder = await _sessionNoteRepository.GetLatestOrderBySessionIdAsync(
+                session.Id,
+                cancellationToken);
+
+            note = new SessionNote
+            {
+                SessionId = session.Id,
+                Order = (latestOrder ?? 0) + 1,
+                Type = SessionNoteType.StoryBeatPlayed,
+                StoryBeatId = storyBeat.Id,
+                StoryBeat = storyBeat,
+                CreatedAt = timestamp
+            };
+
+            await _sessionNoteRepository.AddAsync(note, cancellationToken);
+        }
+        else
+        {
+            foreach (var reference in note.StoryBeatReferences
+                .Where(reference => reference.ReferenceType == SessionNoteStoryBeatReferenceType.DecisionOption)
+                .ToList())
+            {
+                note.StoryBeatReferences.Remove(reference);
+                _sessionNoteRepository.RemoveStoryBeatReference(reference);
+            }
+        }
+
+        note.Content = string.IsNullOrWhiteSpace(content)
+            ? BuildDecisionStoryBeatNoteContent(storyBeat.Title, selectedDecision)
+            : content.Trim();
+        note.UpdatedAt = timestamp;
+
+        foreach (var decision in decisions)
+        {
+            var optionId = ResolveDecisionOptionId(storyBeat.Id, decision);
+
+            note.StoryBeatReferences.Add(new SessionNoteStoryBeatReference
+            {
+                StoryBeatId = storyBeat.Id,
+                StoryBeat = storyBeat,
+                ReferenceType = SessionNoteStoryBeatReferenceType.DecisionOption,
+                ReferenceId = optionId,
+                ReferenceOutcome = optionId == decisionOptionId
+                    ? SessionNoteStoryBeatReferenceOutcome.Taken
+                    : SessionNoteStoryBeatReferenceOutcome.Presented,
+                ContentSnapshot = BuildDecisionOptionSnapshot(decision),
+                CreatedAt = timestamp
+            });
+        }
+
+        session.UpdatedAt = timestamp;
+        await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+        return await BuildAndPublishUpdatedSessionResponseAsync(
+            session,
+            cancellationToken);
+    }
+
+    public async Task<ServiceResult<CampaignSessionResponse>> UpdateStoryBeatReferenceSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        UpdateStoryBeatReferenceSessionNoteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (sessionId < 1
+            || request.StoryBeatId == Guid.Empty
+            || !Enum.IsDefined(request.ReferenceType))
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.InvalidSessionNote);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                validationStatusCode.Value);
+        }
+
+        var session = await _campaignSessionRepository.GetByCampaignIdAndSessionIdAsync(
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (session is null)
+        {
+            return new ServiceResult<CampaignSessionResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var existingNote = await _sessionNoteRepository.GetBySessionIdAndStoryBeatReferenceAsync(
+            session.Id,
+            request.StoryBeatId,
+            request.ReferenceType,
+            request.ReferenceId,
+            cancellationToken);
+
+        if (request.IsPlayed)
+        {
+            if (existingNote is not null)
+            {
+                return await BuildAndPublishUpdatedSessionResponseAsync(
+                    session,
+                    cancellationToken);
+            }
+
+            return await CreateStoryBeatReferenceSessionNoteAsync(
+                userId,
+                campaignId,
+                sessionId,
+                request.StoryBeatId,
+                request.ReferenceType,
+                request.ReferenceId,
+                request.Content,
+                cancellationToken);
+        }
+
+        if (existingNote is null)
+        {
+            return await BuildAndPublishUpdatedSessionResponseAsync(
+                session,
+                cancellationToken);
+        }
+
+        var existingReference = existingNote.StoryBeatReferences
+            .SingleOrDefault(reference =>
+                reference.StoryBeatId == request.StoryBeatId
+                && reference.ReferenceType == request.ReferenceType
+                && reference.ReferenceId == request.ReferenceId);
+
+        if (existingReference is null)
+        {
+            return await BuildAndPublishUpdatedSessionResponseAsync(
+                session,
+                cancellationToken);
+        }
+
+        var timestamp = DateTimeOffset.UtcNow;
+        var remainingReferenceCount = existingNote.StoryBeatReferences.Count - 1;
+        session.UpdatedAt = timestamp;
+
+        if (remainingReferenceCount <= 0)
+        {
+            var deletedOrder = existingNote.Order;
+
+            _sessionNoteRepository.Remove(existingNote);
+            await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+
+            await _sessionNoteRepository.DecrementOrderAfterAsync(
+                session.Id,
+                deletedOrder,
+                cancellationToken);
+        }
+        else
+        {
+            existingNote.StoryBeatReferences.Remove(existingReference);
+            _sessionNoteRepository.RemoveStoryBeatReference(existingReference);
+            existingNote.UpdatedAt = timestamp;
+            await _campaignSessionRepository.SaveChangesAsync(cancellationToken);
+        }
 
         return await BuildAndPublishUpdatedSessionResponseAsync(
             session,
@@ -1110,7 +1667,10 @@ public sealed class CampaignSessionService : ICampaignSessionService
         var notes = await _sessionNoteRepository.ListBySessionIdsAsync(
             [session.Id],
             cancellationToken);
-        var response = ToResponse(session, notes);
+        var response = await BuildSessionResponseAsync(
+            session,
+            notes,
+            cancellationToken);
 
         await _applicationEventHub.PublishAsync(
             new CampaignSessionUpdatedEvent(response),
@@ -1164,7 +1724,10 @@ public sealed class CampaignSessionService : ICampaignSessionService
         var notes = await _sessionNoteRepository.ListBySessionIdsAsync(
             [session.Id],
             cancellationToken);
-        var response = ToResponse(session, notes);
+        var response = await BuildSessionResponseAsync(
+            session,
+            notes,
+            cancellationToken);
 
         await _applicationEventHub.PublishAsync(
             new CampaignSessionUpdatedEvent(response),
@@ -1173,6 +1736,21 @@ public sealed class CampaignSessionService : ICampaignSessionService
         return new ServiceResult<CampaignSessionResponse>(
             ApplicationStatusCode.Success,
             response);
+    }
+
+    private async Task<CampaignSessionResponse> BuildSessionResponseAsync(
+        CampaignSession session,
+        IEnumerable<SessionNote> notes,
+        CancellationToken cancellationToken)
+    {
+        var players = await _campaignParticipationInviteRepository.ListParticipantInformationByCampaignIdAsync(
+            session.CampaignId,
+            cancellationToken);
+
+        return ToResponse(
+            session,
+            notes,
+            players);
     }
 
     private async Task<bool> AllPlayersParticipateInCampaignAsync(
@@ -1326,7 +1904,8 @@ public sealed class CampaignSessionService : ICampaignSessionService
 
     private static CampaignSessionResponse ToResponse(
         CampaignSession session,
-        IEnumerable<SessionNote> notes)
+        IEnumerable<SessionNote> notes,
+        IReadOnlyList<CampaignMemberInformationResponse> players)
     {
         return new CampaignSessionResponse
         {
@@ -1337,6 +1916,7 @@ public sealed class CampaignSessionService : ICampaignSessionService
             SessionDate = session.SessionDate,
             CreatedAt = session.CreatedAt,
             UpdatedAt = session.UpdatedAt,
+            Players = players,
             Notes = notes.Select(ToResponse).ToList()
         };
     }
@@ -1350,6 +1930,15 @@ public sealed class CampaignSessionService : ICampaignSessionService
             Order = note.Order,
             Type = note.Type,
             Content = note.Content,
+            StoryBeatId = note.StoryBeatId,
+            StoryBeat = note.StoryBeat is null
+                ? null
+                : ToStoryBeatReferenceResponse(note.StoryBeat),
+            StoryBeatReferences = note.StoryBeatReferences
+                .OrderBy(reference => reference.CreatedAt)
+                .ThenBy(reference => reference.Id)
+                .Select(ToResponse)
+                .ToList(),
             Choices = note.Choices
                 .OrderBy(choice => choice.Order)
                 .ThenBy(choice => choice.Id)
@@ -1363,6 +1952,175 @@ public sealed class CampaignSessionService : ICampaignSessionService
             CreatedAt = note.CreatedAt,
             UpdatedAt = note.UpdatedAt
         };
+    }
+
+    private static SessionNoteStoryBeatReferenceResponse ToResponse(
+        SessionNoteStoryBeatReference reference)
+    {
+        return new SessionNoteStoryBeatReferenceResponse
+        {
+            Id = reference.Id,
+            SessionNoteId = reference.SessionNoteId,
+            StoryBeatId = reference.StoryBeatId,
+            ReferenceType = reference.ReferenceType,
+            ReferenceId = reference.ReferenceId,
+            ReferenceOutcome = reference.ReferenceOutcome,
+            NpcTag = reference.NpcTag,
+            ContentSnapshot = reference.ContentSnapshot,
+            CreatedAt = reference.CreatedAt
+        };
+    }
+
+    private static SessionNoteStoryBeatResponse ToStoryBeatReferenceResponse(StoryBeat storyBeat)
+    {
+        return new SessionNoteStoryBeatResponse
+        {
+            StoryBeatId = storyBeat.Id,
+            StoryBlockId = storyBeat.StoryBlockId,
+            OrderIndex = storyBeat.OrderIndex,
+            SecondaryOrderIndex = storyBeat.SecondaryOrderIndex,
+            Title = storyBeat.Title,
+            StoryBeatType = storyBeat.StoryBeatType
+        };
+    }
+
+    private static string BuildStoryBeatPlayedNoteContent(string storyBeatTitle)
+    {
+        return $"Story beat played: {storyBeatTitle}";
+    }
+
+    private static string BuildStoryBeatReferenceNoteContent(
+        string storyBeatTitle,
+        SessionNoteStoryBeatReferenceType referenceType)
+    {
+        return referenceType switch
+        {
+            SessionNoteStoryBeatReferenceType.RoleplayingNpcInteraction =>
+                $"Roleplaying NPC interactions played in {storyBeatTitle}",
+            SessionNoteStoryBeatReferenceType.RoleplayingInformation =>
+                $"Roleplaying information given in {storyBeatTitle}",
+            SessionNoteStoryBeatReferenceType.DecisionOption =>
+                $"Decision options presented in {storyBeatTitle}",
+            _ => BuildStoryBeatPlayedNoteContent(storyBeatTitle)
+        };
+    }
+
+    private static bool TryResolveStoryBeatReference(
+        StoryBeat storyBeat,
+        SessionNoteStoryBeatReferenceType referenceType,
+        Guid? referenceId,
+        out Guid? normalizedReferenceId,
+        out string? npcTag,
+        out string contentSnapshot)
+    {
+        normalizedReferenceId = referenceId;
+        npcTag = null;
+        contentSnapshot = storyBeat.Title;
+
+        switch (referenceType)
+        {
+            case SessionNoteStoryBeatReferenceType.StoryBeat:
+                normalizedReferenceId = null;
+                return true;
+
+            case SessionNoteStoryBeatReferenceType.RoleplayingNpcInteraction:
+            {
+                if (referenceId is null || storyBeat.Roleplaying is null)
+                {
+                    return false;
+                }
+
+                var npcReference = storyBeat.Roleplaying.NpcReferences
+                    .SingleOrDefault(reference => reference.Id == referenceId.Value);
+
+                if (npcReference is null)
+                {
+                    return false;
+                }
+
+                npcTag = npcReference.NpcTag;
+                contentSnapshot = npcReference.NpcTag;
+                return true;
+            }
+
+            case SessionNoteStoryBeatReferenceType.RoleplayingInformation:
+            {
+                if (referenceId is null || storyBeat.Roleplaying is null)
+                {
+                    return false;
+                }
+
+                var information = storyBeat.Roleplaying.DiscoverableInformation
+                    .SingleOrDefault(item => item.Id == referenceId.Value);
+
+                if (information is null)
+                {
+                    return false;
+                }
+
+                npcTag = string.IsNullOrWhiteSpace(information.NpcTag)
+                    ? null
+                    : information.NpcTag;
+                contentSnapshot = information.Information;
+                return true;
+            }
+
+            case SessionNoteStoryBeatReferenceType.DecisionOption:
+            {
+                if (referenceId is null || storyBeat.Decision is null)
+                {
+                    return false;
+                }
+
+                var decision = storyBeat.Decision.Decisions
+                    .SingleOrDefault(item => ResolveDecisionOptionId(storyBeat.Id, item) == referenceId.Value);
+
+                if (decision is null)
+                {
+                    return false;
+                }
+
+                contentSnapshot = BuildDecisionOptionSnapshot(decision);
+                return true;
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    private static string BuildDecisionStoryBeatNoteContent(
+        string storyBeatTitle,
+        StoryBeatDecisionOption selectedDecision)
+    {
+        return $"Decision taken in {storyBeatTitle}: {selectedDecision.Title}";
+    }
+
+    private static string BuildDecisionOptionSnapshot(StoryBeatDecisionOption decision)
+    {
+        return $"{decision.Title}: {decision.Description}";
+    }
+
+    private static Guid ResolveDecisionOptionId(
+        Guid storyBeatId,
+        StoryBeatDecisionOption decision)
+    {
+        return decision.Id != Guid.Empty
+            ? decision.Id
+            : CreateDeterministicDecisionOptionId(storyBeatId, decision.OrderIndex);
+    }
+
+    private static Guid CreateDeterministicDecisionOptionId(
+        Guid storyBeatId,
+        int orderIndex)
+    {
+        var input = $"{storyBeatId:N}:decision:{orderIndex}";
+        var hash = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(input));
+        var guidBytes = new byte[16];
+        Array.Copy(hash, guidBytes, guidBytes.Length);
+
+        return new Guid(guidBytes);
     }
 
     private static SessionNoteChoiceResponse ToResponse(SessionNoteChoice choice)

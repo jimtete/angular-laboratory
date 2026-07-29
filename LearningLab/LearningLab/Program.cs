@@ -22,7 +22,9 @@ using LearningLab.Data.Repositories.NotificationCommandRepository;
 using LearningLab.Data.Repositories.NotificationQueryRepository;
 using LearningLab.Data.Repositories.RoleRepository;
 using LearningLab.Data.Repositories.SessionNoteRepository;
+using LearningLab.Data.Repositories.StoryBeatIndexPathRuleRepository;
 using LearningLab.Data.Repositories.StoryBeatRepository;
+using LearningLab.Data.Repositories.StoryBeatQuestTaskRepository;
 using LearningLab.Data.Repositories.StoryBeatRoleplayingNpcQueryRepository;
 using LearningLab.Data.Repositories.StoryBlockMilestoneRepository;
 using LearningLab.Data.Repositories.StoryBlockRepository;
@@ -30,12 +32,14 @@ using LearningLab.Data.Repositories.UserRepository;
 using LearningLab.ErrorHandling;
 using LearningLab.Infrastructure.Eventing;
 using LearningLab.Infrastructure.StaticAssets;
+using LearningLab.Presentation.Actions;
+using LearningLab.Presentation.Hub;
+using LearningLab.Presentation.Services;
 using LearningLab.Security;
 using LearningLab.Security.AccessPermissions;
 using LearningLab.Services.AssetService;
 using LearningLab.Services.AuthService;
 using LearningLab.Services.CampaignContentService;
-using LearningLab.Services.CampaignPresentationService;
 using LearningLab.Services.CampaignParticipationInviteService;
 using LearningLab.Services.CampaignQuestService;
 using LearningLab.Services.CampaignRulesService;
@@ -47,6 +51,7 @@ using LearningLab.Services.CharacterSheetService;
 using LearningLab.Services.MonsterService;
 using LearningLab.Services.NotificationService;
 using LearningLab.Services.Security;
+using LearningLab.Services.StoryBeatIndexPathRuleService;
 using LearningLab.Services.UserService;
 using LearningLab.Sockets.Extensions;
 using LearningLab.Sockets.Infrastructure;
@@ -63,7 +68,9 @@ var defaultConnectionString = builder.Configuration.GetConnectionString("Default
     ?? throw new InvalidOperationException("DefaultConnection connection string is required.");
 
 builder.Services.AddDbContext<LearningLabContext>(options =>
-    options.UseSqlServer(defaultConnectionString));
+    options.UseSqlServer(
+        defaultConnectionString,
+        sqlServerOptions => sqlServerOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 builder.Services.AddSingleton<IDbConnectionFactory>(
     _ => new SqlConnectionFactory(defaultConnectionString));
 
@@ -161,7 +168,9 @@ builder.Services.AddScoped<INotificationCommandRepository, NotificationCommandRe
 builder.Services.AddScoped<INotificationQueryRepository, NotificationQueryRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ISessionNoteRepository, SessionNoteRepository>();
+builder.Services.AddScoped<IStoryBeatIndexPathRuleRepository, StoryBeatIndexPathRuleRepository>();
 builder.Services.AddScoped<IStoryBeatRepository, StoryBeatRepository>();
+builder.Services.AddScoped<IStoryBeatQuestTaskRepository, StoryBeatQuestTaskRepository>();
 builder.Services.AddScoped<IStoryBeatRoleplayingNpcQueryRepository, StoryBeatRoleplayingNpcQueryRepository>();
 builder.Services.AddScoped<IStoryBlockMilestoneRepository, StoryBlockMilestoneRepository>();
 builder.Services.AddScoped<IStoryBlockRepository, StoryBlockRepository>();
@@ -170,7 +179,19 @@ builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ICampaignContentService, CampaignContentService>();
+builder.Services.AddScoped<IPresentationModeHub, PresentationModeHub>();
 builder.Services.AddScoped<ICampaignPresentationService, CampaignPresentationService>();
+builder.Services.AddScoped<PresentationModeWorkspaceBuilder>();
+builder.Services.AddScoped<GetPresentationModeWorkspaceAction>();
+builder.Services.AddScoped<GetPresentationModeStoryBlockAction>();
+builder.Services.AddScoped<EnablePresentationModeAction>();
+builder.Services.AddScoped<DisablePresentationModeAction>();
+builder.Services.AddScoped<PresentStoryBeatAction>();
+builder.Services.AddScoped<FinishStoryBeatAction>();
+builder.Services.AddScoped<FinishNarrationBeatAction>();
+builder.Services.AddScoped<MarkStoryBeatReferenceAction>();
+builder.Services.AddScoped<FinishRoleplayingBeatAction>();
+builder.Services.AddScoped<TakeDecisionBeatAction>();
 builder.Services.AddScoped<ICampaignParticipationInviteService, CampaignParticipationInviteService>();
 builder.Services.AddScoped<ICampaignQuestService, CampaignQuestService>();
 builder.Services.AddScoped<ICampaignRulesService, CampaignRulesService>();
@@ -179,6 +200,7 @@ builder.Services.AddScoped<ICampaignSettingsService, CampaignSettingsService>();
 builder.Services.AddScoped<ICampaignStoryService, CampaignStoryService>();
 builder.Services.AddScoped<ICharacterSheetService, CharacterSheetService>();
 builder.Services.AddScoped<IMonsterService, MonsterService>();
+builder.Services.AddScoped<IStoryBeatIndexPathRuleService, StoryBeatIndexPathRuleService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddLearningLabEventHub();

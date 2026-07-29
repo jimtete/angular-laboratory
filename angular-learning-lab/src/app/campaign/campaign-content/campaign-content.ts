@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LucideCheck, LucideEye, LucideGitBranch, LucideGripVertical, LucideLock, LucidePencil, LucidePlus, LucideTrash2, LucideX, LucideZap } from '@lucide/angular';
+import { LucideArrowDown, LucideArrowUp, LucideCheck, LucideEye, LucideGitBranch, LucideGripVertical, LucideLink, LucideLock, LucidePencil, LucidePlus, LucideTrash2, LucideX, LucideZap } from '@lucide/angular';
 import { catchError, finalize, forkJoin, map, Observable, of, switchMap, timeout } from 'rxjs';
 
 import {
@@ -15,6 +15,7 @@ import {
   CampaignMilestoneRequest,
   CampaignNpcModel,
   CampaignQuestModel,
+  CampaignQuestTaskModel,
   CampaignQuestType,
   CampaignRuleGroupRequest,
   CampaignRulesApiService,
@@ -39,7 +40,7 @@ import {
   CreateNarrativeStoryBeatRequest,
   CreateRoleplayingStoryBeatRequest,
   CreateTransitionStoryBeatRequest,
-  CreateCampaignQuestRequest,
+  UpdateCampaignQuestRequest,
   MonsterApiService,
   MonsterModel,
   getCampaignMilestoneImportanceLabel,
@@ -48,6 +49,7 @@ import {
   StoryBeatOptionalInformationPlacement,
   StoryBeatOptionalInformationRequest,
   StoryBeatModel,
+  StoryBeatQuestTaskModel,
   StoryBeatRoleplayingCheckType,
   StoryBeatRoleplayingInformationModel,
   StoryBeatType,
@@ -220,6 +222,11 @@ interface QuestTaskDraft {
   dateCompleted: string | null;
 }
 
+interface StoryBeatQuestTaskSearchResult {
+  quest: CampaignQuestModel;
+  tasks: CampaignQuestTaskModel[];
+}
+
 @Component({
   selector: 'app-campaign-content',
   imports: [
@@ -227,10 +234,13 @@ interface QuestTaskDraft {
     CombatNpcsPage,
     OutcomeEffectEditor,
     RuleBuilder,
+    LucideArrowDown,
+    LucideArrowUp,
     LucideCheck,
     LucideEye,
     LucideGitBranch,
     LucideGripVertical,
+    LucideLink,
     LucideLock,
     LucidePencil,
     LucidePlus,
@@ -262,6 +272,7 @@ export class CampaignContent implements OnInit {
   protected readonly savingRoleplayingNpcTag = signal<string | null>(null);
   protected readonly isLoadingStoryContent = signal(false);
   protected readonly isReorderingStoryBlocks = signal(false);
+  protected readonly isReorderingStoryBeats = signal(false);
   protected readonly draggedStoryBlockId = signal<string | null>(null);
   protected readonly storyBlockDropTargetId = signal<string | null>(null);
   protected readonly storyBlockDropPosition = signal<StoryBlockDropPosition>('after');
@@ -284,11 +295,13 @@ export class CampaignContent implements OnInit {
   protected readonly deletingStoryBlockId = signal<string | null>(null);
   protected readonly deletingStoryBeatId = signal<string | null>(null);
   protected readonly editingMilestone = signal<CampaignMilestoneModel | null>(null);
+  protected readonly editingQuest = signal<CampaignQuestModel | null>(null);
   protected readonly editingStoryBlock = signal<StoryBlockViewModel | null>(null);
   protected readonly editingStoryBeat = signal<StoryBeatViewModel | null>(null);
   protected readonly storyBeatDialogBlock = signal<StoryBlockViewModel | null>(null);
   protected readonly siblingStoryBeatDraftSource = signal<SiblingStoryBeatDraftSource | null>(null);
   protected readonly storyBeatRulesDialogBeat = signal<StoryBeatViewModel | null>(null);
+  protected readonly storyBeatQuestTaskDialogBeat = signal<StoryBeatViewModel | null>(null);
   protected readonly storyBeatRule = signal<ConditionalRuleModel | null>(null);
   protected readonly storyBeatRuleDraft = signal<CampaignRuleGroupRequest | null>(null);
   protected readonly storyBeatRuleEffectType = signal<ConditionalRuleEffectType>(
@@ -303,9 +316,15 @@ export class CampaignContent implements OnInit {
   protected readonly storyBeatRuleEventOptions = signal<CampaignEventModel[]>([]);
   protected readonly storyBeatRuleSummaryEventOptions = signal<CampaignEventModel[]>([]);
   protected readonly storyBeatRuleSummaries = signal<Record<string, ConditionalRuleModel[]>>({});
+  protected readonly storyBeatQuestTasks = signal<StoryBeatQuestTaskModel[]>([]);
+  protected readonly campaignStoryBeatQuestTasks = signal<StoryBeatQuestTaskModel[]>([]);
+  protected readonly storyBeatQuestTaskSearchDraft = signal('');
   protected readonly isLoadingStoryBeatRules = signal(false);
   protected readonly isSavingStoryBeatRule = signal(false);
   protected readonly isDeletingStoryBeatRule = signal(false);
+  protected readonly isLoadingStoryBeatQuestTasks = signal(false);
+  protected readonly linkingQuestTaskId = signal<string | null>(null);
+  protected readonly unlinkingQuestTaskId = signal<string | null>(null);
   protected readonly storyBeatEventEffectsDialogBeat = signal<StoryBeatViewModel | null>(null);
   protected readonly storyBeatEventEffects = signal<OutcomeEffectModel[]>([]);
   protected readonly storyBeatEventEffectDrafts = signal<OutcomeEffectRequest[]>([]);
@@ -378,6 +397,22 @@ export class CampaignContent implements OnInit {
       (effect.eventDefinitionId ?? effect.eventId ?? '').trim().length > 0
     ))
   ));
+  protected readonly storyBeatQuestTaskSearchResults = computed<StoryBeatQuestTaskSearchResult[]>(() => {
+    const query = this.normalizeText(this.storyBeatQuestTaskSearchDraft()).toLowerCase();
+    const linkedTaskIds = new Set(this.campaignStoryBeatQuestTasks().map((task) => task.questTaskId));
+
+    return this.quests()
+      .map((quest) => {
+        const questMatches = this.storyBeatQuestSearchText(quest).includes(query);
+        const tasks = quest.tasks.filter((task) => (
+          !linkedTaskIds.has(task.questTaskId) &&
+          (query.length === 0 || questMatches || this.storyBeatQuestTaskSearchText(task).includes(query))
+        ));
+
+        return { quest, tasks };
+      })
+      .filter((result) => result.tasks.length > 0);
+  });
   protected readonly selectedStoryBlock = computed(() => {
     const selectedStoryBlockId = this.selectedStoryBlockId();
 
@@ -1343,6 +1378,137 @@ export class CampaignContent implements OnInit {
           );
         },
       });
+  }
+
+  protected openStoryBeatQuestTasksDialog(storyBeat: StoryBeatViewModel): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isLoadingStoryBeatQuestTasks()) {
+      return;
+    }
+
+    this.storyBeatQuestTaskDialogBeat.set(storyBeat);
+    this.storyBeatQuestTasks.set([]);
+    this.campaignStoryBeatQuestTasks.set([]);
+    this.storyBeatQuestTaskSearchDraft.set('');
+    this.isLoadingStoryBeatQuestTasks.set(true);
+
+    forkJoin({
+      quests: this.campaignApiService.fetchCampaignQuests(campaignId),
+      linkedTasks: this.campaignApiService.fetchCampaignStoryBeatQuestTasks(campaignId),
+    })
+      .pipe(finalize(() => this.isLoadingStoryBeatQuestTasks.set(false)))
+      .subscribe({
+        next: ({ quests, linkedTasks }) => {
+          const campaignLinks = linkedTasks.data ?? [];
+
+          this.quests.set(quests.data ?? []);
+          this.campaignStoryBeatQuestTasks.set(campaignLinks);
+          this.storyBeatQuestTasks.set(
+            campaignLinks.filter((link) => link.storyBeatId === storyBeat.storyBeatId),
+          );
+        },
+        error: (error: unknown) => {
+          this.closeStoryBeatQuestTasksDialog(true);
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat quest tasks could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected closeStoryBeatQuestTasksDialog(force = false): void {
+    if (!force && (
+      this.isLoadingStoryBeatQuestTasks() ||
+      this.linkingQuestTaskId() !== null ||
+      this.unlinkingQuestTaskId() !== null
+    )) {
+      return;
+    }
+
+    this.storyBeatQuestTaskDialogBeat.set(null);
+    this.storyBeatQuestTasks.set([]);
+    this.campaignStoryBeatQuestTasks.set([]);
+    this.storyBeatQuestTaskSearchDraft.set('');
+  }
+
+  protected setStoryBeatQuestTaskSearchDraft(event: Event): void {
+    this.storyBeatQuestTaskSearchDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected linkQuestTaskToStoryBeat(task: CampaignQuestTaskModel): void {
+    const campaignId = this.getCampaignId();
+    const storyBeat = this.storyBeatQuestTaskDialogBeat();
+
+    if (!campaignId || !storyBeat || this.linkingQuestTaskId() !== null) {
+      return;
+    }
+
+    this.linkingQuestTaskId.set(task.questTaskId);
+    this.campaignApiService
+      .linkQuestTaskToStoryBeat(campaignId, storyBeat.storyBeatId, task.questTaskId)
+      .pipe(finalize(() => this.linkingQuestTaskId.set(null)))
+      .subscribe({
+        next: (response) => {
+          if (response.data) {
+            this.storyBeatQuestTasks.update((tasks) => [...tasks, response.data!]);
+            this.campaignStoryBeatQuestTasks.update((tasks) => [...tasks, response.data!]);
+          }
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Quest task could not be linked to the story beat.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected unlinkQuestTaskFromStoryBeat(link: StoryBeatQuestTaskModel): void {
+    const campaignId = this.getCampaignId();
+    const storyBeat = this.storyBeatQuestTaskDialogBeat();
+
+    if (!campaignId || !storyBeat || this.unlinkingQuestTaskId() !== null) {
+      return;
+    }
+
+    this.unlinkingQuestTaskId.set(link.questTaskId);
+    this.campaignApiService
+      .unlinkQuestTaskFromStoryBeat(campaignId, storyBeat.storyBeatId, link.questTaskId)
+      .pipe(finalize(() => this.unlinkingQuestTaskId.set(null)))
+      .subscribe({
+        next: (response) => {
+          this.storyBeatQuestTasks.update((tasks) => (
+            tasks.filter((task) => task.questTaskId !== link.questTaskId)
+          ));
+          this.campaignStoryBeatQuestTasks.update((tasks) => (
+            tasks.filter((task) => task.questTaskId !== link.questTaskId)
+          ));
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Quest task could not be unlinked from the story beat.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected storyBeatQuestTaskQuestTitle(link: StoryBeatQuestTaskModel): string {
+    return this.quests().find((quest) => quest.questId === link.questId)?.title ?? 'Quest';
+  }
+
+  protected storyBeatQuestOptionLabel(quest: CampaignQuestModel): string {
+    return `${quest.title} - ${this.questTypeLabel(quest)}`;
+  }
+
+  protected questTypeLabel(quest: CampaignQuestModel): string {
+    const questType = this.toQuestType(quest.type);
+
+    return this.questTypeOptions.find((option) => option.value === questType)?.label ?? 'Quest';
   }
 
   protected isEventAdjustableStoryBeat(storyBeat: StoryBeatViewModel): boolean {
@@ -2428,25 +2594,77 @@ export class CampaignContent implements OnInit {
       groupedBeats.set(orderIndex, rowBeats);
     });
 
-    return Array.from(groupedBeats.entries()).map(([orderIndex, beats]) => {
-      const sortedBeats = [...beats].sort((firstBeat, secondBeat) => (
-        firstBeat.secondaryOrderIndex - secondBeat.secondaryOrderIndex
-      ));
-      const key = this.storyBeatRowKey(storyBlock.storyBlockId, orderIndex);
-      const activeIndex = this.clampStoryBeatAlternativeIndex(
-        this.storyBeatAlternativeIndexes()[key] ?? 0,
-        sortedBeats,
-      );
+    return Array.from(groupedBeats.entries())
+      .sort(([firstOrderIndex], [secondOrderIndex]) => firstOrderIndex - secondOrderIndex)
+      .map(([orderIndex, beats]) => {
+        const sortedBeats = [...beats].sort((firstBeat, secondBeat) => (
+          firstBeat.secondaryOrderIndex - secondBeat.secondaryOrderIndex
+        ));
+        const key = this.storyBeatRowKey(storyBlock.storyBlockId, orderIndex);
+        const activeIndex = this.clampStoryBeatAlternativeIndex(
+          this.storyBeatAlternativeIndexes()[key] ?? 0,
+          sortedBeats,
+        );
 
-      return {
-        key,
-        storyBlockId: storyBlock.storyBlockId,
-        orderIndex,
-        beats: sortedBeats,
-        activeIndex,
-        activeBeat: sortedBeats[activeIndex] ?? null,
-      };
-    });
+        return {
+          key,
+          storyBlockId: storyBlock.storyBlockId,
+          orderIndex,
+          beats: sortedBeats,
+          activeIndex,
+          activeBeat: sortedBeats[activeIndex] ?? null,
+        };
+      });
+  }
+
+  protected canMoveStoryBeatRow(
+    storyBlock: StoryBlockViewModel,
+    storyBeatRow: StoryBeatRowViewModel,
+    direction: -1 | 1,
+  ): boolean {
+    if (this.isReorderingStoryBeats()) {
+      return false;
+    }
+
+    const storyBeatRows = this.storyBeatRowsFor(storyBlock);
+    const currentIndex = storyBeatRows.findIndex((row) => row.key === storyBeatRow.key);
+    const targetIndex = currentIndex + direction;
+
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= storyBeatRows.length) {
+      return false;
+    }
+
+    if (direction === -1 && storyBeatRow.beats.some((beat) => this.isTransitionStoryBeat(beat))) {
+      return false;
+    }
+
+    if (direction === 1 && storyBeatRows[targetIndex]?.beats.some((beat) => this.isTransitionStoryBeat(beat))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  protected moveStoryBeatRow(
+    storyBlock: StoryBlockViewModel,
+    storyBeatRow: StoryBeatRowViewModel,
+    direction: -1 | 1,
+  ): void {
+    if (!this.canMoveStoryBeatRow(storyBlock, storyBeatRow, direction)) {
+      return;
+    }
+
+    const storyBeatRows = this.storyBeatRowsFor(storyBlock);
+    const currentIndex = storyBeatRows.findIndex((row) => row.key === storyBeatRow.key);
+    const targetIndex = currentIndex + direction;
+    const nextStoryBeatRows = [...storyBeatRows];
+
+    [nextStoryBeatRows[currentIndex], nextStoryBeatRows[targetIndex]] = [
+      nextStoryBeatRows[targetIndex]!,
+      nextStoryBeatRows[currentIndex]!,
+    ];
+
+    this.commitStoryBeatOrder(storyBlock, nextStoryBeatRows);
   }
 
   protected storyBeatSequenceLabel(
@@ -3019,6 +3237,14 @@ export class CampaignContent implements OnInit {
     return item === 'add-quest';
   }
 
+  private storyBeatQuestSearchText(quest: CampaignQuestModel): string {
+    return `${quest.title} ${quest.description} ${quest.givenBy} ${quest.reward} ${this.questTypeLabel(quest)}`.toLowerCase();
+  }
+
+  private storyBeatQuestTaskSearchText(task: CampaignQuestTaskModel): string {
+    return `${task.title} ${task.description}`.toLowerCase();
+  }
+
   protected getQuestTypeColor(quest: CampaignQuestModel): string {
     switch (this.toQuestType(quest.type)) {
       case CampaignQuestType.MainQuest:
@@ -3042,6 +3268,7 @@ export class CampaignContent implements OnInit {
   }
 
   protected openCreateQuestDialog(): void {
+    this.editingQuest.set(null);
     this.questTypeDraft.set(CampaignQuestType.MainQuest);
     this.questTitleDraft.set('');
     this.questDescriptionDraft.set('');
@@ -3567,6 +3794,66 @@ export class CampaignContent implements OnInit {
       });
   }
 
+  private commitStoryBeatOrder(
+    storyBlock: StoryBlockViewModel,
+    nextStoryBeatRows: StoryBeatRowViewModel[],
+  ): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId || this.isReorderingStoryBeats()) {
+      return;
+    }
+
+    const previousStoryBlocks = this.storyBlocks();
+    const nextStoryBeats = this.toReindexedStoryBeats(nextStoryBeatRows);
+
+    this.storyBeatAlternativeIndexes.set({});
+    this.storyBlocks.update((storyBlocks) => storyBlocks.map((block) => (
+      block.storyBlockId === storyBlock.storyBlockId
+        ? {
+          ...block,
+          beats: nextStoryBeats,
+        }
+        : block
+    )));
+    this.isReorderingStoryBeats.set(true);
+
+    this.campaignApiService
+      .reorderStoryBeats(campaignId, storyBlock.storyBlockId, {
+        storyBeats: nextStoryBeats.map((storyBeat) => ({
+          storyBeatId: storyBeat.storyBeatId,
+          orderIndex: storyBeat.orderIndex,
+          secondaryOrderIndex: storyBeat.secondaryOrderIndex,
+        })),
+      })
+      .pipe(finalize(() => this.isReorderingStoryBeats.set(false)))
+      .subscribe({
+        next: (response) => {
+          const reorderedStoryBeats = response.data ?? [];
+
+          if (reorderedStoryBeats.length === 0) {
+            return;
+          }
+
+          this.storyBlocks.update((storyBlocks) => storyBlocks.map((block) => (
+            block.storyBlockId === storyBlock.storyBlockId
+              ? {
+                ...block,
+                beats: this.toStoryBeatViewModels(reorderedStoryBeats),
+              }
+              : block
+          )));
+        },
+        error: (error: unknown) => {
+          this.storyBlocks.set(previousStoryBlocks);
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beats could not be reordered.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   private clearStoryBlockDragState(): void {
     this.draggedStoryBlockId.set(null);
     this.storyBlockDropTargetId.set(null);
@@ -3579,6 +3866,17 @@ export class CampaignContent implements OnInit {
       orderIndex: index + 1,
       displayIndex: index + 1,
     }));
+  }
+
+  private toReindexedStoryBeats(storyBeatRows: StoryBeatRowViewModel[]): StoryBeatViewModel[] {
+    return storyBeatRows.flatMap((storyBeatRow, rowIndex) => (
+      storyBeatRow.beats.map((storyBeat, secondaryIndex) => ({
+        ...storyBeat,
+        orderIndex: rowIndex + 1,
+        secondaryOrderIndex: secondaryIndex + 1,
+        displayIndex: rowIndex + 1,
+      }))
+    ));
   }
 
   private cloneRuleGroup(group: CampaignRuleGroupRequest): CampaignRuleGroupRequest {
@@ -4611,6 +4909,7 @@ export class CampaignContent implements OnInit {
       draftId: this.nextQuestTaskDraftId++,
       title: '',
       description: '',
+      dateCompleted: null,
     };
   }
 

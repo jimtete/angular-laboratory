@@ -2,7 +2,7 @@ using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.DTOs;
 using LearningLab.Data.Models.DTOs.Campaign.Presentation;
-using LearningLab.Services.CampaignPresentationService;
+using LearningLab.Presentation.Hub;
 using LearningLab.Services.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +14,11 @@ namespace LearningLab.Controllers;
 [Route("api/campaigns/{campaignId:guid}/sessions/{sessionId:int}/presentation")]
 public sealed class CampaignPresentationController : ControllerBase
 {
-    private readonly ICampaignPresentationService _campaignPresentationService;
+    private readonly IPresentationModeHub _presentationModeHub;
 
-    public CampaignPresentationController(ICampaignPresentationService campaignPresentationService)
+    public CampaignPresentationController(IPresentationModeHub presentationModeHub)
     {
-        _campaignPresentationService = campaignPresentationService;
+        _presentationModeHub = presentationModeHub;
     }
 
     [HttpGet]
@@ -34,7 +34,7 @@ public sealed class CampaignPresentationController : ControllerBase
             return InvalidUserClaimResponse<CampaignPresentationResponse>();
         }
 
-        var result = await _campaignPresentationService.GetPresentationModeAsync(
+        var result = await _presentationModeHub.GetPresentationModeAsync(
             userId.Value,
             campaignId,
             sessionId,
@@ -59,7 +59,7 @@ public sealed class CampaignPresentationController : ControllerBase
             return InvalidUserClaimResponse<CampaignPresentationResponse>();
         }
 
-        var result = await _campaignPresentationService.InitiatePresentationModeAsync(
+        var result = await _presentationModeHub.InitiatePresentationModeAsync(
             userId.Value,
             campaignId,
             sessionId,
@@ -94,7 +94,7 @@ public sealed class CampaignPresentationController : ControllerBase
             return InvalidUserClaimResponse<CampaignPresentationResponse>();
         }
 
-        var result = await _campaignPresentationService.PresentStoryBeatAsync(
+        var result = await _presentationModeHub.PresentStoryBeatAsync(
             userId.Value,
             campaignId,
             sessionId,
@@ -104,6 +104,30 @@ public sealed class CampaignPresentationController : ControllerBase
         return MapPresentationResponse(
             result,
             "Story beat presented successfully.");
+    }
+
+    [HttpDelete]
+    public async Task<ActionResult<ApiResponse<CampaignPresentationResponse>>> DisablePresentationMode(
+        Guid campaignId,
+        int sessionId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<CampaignPresentationResponse>();
+        }
+
+        var result = await _presentationModeHub.DisablePresentationModeAsync(
+            userId.Value,
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        return MapPresentationResponse(
+            result,
+            "Presentation mode disabled successfully.");
     }
 
     private ActionResult<ApiResponse<CampaignPresentationResponse>> MapPresentationResponse(

@@ -5,6 +5,7 @@ export * from './campaign-milestone.model';
 export * from './campaign-narration.model';
 export * from './campaign-participation-invite.model';
 export * from './campaign-pending-invite.model';
+export * from './campaign-presentation.model';
 export * from './campaign-quest.model';
 export * from './campaign-story.model';
 export * from './campaign.model';

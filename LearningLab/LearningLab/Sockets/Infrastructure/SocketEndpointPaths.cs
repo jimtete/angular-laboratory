@@ -7,4 +7,6 @@ public static class SocketEndpointPaths
     public const string Notifications = $"{Root}/notifications";
 
     public const string CampaignSessions = $"{Root}/campaign-sessions";
+
+    public const string PresentationMode = $"{Root}/presentation-mode";
 }

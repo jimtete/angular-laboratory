@@ -433,6 +433,38 @@
                       <button
                         type="button"
                         class="story-beat-card-action"
+                        [attr.aria-label]="'Connect quest task to ' + storyBeatTitle(storyBeat)"
+                        title="Quest tasks"
+                        (click)="openStoryBeatQuestTasksDialog(storyBeat)"
+                      >
+                        <svg lucideLink aria-hidden="true"></svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="story-beat-card-action"
+                        [attr.aria-label]="'Move ' + storyBeatTitle(storyBeat) + ' up'"
+                        title="Move up"
+                        [disabled]="!canMoveStoryBeatRow(storyBlock, storyBeatRow, -1)"
+                        (click)="moveStoryBeatRow(storyBlock, storyBeatRow, -1)"
+                      >
+                        <svg lucideArrowUp aria-hidden="true"></svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="story-beat-card-action"
+                        [attr.aria-label]="'Move ' + storyBeatTitle(storyBeat) + ' down'"
+                        title="Move down"
+                        [disabled]="!canMoveStoryBeatRow(storyBlock, storyBeatRow, 1)"
+                        (click)="moveStoryBeatRow(storyBlock, storyBeatRow, 1)"
+                      >
+                        <svg lucideArrowDown aria-hidden="true"></svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="story-beat-card-action"
                         [attr.aria-label]="'Edit ' + storyBeatTitle(storyBeat)"
                         title="Edit story beat"
                         (click)="openEditStoryBeatDialog(storyBlock, storyBeat)"
@@ -550,6 +582,11 @@
         class="story-beat-dialog"
         [class.story-beat-dialog-information]="isInformationStoryBeatDraft()"
         [class.story-beat-dialog-narrative]="isNarrativeStoryBeatDraft()"
+        [class.story-beat-dialog-roleplaying]="isRoleplayingStoryBeatDraft()"
+        [class.story-beat-dialog-decision]="isDecisionStoryBeatDraft()"
+        [class.story-beat-dialog-combat]="isCombatStoryBeatDraft()"
+        [class.story-beat-dialog-transition]="isTransitionStoryBeatDraft()"
+        [class.story-beat-dialog-milestone]="isMilestoneStoryBeatDraft()"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="storyBeatDialogTitle()"
@@ -1291,6 +1328,99 @@
     </div>
   }
 
+  @if (storyBeatQuestTaskDialogBeat(); as storyBeat) {
+    <div
+      class="campaign-milestone-dialog-backdrop"
+      role="presentation"
+      (click)="closeStoryBeatQuestTasksDialog()"
+    >
+      <section
+        class="story-beat-dialog story-beat-quest-task-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Quest tasks for ' + storyBeatTitle(storyBeat)"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="story-beat-dialog-header">
+          <div>
+            <p>Quest Tasks</p>
+            <h2>{{ storyBeatTitle(storyBeat) }}</h2>
+          </div>
+          <span>{{ storyBeatTypeLabel(storyBeat) }}</span>
+        </header>
+
+        @if (isLoadingStoryBeatQuestTasks()) {
+          <p class="story-beat-dialog-status">Loading quest tasks...</p>
+        } @else {
+          @if (storyBeatQuestTasks().length > 0) {
+            <div class="campaign-session-item-picker-grid" aria-label="Linked quest tasks">
+              @for (link of storyBeatQuestTasks(); track link.questTaskId) {
+                <section class="campaign-session-item-option campaign-session-item-option-selected">
+                  <strong>{{ link.title }}</strong>
+                  <span>{{ storyBeatQuestTaskQuestTitle(link) }}</span>
+                  <p>{{ link.description }}</p>
+                  <button
+                    type="button"
+                    class="campaign-milestone-delete-confirm"
+                    [disabled]="unlinkingQuestTaskId() !== null || linkingQuestTaskId() !== null"
+                    (click)="unlinkQuestTaskFromStoryBeat(link)"
+                  >
+                    {{ unlinkingQuestTaskId() === link.questTaskId ? 'Removing...' : 'Remove' }}
+                  </button>
+                </section>
+              }
+            </div>
+          }
+
+          <label class="campaign-milestone-field">
+            <span>Search Quest Tasks</span>
+            <input
+              type="search"
+              [value]="storyBeatQuestTaskSearchDraft()"
+              (input)="setStoryBeatQuestTaskSearchDraft($event)"
+            />
+          </label>
+
+          @if (storyBeatQuestTaskSearchResults().length > 0) {
+            <div class="story-beat-quest-task-results">
+              @for (result of storyBeatQuestTaskSearchResults(); track result.quest.questId) {
+                <section class="story-beat-quest-task-result">
+                  <h3>{{ storyBeatQuestOptionLabel(result.quest) }}</h3>
+                  <div class="campaign-session-item-picker-grid">
+                    @for (task of result.tasks; track task.questTaskId) {
+                      <button
+                        type="button"
+                        class="campaign-session-item-option"
+                        [disabled]="linkingQuestTaskId() !== null || unlinkingQuestTaskId() !== null"
+                        (click)="linkQuestTaskToStoryBeat(task)"
+                      >
+                        <strong>{{ task.title }}</strong>
+                        <p>{{ task.description }}</p>
+                      </button>
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          } @else {
+            <p class="campaign-session-item-picker-status">No available quest tasks match this search.</p>
+          }
+        }
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="isLoadingStoryBeatQuestTasks() || linkingQuestTaskId() !== null || unlinkingQuestTaskId() !== null"
+            (click)="closeStoryBeatQuestTasksDialog()"
+          >
+            Close
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
   @if (deleteConfirmationStoryBlock(); as storyBlock) {
     <div class="campaign-milestone-dialog-backdrop" role="presentation">
       <section
@@ -1471,19 +1601,16 @@
               </button>
             } @else {
               <article
-                class="campaign-quest-card"
+                class="campaign-quest-card campaign-quest-edit-card"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="'Edit quest ' + item.title"
                 [style.--qt]="getQuestTypeColor(item)"
+                (click)="openEditQuestDialog(item)"
+                (keydown.enter)="openEditQuestDialog(item)"
+                (keydown.space)="openEditQuestDialog(item); $event.preventDefault()"
               >
                 <header class="campaign-quest-card-header">
-                  <button
-                    type="button"
-                    class="campaign-quest-card-action"
-                    aria-label="Update quest"
-                    title="Update quest"
-                    (click)="openEditQuestDialog(item)"
-                  >
-                    <svg lucidePencil aria-hidden="true"></svg>
-                  </button>
                   <h2>{{ item.title }}</h2>
                   <p>{{ item.description }}</p>
                 </header>
@@ -1878,9 +2005,9 @@
               type="button"
               class="campaign-milestone-create"
               [disabled]="!canCreateQuest()"
-              (click)="createQuest()"
+              (click)="saveQuest()"
             >
-              {{ isCreatingQuest() ? 'Creating...' : 'Create' }}
+              {{ questDialogActionText() }}
             </button>
           }
         </div>

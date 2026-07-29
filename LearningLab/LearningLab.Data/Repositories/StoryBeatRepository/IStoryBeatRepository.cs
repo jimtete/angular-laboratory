@@ -8,6 +8,10 @@ public interface IStoryBeatRepository
         Guid storyBlockId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<StoryBeat>> ListTrackedByStoryBlockIdAsync(
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default);
+
     Task<StoryBeat?> GetByStoryBlockIdAndStoryBeatIdAsync(
         Guid storyBlockId,
         Guid storyBeatId,
@@ -32,6 +36,11 @@ public interface IStoryBeatRepository
         CancellationToken cancellationToken = default);
 
     Task<int?> GetLatestSecondaryOrderIndexByStoryBlockIdAndOrderIndexAsync(
+        Guid storyBlockId,
+        int orderIndex,
+        CancellationToken cancellationToken = default);
+
+    Task<int> CountByStoryBlockIdAndOrderIndexAsync(
         Guid storyBlockId,
         int orderIndex,
         CancellationToken cancellationToken = default);

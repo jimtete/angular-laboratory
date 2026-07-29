@@ -11,4 +11,9 @@ public static class SocketGroupNames
     {
         return $"campaign:{campaignId:D}:sessions";
     }
+
+    public static string CampaignSessionPresentation(Guid campaignId, int sessionId)
+    {
+        return $"campaign:{campaignId:D}:session:{sessionId}:presentation";
+    }
 }

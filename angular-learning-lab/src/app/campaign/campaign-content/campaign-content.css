@@ -93,41 +93,16 @@
 }
 
 .campaign-quest-card-header {
+  position: relative;
   width: 100%;
   display: grid;
   gap: 0.55rem;
   align-items: center;
   justify-items: center;
   border-bottom: 1px solid rgba(8, 145, 178, 0.28);
-  padding: 0 2.5rem 0.85rem;
+  padding-bottom: 0.85rem;
 }
 
-.campaign-quest-card-action {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 2rem;
-  height: 2rem;
-  display: inline-grid;
-  place-items: center;
-  border: 1px solid rgba(8, 145, 178, 0.34);
-  border-radius: 4px;
-  background: #ffffff;
-  color: #083344;
-  cursor: pointer;
-}
-
-.campaign-quest-card-action:hover,
-.campaign-quest-card-action:focus-visible {
-  background: #ecfeff;
-  outline: 2px solid rgba(8, 145, 178, 0.32);
-  outline-offset: 2px;
-}
-
-.campaign-quest-card-action svg {
-  width: 1rem;
-  height: 1rem;
-}
 
 .campaign-quest-card h2 {
   margin: 0;
@@ -438,7 +413,7 @@
 
 .story-beat-dialog {
   width: min(100%, 67rem);
-  max-height: calc(100dvh - 2rem);
+  max-height: 80dvh;
   display: grid;
   gap: 1rem;
   padding: 1.25rem;

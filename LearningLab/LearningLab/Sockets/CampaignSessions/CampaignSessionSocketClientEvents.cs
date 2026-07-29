@@ -6,6 +6,8 @@ public static class CampaignSessionSocketClientEvents
 
     public const string SessionNotesLoaded = "sessionNotesLoaded";
 
+    public const string SessionPlayersLoaded = "sessionPlayersLoaded";
+
     public const string CampaignSessionCreated = "campaignSessionCreated";
 
     public const string CampaignSessionUpdated = "campaignSessionUpdated";

@@ -1,4 +1,5 @@
 import { SessionNoteModel } from './session-note.model';
+import { CampaignMemberInformationModel } from './campaign-member-information.model';
 
 export interface CampaignSessionModel {
   id: number;
@@ -8,5 +9,6 @@ export interface CampaignSessionModel {
   sessionDate: string | null;
   createdAt: string;
   updatedAt: string;
+  players: CampaignMemberInformationModel[];
   notes: SessionNoteModel[];
 }

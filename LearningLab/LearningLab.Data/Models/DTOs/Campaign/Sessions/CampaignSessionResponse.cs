@@ -1,3 +1,5 @@
+using LearningLab.Data.Models.DTOs.Campaign;
+
 namespace LearningLab.Data.Models.DTOs.Campaign.Sessions;
 
 public sealed class CampaignSessionResponse
@@ -15,6 +17,8 @@ public sealed class CampaignSessionResponse
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset UpdatedAt { get; init; }
+
+    public IReadOnlyList<CampaignMemberInformationResponse> Players { get; init; } = [];
 
     public IReadOnlyList<SessionNoteResponse> Notes { get; init; } = [];
 }

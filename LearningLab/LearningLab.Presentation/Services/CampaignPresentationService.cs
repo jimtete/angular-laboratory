@@ -1,39 +1,49 @@
+using LearningLab.Data;
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign.Presentation;
+using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.Campaign.Story;
 using LearningLab.Data.Models.DTOs.Campaign.Presentation;
 using LearningLab.Data.Repositories.CampaignPresentationRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.CampaignSessionRepository;
+using LearningLab.Data.Repositories.StoryBeatIndexPathRuleRepository;
 using LearningLab.Data.Repositories.StoryBeatRepository;
 using LearningLab.Data.Repositories.StoryBlockRepository;
 using LearningLab.Data.Repositories.UserRepository;
+using Microsoft.EntityFrameworkCore;
 
-namespace LearningLab.Services.CampaignPresentationService;
+namespace LearningLab.Presentation.Services;
 
 public sealed class CampaignPresentationService : ICampaignPresentationService
 {
     private readonly ICampaignPresentationRepository _campaignPresentationRepository;
     private readonly ICampaignRepository _campaignRepository;
     private readonly ICampaignSessionRepository _campaignSessionRepository;
+    private readonly IStoryBeatIndexPathRuleRepository _storyBeatIndexPathRuleRepository;
     private readonly IStoryBeatRepository _storyBeatRepository;
     private readonly IStoryBlockRepository _storyBlockRepository;
+    private readonly LearningLabContext _context;
     private readonly IUserRepository _userRepository;
 
     public CampaignPresentationService(
         ICampaignPresentationRepository campaignPresentationRepository,
         ICampaignRepository campaignRepository,
         ICampaignSessionRepository campaignSessionRepository,
+        IStoryBeatIndexPathRuleRepository storyBeatIndexPathRuleRepository,
         IStoryBeatRepository storyBeatRepository,
         IStoryBlockRepository storyBlockRepository,
+        LearningLabContext context,
         IUserRepository userRepository)
     {
         _campaignPresentationRepository = campaignPresentationRepository;
         _campaignRepository = campaignRepository;
         _campaignSessionRepository = campaignSessionRepository;
+        _storyBeatIndexPathRuleRepository = storyBeatIndexPathRuleRepository;
         _storyBeatRepository = storyBeatRepository;
         _storyBlockRepository = storyBlockRepository;
+        _context = context;
         _userRepository = userRepository;
     }
 
@@ -157,17 +167,6 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
                 cancellationToken);
         }
 
-        if (currentStoryBeat is not null
-            && !await TryApplyStoryBeatSelectionAsync(
-                presentation,
-                currentStoryBeat,
-                updatedAt,
-                cancellationToken))
-        {
-            return new ServiceResult<CampaignPresentationResponse>(
-                ApplicationStatusCode.CampaignPresentationStoryBeatConflict);
-        }
-
         presentation.Status = PresentationStatus.Active;
         presentation.ActiveStoryBlockId = selectedStoryBlock.StoryBlockId;
         presentation.CurrentStoryBeatId = currentStoryBeat?.Id;
@@ -188,6 +187,56 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
                 currentStoryBeat?.Id,
                 updatedAt));
         }
+
+        await _campaignPresentationRepository.SaveChangesAsync(cancellationToken);
+
+        return await BuildPresentationResponseAsync(presentation, cancellationToken);
+    }
+
+    public async Task<ServiceResult<CampaignPresentationResponse>> DisablePresentationModeAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        if (sessionId < 1)
+        {
+            return new ServiceResult<CampaignPresentationResponse>(
+                ApplicationStatusCode.InvalidCampaignPresentation);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<CampaignPresentationResponse>(
+                validationStatusCode.Value);
+        }
+
+        if (!await CampaignSessionExistsAsync(campaignId, sessionId, cancellationToken))
+        {
+            return new ServiceResult<CampaignPresentationResponse>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var presentation = await _campaignPresentationRepository.GetByCampaignSessionIdAsync(
+            sessionId,
+            cancellationToken);
+
+        if (presentation is null)
+        {
+            return new ServiceResult<CampaignPresentationResponse>(
+                ApplicationStatusCode.CampaignPresentationNotFound);
+        }
+
+        var updatedAt = DateTimeOffset.UtcNow;
+
+        presentation.Status = PresentationStatus.Ended;
+        presentation.UpdatedAt = updatedAt;
+        presentation.EndedAt = updatedAt;
 
         await _campaignPresentationRepository.SaveChangesAsync(cancellationToken);
 
@@ -250,6 +299,7 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
         var updatedAt = DateTimeOffset.UtcNow;
 
         if (!await TryApplyStoryBeatSelectionAsync(
+            campaignId,
             presentation,
             storyBeat,
             updatedAt,
@@ -274,13 +324,16 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
             var nextSequence = (await _campaignPresentationRepository.GetLatestEntrySequenceAsync(
                 presentation.Id,
                 cancellationToken) ?? 0) + 1;
+            var entry = BuildEntry(
+                nextSequence,
+                storyBeat.StoryBlockId,
+                storyBeat.Id,
+                updatedAt);
+
+            entry.CampaignPresentationId = presentation.Id;
 
             await _campaignPresentationRepository.AddEntryAsync(
-                BuildEntry(
-                    nextSequence,
-                    storyBeat.StoryBlockId,
-                    storyBeat.Id,
-                    updatedAt),
+                entry,
                 cancellationToken);
         }
 
@@ -353,11 +406,20 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
     }
 
     private async Task<bool> TryApplyStoryBeatSelectionAsync(
+        Guid campaignId,
         CampaignPresentation presentation,
         StoryBeat storyBeat,
         DateTimeOffset selectedAt,
         CancellationToken cancellationToken)
     {
+        if (!await StoryBeatOrderIndexHasExclusivePathAsync(
+                campaignId,
+                storyBeat,
+                cancellationToken))
+        {
+            return true;
+        }
+
         CampaignPresentationStoryBeatSelection? existingSelection = null;
 
         if (presentation.Id != 0)
@@ -384,6 +446,38 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
         });
 
         return true;
+    }
+
+    private async Task<bool> StoryBeatOrderIndexHasExclusivePathAsync(
+        Guid campaignId,
+        StoryBeat storyBeat,
+        CancellationToken cancellationToken)
+    {
+        var indexPathRule = await _storyBeatIndexPathRuleRepository.GetByCampaignStoryBlockAndOrderIndexAsync(
+            campaignId,
+            storyBeat.StoryBlockId,
+            storyBeat.OrderIndex,
+            cancellationToken);
+
+        if (indexPathRule is not null)
+        {
+            return indexPathRule.RelationType == StoryBeatIndexPathRuleRelationType.ExactlyOne;
+        }
+
+        var siblingStoryBeatIds = _context.StoryBeats
+            .AsNoTracking()
+            .Where(beat => beat.StoryBlockId == storyBeat.StoryBlockId
+                && beat.OrderIndex == storyBeat.OrderIndex)
+            .Select(beat => beat.Id);
+
+        return await _context.ConditionalRules
+            .AsNoTracking()
+            .AnyAsync(
+                rule => rule.CampaignId == campaignId
+                    && rule.TargetType == ConditionalTargetType.StoryBeat
+                    && rule.EffectType == ConditionalRuleEffectType.ExclusivePath
+                    && siblingStoryBeatIds.Contains(rule.TargetId),
+                cancellationToken);
     }
 
     private async Task<ApplicationStatusCode?> ValidateMasterCampaignAccessAsync(

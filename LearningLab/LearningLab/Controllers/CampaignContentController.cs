@@ -163,6 +163,113 @@ public sealed class CampaignContentController : ControllerBase
             "Campaign quest updated successfully.");
     }
 
+    [HttpGet("quest-tasks/story-beat-links")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>>> FetchCampaignStoryBeatQuestTasks(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>();
+        }
+
+        var result = await _campaignQuestService.GetCampaignStoryBeatQuestTasksAsync(
+            userId.Value,
+            campaignId,
+            cancellationToken);
+
+        return MapStoryBeatQuestTaskListResponse(
+            result,
+            "Campaign story beat quest task links fetched successfully.");
+    }
+
+    [HttpGet("story-beats/{storyBeatId:guid}/quest-tasks")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>>> FetchStoryBeatQuestTasks(
+        Guid campaignId,
+        Guid storyBeatId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>();
+        }
+
+        var result = await _campaignQuestService.GetStoryBeatQuestTasksAsync(
+            userId.Value,
+            campaignId,
+            storyBeatId,
+            cancellationToken);
+
+        return MapStoryBeatQuestTaskListResponse(
+            result,
+            "Story beat quest tasks fetched successfully.");
+    }
+
+    [HttpPost("story-beats/{storyBeatId:guid}/quest-tasks/{questTaskId:guid}")]
+    public async Task<ActionResult<ApiResponse<StoryBeatQuestTaskResponse>>> LinkQuestTaskToStoryBeat(
+        Guid campaignId,
+        Guid storyBeatId,
+        Guid questTaskId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<StoryBeatQuestTaskResponse>();
+        }
+
+        var result = await _campaignQuestService.LinkQuestTaskToStoryBeatAsync(
+            userId.Value,
+            campaignId,
+            storyBeatId,
+            questTaskId,
+            cancellationToken);
+
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Created(string.Empty, new ApiResponse<StoryBeatQuestTaskResponse>
+            {
+                StatusCode = StatusCodes.Status201Created,
+                Message = "Quest task linked to story beat successfully.",
+                Data = result.Data
+            }),
+            _ => MapStoryBeatQuestTaskResponse(
+                result,
+                "Quest task linked to story beat successfully.")
+        };
+    }
+
+    [HttpDelete("story-beats/{storyBeatId:guid}/quest-tasks/{questTaskId:guid}")]
+    public async Task<ActionResult<ApiResponse<object>>> UnlinkQuestTaskFromStoryBeat(
+        Guid campaignId,
+        Guid storyBeatId,
+        Guid questTaskId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<object>();
+        }
+
+        var result = await _campaignQuestService.UnlinkQuestTaskFromStoryBeatAsync(
+            userId.Value,
+            campaignId,
+            storyBeatId,
+            questTaskId,
+            cancellationToken);
+
+        return MapStoryBeatQuestTaskObjectResponse(
+            result,
+            "Quest task unlinked from story beat successfully.");
+    }
+
     [HttpGet("milestones/unachieved")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<CampaignMilestoneResponse>>>> FetchUnachievedCampaignMilestones(
         Guid campaignId,
@@ -469,6 +576,204 @@ public sealed class CampaignContentController : ControllerBase
             _ => StatusCode(
                 StatusCodes.Status500InternalServerError,
                 new ApiResponse<CampaignQuestResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private ActionResult<ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>> MapStoryBeatQuestTaskListResponse(
+        ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = result.Data
+            }),
+            ApplicationStatusCode.InvalidCampaignQuestTask => BadRequest(
+                new ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Campaign quest task request is invalid.",
+                    Data = null
+                }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBeatNotFound => NotFound(new ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Story beat was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign content.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<IReadOnlyList<StoryBeatQuestTaskResponse>>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private ActionResult<ApiResponse<StoryBeatQuestTaskResponse>> MapStoryBeatQuestTaskResponse(
+        ServiceResult<StoryBeatQuestTaskResponse> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<StoryBeatQuestTaskResponse>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = result.Data
+            }),
+            ApplicationStatusCode.InvalidCampaignQuestTask => BadRequest(new ApiResponse<StoryBeatQuestTaskResponse>
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Campaign quest task request is invalid.",
+                Data = null
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<StoryBeatQuestTaskResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<StoryBeatQuestTaskResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBeatNotFound => NotFound(new ApiResponse<StoryBeatQuestTaskResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Story beat was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignQuestTaskNotFound => NotFound(new ApiResponse<StoryBeatQuestTaskResponse>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign quest task was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBeatQuestTaskAlreadyExists => Conflict(
+                new ApiResponse<StoryBeatQuestTaskResponse>
+                {
+                    StatusCode = StatusCodes.Status409Conflict,
+                    Message = "Campaign quest task is already linked to this story beat.",
+                    Data = null
+                }),
+            ApplicationStatusCode.CampaignQuestTaskAlreadyAssignedToStoryBeat => Conflict(
+                new ApiResponse<StoryBeatQuestTaskResponse>
+                {
+                    StatusCode = StatusCodes.Status409Conflict,
+                    Message = "Campaign quest task is already linked to another story beat in this campaign.",
+                    Data = result.Data
+                }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<StoryBeatQuestTaskResponse>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign content.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<StoryBeatQuestTaskResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private ActionResult<ApiResponse<object>> MapStoryBeatQuestTaskObjectResponse(
+        ServiceResult<object> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<object>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = null
+            }),
+            ApplicationStatusCode.InvalidCampaignQuestTask => BadRequest(new ApiResponse<object>
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Campaign quest task request is invalid.",
+                Data = null
+            }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<object>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<object>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBeatNotFound => NotFound(new ApiResponse<object>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Story beat was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignQuestTaskNotFound => NotFound(new ApiResponse<object>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign quest task was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBeatQuestTaskNotFound => NotFound(new ApiResponse<object>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign quest task is not linked to this story beat.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<object>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign content.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<object>
                 {
                     StatusCode = StatusCodes.Status500InternalServerError,
                     Message = "An unexpected error occurred.",

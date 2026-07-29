@@ -15,6 +15,7 @@ public class StoryBlock
 
     public ICollection<StoryBeat> Beats { get; set; } = [];
     public ICollection<StoryBlockMilestone> Milestones { get; set; } = [];
+    public ICollection<StoryBeatIndexPathRule> IndexPathRules { get; set; } = [];
     public ICollection<CampaignPresentation> ActivePresentations { get; set; } = [];
     public ICollection<CampaignPresentationEntry> PresentationEntries { get; set; } = [];
     public ICollection<CampaignPresentationStoryBeatSelection> PresentationStoryBeatSelections { get; set; } = [];

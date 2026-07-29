@@ -30,10 +30,13 @@ import {
   CreateAssetFolderRequest,
   CreateItemAssetRequest,
   CreateCampaignQuestRequest,
+  UpdateCampaignQuestRequest,
   CampaignNpcModel,
   StoryBeatModel,
+  StoryBeatQuestTaskModel,
   StoryBlockModel,
   ReorderStoryBlocksRequest,
+  ReorderStoryBeatsRequest,
   UpdateCombatStoryBeatRequest,
   UpdateDecisionStoryBeatRequest,
   UpdateInformationStoryBeatRequest,
@@ -210,6 +213,44 @@ export class CampaignApiService {
     >(`/api/campaigns/${campaignId}/content/quests/${questId}`, request);
   }
 
+  fetchCampaignStoryBeatQuestTasks(
+    campaignId: string,
+  ): Observable<ApiResponse<StoryBeatQuestTaskModel[]>> {
+    return this.apiClient.get<ApiResponse<StoryBeatQuestTaskModel[]>>(
+      `/api/campaigns/${campaignId}/content/quest-tasks/story-beat-links`,
+    );
+  }
+
+  fetchStoryBeatQuestTasks(
+    campaignId: string,
+    storyBeatId: string,
+  ): Observable<ApiResponse<StoryBeatQuestTaskModel[]>> {
+    return this.apiClient.get<ApiResponse<StoryBeatQuestTaskModel[]>>(
+      `/api/campaigns/${campaignId}/content/story-beats/${storyBeatId}/quest-tasks`,
+    );
+  }
+
+  linkQuestTaskToStoryBeat(
+    campaignId: string,
+    storyBeatId: string,
+    questTaskId: string,
+  ): Observable<ApiResponse<StoryBeatQuestTaskModel>> {
+    return this.apiClient.post<ApiResponse<StoryBeatQuestTaskModel>, null>(
+      `/api/campaigns/${campaignId}/content/story-beats/${storyBeatId}/quest-tasks/${questTaskId}`,
+      null,
+    );
+  }
+
+  unlinkQuestTaskFromStoryBeat(
+    campaignId: string,
+    storyBeatId: string,
+    questTaskId: string,
+  ): Observable<ApiResponse<object>> {
+    return this.apiClient.delete<ApiResponse<object>>(
+      `/api/campaigns/${campaignId}/content/story-beats/${storyBeatId}/quest-tasks/${questTaskId}`,
+    );
+  }
+
   fetchStoryBlocks(
     campaignId: string,
   ): Observable<ApiResponse<StoryBlockModel[]>> {
@@ -293,6 +334,17 @@ export class CampaignApiService {
   ): Observable<ApiResponse<StoryBeatModel[]>> {
     return this.apiClient.get<ApiResponse<StoryBeatModel[]>>(
       `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats`,
+    );
+  }
+
+  reorderStoryBeats(
+    campaignId: string,
+    storyBlockId: string,
+    request: ReorderStoryBeatsRequest,
+  ): Observable<ApiResponse<StoryBeatModel[]>> {
+    return this.apiClient.put<ApiResponse<StoryBeatModel[]>, ReorderStoryBeatsRequest>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats/order`,
+      request,
     );
   }
 

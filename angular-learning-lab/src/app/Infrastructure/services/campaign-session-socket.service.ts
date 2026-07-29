@@ -10,23 +10,32 @@ import {
 import { API_BASE_URL } from '../api.config';
 import {
   AchieveCampaignMilestoneRequest,
+  CampaignMemberInformationModel,
   CampaignSessionModel,
+  CreateStoryBeatPlayedSessionNoteRequest,
+  CreateStoryBeatReferenceSessionNoteRequest,
   ImportantChoiceSessionNoteRequest,
   LevelUpOrMechanicsChangeSessionNoteRequest,
   SessionNoteModel,
+  UpdateStoryBeatReferenceSessionNoteRequest,
 } from '../models';
 import { TokenStorageService } from './token-storage.service';
 
 const campaignSessionsLoadedEvent = 'campaignSessionsLoaded';
 const sessionNotesLoadedEvent = 'sessionNotesLoaded';
+const sessionPlayersLoadedEvent = 'sessionPlayersLoaded';
 const campaignSessionCreatedEvent = 'campaignSessionCreated';
 const campaignSessionUpdatedEvent = 'campaignSessionUpdated';
 const subscribeMethod = 'SubscribeToCampaignSessions';
 const unsubscribeMethod = 'UnsubscribeFromCampaignSessions';
 const getSessionNotesMethod = 'GetSessionNotes';
+const getSessionPlayersMethod = 'GetSessionPlayers';
 const updateDateMethod = 'UpdateCampaignSessionDate';
 const updateDescriptionMethod = 'UpdateCampaignSessionDescription';
 const createGenericNoteMethod = 'CreateGenericSessionNote';
+const createStoryBeatPlayedNoteMethod = 'CreateStoryBeatPlayedSessionNote';
+const createStoryBeatReferenceNoteMethod = 'CreateStoryBeatReferenceSessionNote';
+const updateStoryBeatReferenceNoteMethod = 'UpdateStoryBeatReferenceSessionNote';
 const createItemFoundNoteMethod = 'CreateItemFoundSessionNote';
 const createImportantChoiceNoteMethod = 'CreateImportantChoiceSessionNote';
 const createLevelUpOrMechanicsChangeNoteMethod = 'CreateLevelUpOrMechanicsChangeSessionNote';
@@ -49,6 +58,7 @@ export class CampaignSessionSocketService {
 
   readonly sessions = signal<CampaignSessionModel[]>([]);
   readonly sessionNotes = signal<SessionNoteModel[]>([]);
+  readonly sessionPlayers = signal<CampaignMemberInformationModel[]>([]);
 
   async connect(campaignId: string): Promise<void> {
     if (!this.canConnect()) {
@@ -80,6 +90,7 @@ export class CampaignSessionSocketService {
     this.subscribedCampaignId = null;
     this.loadedNotesSessionId = null;
     this.sessionNotes.set([]);
+    this.sessionPlayers.set([]);
 
     if (!connection || connection.state === HubConnectionState.Disconnected) {
       return;
@@ -148,6 +159,22 @@ export class CampaignSessionSocketService {
     return orderedNotes;
   }
 
+  async getSessionPlayers(
+    campaignId: string,
+    sessionId: number,
+  ): Promise<CampaignMemberInformationModel[]> {
+    const connection = await this.getReadyConnection(campaignId);
+    const players = await connection.invoke<CampaignMemberInformationModel[] | null>(
+      getSessionPlayersMethod,
+      campaignId,
+      sessionId,
+    );
+
+    this.sessionPlayers.set(players ?? []);
+
+    return players ?? [];
+  }
+
   async createGenericSessionNote(
     campaignId: string,
     sessionId: number,
@@ -180,6 +207,69 @@ export class CampaignSessionSocketService {
       campaignId,
       sessionId,
       content,
+    );
+
+    if (updatedSession) {
+      this.upsertSession(updatedSession);
+      this.setActiveSessionNotes(updatedSession);
+    }
+
+    return updatedSession ?? null;
+  }
+
+  async createStoryBeatReferenceSessionNote(
+    campaignId: string,
+    sessionId: number,
+    request: CreateStoryBeatReferenceSessionNoteRequest,
+  ): Promise<CampaignSessionModel | null> {
+    const connection = await this.getReadyConnection(campaignId);
+    const updatedSession = await connection.invoke<CampaignSessionModel | null>(
+      createStoryBeatReferenceNoteMethod,
+      campaignId,
+      sessionId,
+      request,
+    );
+
+    if (updatedSession) {
+      this.upsertSession(updatedSession);
+      this.setActiveSessionNotes(updatedSession);
+    }
+
+    return updatedSession ?? null;
+  }
+
+  async createStoryBeatPlayedSessionNote(
+    campaignId: string,
+    sessionId: number,
+    request: CreateStoryBeatPlayedSessionNoteRequest,
+  ): Promise<CampaignSessionModel | null> {
+    const connection = await this.getReadyConnection(campaignId);
+    const updatedSession = await connection.invoke<CampaignSessionModel | null>(
+      createStoryBeatPlayedNoteMethod,
+      campaignId,
+      sessionId,
+      request,
+    );
+
+    if (updatedSession) {
+      this.upsertSession(updatedSession);
+      this.setActiveSessionNotes(updatedSession);
+    }
+
+    return updatedSession ?? null;
+  }
+
+  async updateStoryBeatReferenceSessionNote(
+    campaignId: string,
+    sessionId: number,
+    request: UpdateStoryBeatReferenceSessionNoteRequest,
+  ): Promise<CampaignSessionModel | null> {
+    const connection = await this.getReadyConnection(campaignId);
+    const updatedSession = await connection.invoke<CampaignSessionModel | null>(
+      updateStoryBeatReferenceNoteMethod,
+      campaignId,
+      sessionId,
+      request,
     );
 
     if (updatedSession) {
@@ -382,6 +472,10 @@ export class CampaignSessionSocketService {
 
     connection.on(sessionNotesLoadedEvent, (notes: SessionNoteModel[]) => {
       this.sessionNotes.set(this.orderNotes(notes));
+    });
+
+    connection.on(sessionPlayersLoadedEvent, (players: CampaignMemberInformationModel[]) => {
+      this.sessionPlayers.set(players);
     });
 
     connection.on(campaignSessionCreatedEvent, (session: CampaignSessionModel) => {

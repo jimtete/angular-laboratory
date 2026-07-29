@@ -3,7 +3,10 @@ using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign.Quests;
 using LearningLab.Data.Models.DTOs.Campaign.Quests;
 using LearningLab.Data.Repositories.CampaignQuestRepository;
+using LearningLab.Data.Repositories.CampaignQuestTaskRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
+using LearningLab.Data.Repositories.StoryBeatQuestTaskRepository;
+using LearningLab.Data.Repositories.StoryBeatRepository;
 using LearningLab.Data.Repositories.UserRepository;
 
 namespace LearningLab.Services.CampaignQuestService;
@@ -11,16 +14,25 @@ namespace LearningLab.Services.CampaignQuestService;
 public sealed class CampaignQuestService : ICampaignQuestService
 {
     private readonly ICampaignQuestRepository _campaignQuestRepository;
+    private readonly ICampaignQuestTaskRepository _campaignQuestTaskRepository;
     private readonly ICampaignRepository _campaignRepository;
+    private readonly IStoryBeatQuestTaskRepository _storyBeatQuestTaskRepository;
+    private readonly IStoryBeatRepository _storyBeatRepository;
     private readonly IUserRepository _userRepository;
 
     public CampaignQuestService(
         ICampaignQuestRepository campaignQuestRepository,
+        ICampaignQuestTaskRepository campaignQuestTaskRepository,
         ICampaignRepository campaignRepository,
+        IStoryBeatQuestTaskRepository storyBeatQuestTaskRepository,
+        IStoryBeatRepository storyBeatRepository,
         IUserRepository userRepository)
     {
         _campaignQuestRepository = campaignQuestRepository;
+        _campaignQuestTaskRepository = campaignQuestTaskRepository;
         _campaignRepository = campaignRepository;
+        _storyBeatQuestTaskRepository = storyBeatQuestTaskRepository;
+        _storyBeatRepository = storyBeatRepository;
         _userRepository = userRepository;
     }
 
@@ -145,6 +157,218 @@ public sealed class CampaignQuestService : ICampaignQuestService
         return new ServiceResult<CampaignQuestResponse>(
             ApplicationStatusCode.Success,
             ToResponse(quest));
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>> GetStoryBeatQuestTasksAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBeatId,
+        CancellationToken cancellationToken = default)
+    {
+        if (storyBeatId == Guid.Empty)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>(
+                ApplicationStatusCode.InvalidCampaignQuestTask);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>(
+                validationStatusCode.Value);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByCampaignIdAndStoryBeatIdAsync(
+            campaignId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>(
+                ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        var links = await _storyBeatQuestTaskRepository.ListByStoryBeatIdAsync(
+            storyBeatId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>(
+            ApplicationStatusCode.Success,
+            links.Select(ToResponse).ToList());
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>> GetCampaignStoryBeatQuestTasksAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>(
+                validationStatusCode.Value);
+        }
+
+        var links = await _storyBeatQuestTaskRepository.ListByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>(
+            ApplicationStatusCode.Success,
+            links.Select(ToResponse).ToList());
+    }
+
+    public async Task<ServiceResult<StoryBeatQuestTaskResponse>> LinkQuestTaskToStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBeatId,
+        Guid questTaskId,
+        CancellationToken cancellationToken = default)
+    {
+        if (storyBeatId == Guid.Empty || questTaskId == Guid.Empty)
+        {
+            return new ServiceResult<StoryBeatQuestTaskResponse>(
+                ApplicationStatusCode.InvalidCampaignQuestTask);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<StoryBeatQuestTaskResponse>(
+                validationStatusCode.Value);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByCampaignIdAndStoryBeatIdAsync(
+            campaignId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<StoryBeatQuestTaskResponse>(
+                ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        var questTask = await _campaignQuestTaskRepository.GetByCampaignIdAndTaskIdAsync(
+            campaignId,
+            questTaskId,
+            cancellationToken);
+
+        if (questTask is null)
+        {
+            return new ServiceResult<StoryBeatQuestTaskResponse>(
+                ApplicationStatusCode.CampaignQuestTaskNotFound);
+        }
+
+        var existingAssignment = await _storyBeatQuestTaskRepository.GetByCampaignIdAndQuestTaskIdAsync(
+            campaignId,
+            questTaskId,
+            cancellationToken);
+
+        if (existingAssignment is not null)
+        {
+            if (existingAssignment.StoryBeatId == storyBeatId)
+            {
+                return new ServiceResult<StoryBeatQuestTaskResponse>(
+                    ApplicationStatusCode.StoryBeatQuestTaskAlreadyExists);
+            }
+
+            return new ServiceResult<StoryBeatQuestTaskResponse>(
+                ApplicationStatusCode.CampaignQuestTaskAlreadyAssignedToStoryBeat,
+                ToResponse(existingAssignment));
+        }
+
+        var link = new StoryBeatQuestTask
+        {
+            StoryBeatId = storyBeatId,
+            StoryBeat = storyBeat,
+            QuestTaskId = questTaskId,
+            QuestTask = questTask,
+            LinkedAt = DateTimeOffset.UtcNow
+        };
+
+        await _storyBeatQuestTaskRepository.AddAsync(link, cancellationToken);
+        await _storyBeatQuestTaskRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<StoryBeatQuestTaskResponse>(
+            ApplicationStatusCode.Success,
+            ToResponse(link));
+    }
+
+    public async Task<ServiceResult<object>> UnlinkQuestTaskFromStoryBeatAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBeatId,
+        Guid questTaskId,
+        CancellationToken cancellationToken = default)
+    {
+        if (storyBeatId == Guid.Empty || questTaskId == Guid.Empty)
+        {
+            return new ServiceResult<object>(
+                ApplicationStatusCode.InvalidCampaignQuestTask);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<object>(
+                validationStatusCode.Value);
+        }
+
+        var storyBeat = await _storyBeatRepository.GetByCampaignIdAndStoryBeatIdAsync(
+            campaignId,
+            storyBeatId,
+            cancellationToken);
+
+        if (storyBeat is null)
+        {
+            return new ServiceResult<object>(
+                ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        var questTask = await _campaignQuestTaskRepository.GetByCampaignIdAndTaskIdAsync(
+            campaignId,
+            questTaskId,
+            cancellationToken);
+
+        if (questTask is null)
+        {
+            return new ServiceResult<object>(
+                ApplicationStatusCode.CampaignQuestTaskNotFound);
+        }
+
+        var link = await _storyBeatQuestTaskRepository.GetByStoryBeatIdAndQuestTaskIdAsync(
+            storyBeatId,
+            questTaskId,
+            cancellationToken);
+
+        if (link is null)
+        {
+            return new ServiceResult<object>(
+                ApplicationStatusCode.StoryBeatQuestTaskNotFound);
+        }
+
+        _storyBeatQuestTaskRepository.Remove(link);
+        await _storyBeatQuestTaskRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<object>(ApplicationStatusCode.Success);
     }
 
     private async Task<ApplicationStatusCode?> ValidateMasterCampaignAccessAsync(
@@ -351,6 +575,26 @@ public sealed class CampaignQuestService : ICampaignQuestService
             DateCompleted = task.DateCompleted,
             CreatedAt = task.CreatedAt,
             UpdatedAt = task.UpdatedAt
+        };
+    }
+
+    private static StoryBeatQuestTaskResponse ToResponse(StoryBeatQuestTask link)
+    {
+        return new StoryBeatQuestTaskResponse
+        {
+            StoryBeatId = link.StoryBeatId,
+            StoryBlockId = link.StoryBeat.StoryBlockId,
+            QuestTaskId = link.QuestTaskId,
+            QuestId = link.QuestTask.QuestId,
+            StoryBeatTitle = link.StoryBeat.Title,
+            StoryBlockTitle = link.StoryBeat.StoryBlock.Title,
+            StoryBlockOrderIndex = link.StoryBeat.StoryBlock.OrderIndex,
+            StoryBeatOrderIndex = link.StoryBeat.OrderIndex,
+            StoryBeatSecondaryOrderIndex = link.StoryBeat.SecondaryOrderIndex,
+            Title = link.QuestTask.Title,
+            Description = link.QuestTask.Description,
+            DateCompleted = link.QuestTask.DateCompleted,
+            LinkedAt = link.LinkedAt
         };
     }
 }

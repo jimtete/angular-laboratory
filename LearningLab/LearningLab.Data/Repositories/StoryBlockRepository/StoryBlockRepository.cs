@@ -47,6 +47,17 @@ public sealed class StoryBlockRepository : IStoryBlockRepository
                 cancellationToken);
     }
 
+    public Task<bool> ExistsByStoryBlockIdAsync(
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.StoryBlocks
+            .AsNoTracking()
+            .AnyAsync(
+                block => block.StoryBlockId == storyBlockId,
+                cancellationToken);
+    }
+
     public Task<StoryBlock?> GetFirstByCampaignIdAsync(
         Guid campaignId,
         CancellationToken cancellationToken = default)

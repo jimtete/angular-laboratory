@@ -7,11 +7,10 @@ import {
   ApiError,
   CampaignApiService,
   CampaignInformationCacheService,
-  CampaignMemberAbilityValueModel,
   CampaignMemberInformationModel,
-  CampaignMemberSkillValueModel,
   Skill,
   SkillValue,
+  AbilityValue,
   UpdateCampaignMemberSkillsRequest,
 } from '../../../Infrastructure';
 import { ModalHelper } from '../../../shared/helpers/modal.helper';
@@ -30,6 +29,13 @@ interface SkillGroup {
   skills: SkillDefinition[];
 }
 
+interface AbilityDefinition {
+  ability: Ability;
+  label: string;
+  shortLabel: string;
+  color: string;
+}
+
 @Component({
   selector: 'app-campaign-member-proficiencies',
   templateUrl: './campaign-member-proficiencies.html',
@@ -45,8 +51,10 @@ export class CampaignMemberProficiencies {
 
   protected readonly draftLevels = signal<Record<number, ProficiencyLevel>>({});
   protected readonly draftSkillValues = signal<Record<number, number>>({});
+  protected readonly draftAbilityValues = signal<Record<number, number>>({});
   private readonly initialLevels = signal<Record<number, ProficiencyLevel>>({});
   private readonly initialSkillValues = signal<Record<number, number>>({});
+  private readonly initialAbilityValues = signal<Record<number, number>>({});
   protected readonly isSaving = signal(false);
   protected readonly member = computed(() => (
     this.campaignInformationCache.joinedMembers()
@@ -57,6 +65,14 @@ export class CampaignMemberProficiencies {
 
     return member?.nickname || member?.username || 'Campaign Member';
   });
+  protected readonly abilityDefinitions: AbilityDefinition[] = [
+    { ability: Ability.STRENGTH, label: 'Strength', shortLabel: 'STR', color: '#b91c1c' },
+    { ability: Ability.DEXTERITY, label: 'Dexterity', shortLabel: 'DEX', color: '#15803d' },
+    { ability: Ability.CONSTITUTION, label: 'Constitution', shortLabel: 'CON', color: '#7c2d12' },
+    { ability: Ability.INTELLIGENCE, label: 'Intelligence', shortLabel: 'INT', color: '#4f46e5' },
+    { ability: Ability.WISDOM, label: 'Wisdom', shortLabel: 'WIS', color: '#0e7490' },
+    { ability: Ability.CHARISMA, label: 'Charisma', shortLabel: 'CHA', color: '#a21caf' },
+  ];
   protected readonly leftSkillGroups: SkillGroup[] = [
     {
       ability: 'Strength',
@@ -119,11 +135,14 @@ export class CampaignMemberProficiencies {
 
       const levels = this.toLevels(member);
       const skillValues = this.toSkillValues(member);
+      const abilityValues = this.toAbilityValues(member);
 
       this.initialLevels.set(levels);
       this.draftLevels.set(levels);
       this.initialSkillValues.set(skillValues);
       this.draftSkillValues.set(skillValues);
+      this.initialAbilityValues.set(abilityValues);
+      this.draftAbilityValues.set(abilityValues);
     });
   }
 
@@ -159,6 +178,23 @@ export class CampaignMemberProficiencies {
     }));
   }
 
+  protected abilityValueFor(ability: Ability): number {
+    return this.draftAbilityValues()[ability] ?? 10;
+  }
+
+  protected setAbilityValue(ability: Ability, event: Event): void {
+    if (this.isSaving()) {
+      return;
+    }
+
+    const value = Number((event.target as HTMLInputElement).value);
+
+    this.draftAbilityValues.update((abilityValues) => ({
+      ...abilityValues,
+      [ability]: this.clampAbilityValue(value),
+    }));
+  }
+
   protected goBack(): void {
     const campaignId = this.route.parent?.snapshot.paramMap.get('campaignId');
 
@@ -172,6 +208,7 @@ export class CampaignMemberProficiencies {
 
     this.draftLevels.set({ ...this.initialLevels() });
     this.draftSkillValues.set({ ...this.initialSkillValues() });
+    this.draftAbilityValues.set({ ...this.initialAbilityValues() });
   }
 
   protected saveChanges(): void {
@@ -238,7 +275,10 @@ export class CampaignMemberProficiencies {
       halfProficientSkills: [],
       proficientSkills: [],
       expertiseSkills: [],
-      abilityValues: this.toAbilityValueRequests(this.member()?.abilityValues),
+      abilityValues: this.abilityDefinitions.map((definition) => ({
+        ability: definition.ability,
+        value: this.clampAbilityValue(this.abilityValueFor(definition.ability)),
+      })),
       skillValues: [],
     };
 
@@ -296,30 +336,25 @@ export class CampaignMemberProficiencies {
     return skillValues;
   }
 
+  private toAbilityValues(member: CampaignMemberInformationModel): Record<number, number> {
+    const abilityValues: Record<number, number> = {};
+
+    (member.abilityValues ?? []).forEach((abilityValue) => {
+      const ability = this.toAbility(abilityValue.ability);
+
+      if (ability !== null) {
+        abilityValues[ability] = this.clampAbilityValue(abilityValue.value);
+      }
+    });
+
+    return abilityValues;
+  }
+
   private allSkillDefinitions(): SkillDefinition[] {
     return [
       ...this.leftSkillGroups,
       ...this.rightSkillGroups,
     ].flatMap((group) => group.skills);
-  }
-
-  private toAbilityValueRequests(
-    abilityValues: CampaignMemberAbilityValueModel[] | null | undefined,
-  ): UpdateCampaignMemberSkillsRequest['abilityValues'] {
-    return (abilityValues ?? [])
-      .map((abilityValue) => {
-        const ability = this.toAbility(abilityValue.ability);
-
-        return ability === null
-          ? null
-          : {
-            ability,
-            value: abilityValue.value,
-          };
-      })
-      .filter((abilityValue): abilityValue is UpdateCampaignMemberSkillsRequest['abilityValues'][number] => (
-        abilityValue !== null
-      ));
   }
 
   private toSkill(skill: SkillValue): Skill | null {
@@ -336,7 +371,7 @@ export class CampaignMemberProficiencies {
     return Skill[skill as keyof typeof Skill] ?? null;
   }
 
-  private toAbility(ability: CampaignMemberAbilityValueModel['ability']): Ability | null {
+  private toAbility(ability: AbilityValue): Ability | null {
     if (typeof ability === 'number') {
       return ability as Ability;
     }
@@ -356,6 +391,14 @@ export class CampaignMemberProficiencies {
     }
 
     return Math.max(0, Math.min(40, Math.round(value)));
+  }
+
+  private clampAbilityValue(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 10;
+    }
+
+    return Math.max(1, Math.min(30, Math.round(value)));
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

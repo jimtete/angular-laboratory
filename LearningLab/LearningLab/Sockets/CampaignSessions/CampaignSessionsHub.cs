@@ -1,5 +1,6 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
+using LearningLab.Data.Models.DTOs.Campaign;
 using LearningLab.Data.Models.DTOs.Campaign.Sessions;
 using LearningLab.Services.CampaignSessionService;
 using LearningLab.Services.Helpers;
@@ -17,12 +18,16 @@ public sealed class CampaignSessionsHub : Hub
     private const string UpdateDateOperation = "UpdateCampaignSessionDate";
     private const string UpdateDescriptionOperation = "UpdateCampaignSessionDescription";
     private const string GetSessionNotesOperation = "GetSessionNotes";
+    private const string GetSessionPlayersOperation = "GetSessionPlayers";
     private const string CreateGenericNoteOperation = "CreateGenericSessionNote";
+    private const string CreateStoryBeatPlayedNoteOperation = "CreateStoryBeatPlayedSessionNote";
+    private const string CreateStoryBeatReferenceNoteOperation = "CreateStoryBeatReferenceSessionNote";
     private const string CreateItemFoundNoteOperation = "CreateItemFoundSessionNote";
     private const string CreateImportantChoiceNoteOperation = "CreateImportantChoiceSessionNote";
     private const string CreateCampaignMilestoneNoteOperation = "CreateCampaignMilestoneSessionNote";
     private const string CreateLevelUpOrMechanicsChangeNoteOperation = "CreateLevelUpOrMechanicsChangeSessionNote";
     private const string AchieveCampaignMilestoneOperation = "AchieveCampaignMilestone";
+    private const string UpdateStoryBeatReferenceNoteOperation = "UpdateStoryBeatReferenceSessionNote";
     private const string UpdateSessionNoteOperation = "UpdateSessionNote";
     private const string UpdateImportantChoiceNoteOperation = "UpdateImportantChoiceSessionNote";
     private const string UpdateCampaignMilestoneNoteOperation = "UpdateCampaignMilestoneSessionNote";
@@ -348,10 +353,44 @@ public sealed class CampaignSessionsHub : Hub
         if (result.StatusCode == ApplicationStatusCode.Success)
         {
             var notes = result.Data ?? Array.Empty<SessionNoteResponse>();
+            var playersResult = await _campaignSessionService.GetSessionPlayersAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                cancellationToken);
+
+            if (playersResult.StatusCode != ApplicationStatusCode.Success)
+            {
+                var playersErrorMessage = ToHubErrorMessage(playersResult.StatusCode);
+
+                _logger.LogWarning(
+                    "Session players load rejected. CampaignId: {CampaignId}, SessionId: {SessionId}, UserId: {UserId}, ConnectionId: {ConnectionId}, StatusCode: {StatusCode}",
+                    campaignId,
+                    sessionId,
+                    userId.Value,
+                    Context.ConnectionId,
+                    playersResult.StatusCode);
+
+                await SendErrorAsync(
+                    GetSessionPlayersOperation,
+                    campaignId,
+                    playersResult.StatusCode.ToString(),
+                    playersErrorMessage,
+                    cancellationToken);
+
+                throw new HubException(playersErrorMessage);
+            }
+
+            var players = playersResult.Data ?? Array.Empty<CampaignMemberInformationResponse>();
 
             await Clients.Caller.SendAsync(
                 CampaignSessionSocketClientEvents.SessionNotesLoaded,
                 notes,
+                cancellationToken);
+
+            await Clients.Caller.SendAsync(
+                CampaignSessionSocketClientEvents.SessionPlayersLoaded,
+                players,
                 cancellationToken);
 
             return notes;
@@ -369,6 +408,83 @@ public sealed class CampaignSessionsHub : Hub
 
         await SendErrorAsync(
             GetSessionNotesOperation,
+            campaignId,
+            result.StatusCode.ToString(),
+            errorMessage,
+            cancellationToken);
+
+        throw new HubException(errorMessage);
+    }
+
+    public async Task<IReadOnlyList<CampaignMemberInformationResponse>> GetSessionPlayers(
+        Guid campaignId,
+        int sessionId)
+    {
+        var cancellationToken = Context.ConnectionAborted;
+        var userId = await GetUserIdOrAbortAsync(
+            GetSessionPlayersOperation,
+            campaignId,
+            cancellationToken);
+
+        if (userId is null)
+        {
+            throw new HubException("The access token does not contain a valid user identifier.");
+        }
+
+        ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>> result;
+
+        try
+        {
+            result = await _campaignSessionService.GetSessionPlayersAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _logger.LogError(
+                exception,
+                "Failed to get session players. CampaignId: {CampaignId}, SessionId: {SessionId}, UserId: {UserId}, ConnectionId: {ConnectionId}",
+                campaignId,
+                sessionId,
+                userId.Value,
+                Context.ConnectionId);
+
+            await SendErrorAsync(
+                GetSessionPlayersOperation,
+                campaignId,
+                "UnexpectedError",
+                "An unexpected error occurred while loading the session players.",
+                cancellationToken);
+
+            throw new HubException("An unexpected error occurred while loading the session players.");
+        }
+
+        if (result.StatusCode == ApplicationStatusCode.Success)
+        {
+            var players = result.Data ?? Array.Empty<CampaignMemberInformationResponse>();
+
+            await Clients.Caller.SendAsync(
+                CampaignSessionSocketClientEvents.SessionPlayersLoaded,
+                players,
+                cancellationToken);
+
+            return players;
+        }
+
+        var errorMessage = ToHubErrorMessage(result.StatusCode);
+
+        _logger.LogWarning(
+            "Session players load rejected. CampaignId: {CampaignId}, SessionId: {SessionId}, UserId: {UserId}, ConnectionId: {ConnectionId}, StatusCode: {StatusCode}",
+            campaignId,
+            sessionId,
+            userId.Value,
+            Context.ConnectionId,
+            result.StatusCode);
+
+        await SendErrorAsync(
+            GetSessionPlayersOperation,
             campaignId,
             result.StatusCode.ToString(),
             errorMessage,
@@ -426,6 +542,130 @@ public sealed class CampaignSessionsHub : Hub
             cancellationToken);
     }
 
+    public async Task<CampaignSessionResponse> CreateStoryBeatPlayedSessionNote(
+        Guid campaignId,
+        int sessionId,
+        CreateStoryBeatPlayedSessionNoteRequest? request)
+    {
+        var cancellationToken = Context.ConnectionAborted;
+        var userId = await GetUserIdOrAbortAsync(
+            CreateStoryBeatPlayedNoteOperation,
+            campaignId,
+            cancellationToken);
+
+        if (userId is null)
+        {
+            throw new HubException("The access token does not contain a valid user identifier.");
+        }
+
+        if (request is null)
+        {
+            return await HandleCampaignSessionUpdateResultAsync(
+                CreateStoryBeatPlayedNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                new ServiceResult<CampaignSessionResponse>(ApplicationStatusCode.InvalidSessionNote),
+                cancellationToken);
+        }
+
+        ServiceResult<CampaignSessionResponse> result;
+
+        try
+        {
+            result = await _campaignSessionService.CreateStoryBeatPlayedSessionNoteAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                request.StoryBeatId,
+                request.Content,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            await HandleUnexpectedUpdateExceptionAsync(
+                CreateStoryBeatPlayedNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                exception,
+                cancellationToken);
+
+            throw new HubException("An unexpected error occurred while creating the story beat played session note.");
+        }
+
+        return await HandleCampaignSessionUpdateResultAsync(
+            CreateStoryBeatPlayedNoteOperation,
+            campaignId,
+            sessionId,
+            userId.Value,
+            result,
+            cancellationToken);
+    }
+
+    public async Task<CampaignSessionResponse> CreateStoryBeatReferenceSessionNote(
+        Guid campaignId,
+        int sessionId,
+        CreateStoryBeatReferenceSessionNoteRequest? request)
+    {
+        var cancellationToken = Context.ConnectionAborted;
+        var userId = await GetUserIdOrAbortAsync(
+            CreateStoryBeatReferenceNoteOperation,
+            campaignId,
+            cancellationToken);
+
+        if (userId is null)
+        {
+            throw new HubException("The access token does not contain a valid user identifier.");
+        }
+
+        if (request is null)
+        {
+            return await HandleCampaignSessionUpdateResultAsync(
+                CreateStoryBeatReferenceNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                new ServiceResult<CampaignSessionResponse>(ApplicationStatusCode.InvalidSessionNote),
+                cancellationToken);
+        }
+
+        ServiceResult<CampaignSessionResponse> result;
+
+        try
+        {
+            result = await _campaignSessionService.CreateStoryBeatReferenceSessionNoteAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                request.StoryBeatId,
+                request.ReferenceType,
+                request.ReferenceId,
+                request.Content,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            await HandleUnexpectedUpdateExceptionAsync(
+                CreateStoryBeatReferenceNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                exception,
+                cancellationToken);
+
+            throw new HubException("An unexpected error occurred while creating the story beat reference session note.");
+        }
+
+        return await HandleCampaignSessionUpdateResultAsync(
+            CreateStoryBeatReferenceNoteOperation,
+            campaignId,
+            sessionId,
+            userId.Value,
+            result,
+            cancellationToken);
+    }
+
     public async Task<CampaignSessionResponse> CreateItemFoundSessionNote(
         Guid campaignId,
         int sessionId,
@@ -468,6 +708,66 @@ public sealed class CampaignSessionsHub : Hub
 
         return await HandleCampaignSessionUpdateResultAsync(
             CreateItemFoundNoteOperation,
+            campaignId,
+            sessionId,
+            userId.Value,
+            result,
+            cancellationToken);
+    }
+
+    public async Task<CampaignSessionResponse> UpdateStoryBeatReferenceSessionNote(
+        Guid campaignId,
+        int sessionId,
+        UpdateStoryBeatReferenceSessionNoteRequest? request)
+    {
+        var cancellationToken = Context.ConnectionAborted;
+        var userId = await GetUserIdOrAbortAsync(
+            UpdateStoryBeatReferenceNoteOperation,
+            campaignId,
+            cancellationToken);
+
+        if (userId is null)
+        {
+            throw new HubException("The access token does not contain a valid user identifier.");
+        }
+
+        if (request is null)
+        {
+            return await HandleCampaignSessionUpdateResultAsync(
+                UpdateStoryBeatReferenceNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                new ServiceResult<CampaignSessionResponse>(ApplicationStatusCode.InvalidSessionNote),
+                cancellationToken);
+        }
+
+        ServiceResult<CampaignSessionResponse> result;
+
+        try
+        {
+            result = await _campaignSessionService.UpdateStoryBeatReferenceSessionNoteAsync(
+                userId.Value,
+                campaignId,
+                sessionId,
+                request,
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            await HandleUnexpectedUpdateExceptionAsync(
+                UpdateStoryBeatReferenceNoteOperation,
+                campaignId,
+                sessionId,
+                userId.Value,
+                exception,
+                cancellationToken);
+
+            throw new HubException("An unexpected error occurred while updating the story beat reference session note.");
+        }
+
+        return await HandleCampaignSessionUpdateResultAsync(
+            UpdateStoryBeatReferenceNoteOperation,
             campaignId,
             sessionId,
             userId.Value,
@@ -934,6 +1234,7 @@ public sealed class CampaignSessionsHub : Hub
             ApplicationStatusCode.CampaignSessionNotFound => "Campaign session was not found.",
             ApplicationStatusCode.InvalidSessionNote => "Session note is invalid.",
             ApplicationStatusCode.SessionNoteNotFound => "Session note was not found.",
+            ApplicationStatusCode.StoryBeatNotFound => "Story beat was not found.",
             ApplicationStatusCode.CampaignParticipantNotFound => "Campaign participant was not found.",
             ApplicationStatusCode.InvalidCampaignMilestone => "Campaign milestone is invalid.",
             ApplicationStatusCode.CampaignMilestoneNotFound => "Campaign milestone was not found.",

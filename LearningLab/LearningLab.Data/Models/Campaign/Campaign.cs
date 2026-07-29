@@ -22,6 +22,7 @@ public class Campaign
     public List<CampaignNpc> Npcs { get; set; } = [];
     public List<CampaignNpcParticipation> NpcParticipations { get; set; } = [];
     public List<StoryBlock> StoryBlocks { get; set; } = [];
+    public List<StoryBeatIndexPathRule> StoryBeatIndexPathRules { get; set; } = [];
     public List<CampaignEventDefinition> EventDefinitions { get; set; } = [];
     public List<ConditionalRule> ConditionalRules { get; set; } = [];
     public List<StoryOutcomeEffect> OutcomeEffects { get; set; } = [];

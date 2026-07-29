@@ -24,6 +24,7 @@ export * from './services/notification-api.service';
 export * from './services/notification-cache.service';
 export * from './services/notification-socket.service';
 export * from './services/outcome-effects-api.service';
+export * from './services/presentation-mode-socket.service';
 export * from './services/token-storage.service';
 export * from './services/user-api.service';
 

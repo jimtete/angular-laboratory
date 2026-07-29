@@ -1,4 +1,6 @@
 using LearningLab.Data.Models;
+using LearningLab.Data.Models.Campaign.Sessions;
+using LearningLab.Data.Models.DTOs.Campaign;
 using LearningLab.Data.Models.DTOs.Campaign.Sessions;
 
 namespace LearningLab.Services.CampaignSessionService;
@@ -42,6 +44,12 @@ public interface ICampaignSessionService
         int sessionId,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<CampaignMemberInformationResponse>>> GetSessionPlayersAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<CampaignSessionResponse>> CreateGenericSessionNoteAsync(
         Guid userId,
         Guid campaignId,
@@ -75,6 +83,40 @@ public interface ICampaignSessionService
         Guid campaignId,
         int sessionId,
         CreateLevelUpOrMechanicsChangeSessionNoteRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignSessionResponse>> CreateStoryBeatPlayedSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        Guid storyBeatId,
+        string? content = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignSessionResponse>> CreateStoryBeatReferenceSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        Guid storyBeatId,
+        SessionNoteStoryBeatReferenceType referenceType,
+        Guid? referenceId = null,
+        string? content = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignSessionResponse>> TakeDecisionStoryBeatOptionSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        Guid storyBeatId,
+        Guid decisionOptionId,
+        string? content = null,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<CampaignSessionResponse>> UpdateStoryBeatReferenceSessionNoteAsync(
+        Guid userId,
+        Guid campaignId,
+        int sessionId,
+        UpdateStoryBeatReferenceSessionNoteRequest request,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<CampaignSessionResponse>> AchieveCampaignMilestoneAsync(

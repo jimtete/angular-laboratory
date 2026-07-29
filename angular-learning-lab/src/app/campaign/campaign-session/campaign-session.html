@@ -20,6 +20,19 @@
       <div class="campaign-session-date-control">
         <button
           type="button"
+          class="campaign-session-presentation-button"
+          [class.campaign-session-presentation-button-active]="presentationWorkspace()"
+          [disabled]="isConnectingPresentationMode() || isEnablingPresentationMode() || isDisablingPresentationMode()"
+          [attr.aria-label]="presentationWorkspace() ? 'Disable presentation mode' : 'Enable presentation mode'"
+          [attr.title]="presentationWorkspace() ? 'Disable presentation mode' : 'Enable presentation mode'"
+          (click)="togglePresentationMode()"
+        >
+          <svg lucideCirclePlay aria-hidden="true"></svg>
+          <span>{{ presentationButtonLabel() }}</span>
+        </button>
+
+        <button
+          type="button"
           class="campaign-session-calendar-button"
           aria-label="Edit session date"
           title="Edit session date"
@@ -49,6 +62,100 @@
       </div>
     </header>
 
+    <section class="campaign-session-players-panel" aria-label="Session players checks">
+      <button
+        type="button"
+        class="campaign-session-players-toggle"
+        [attr.aria-expanded]="isSessionPlayersPanelOpen()"
+        (click)="toggleSessionPlayersPanel()"
+      >
+        <span>Players Checks</span>
+        <strong>{{ sessionPlayers().length }}</strong>
+      </button>
+
+      @if (isSessionPlayersPanelOpen()) {
+        <div class="campaign-session-players-content">
+          <section class="campaign-session-players-table-section">
+            <h2>Abilities</h2>
+            <div class="campaign-session-check-table-frame campaign-session-ability-table-frame">
+              <table class="campaign-session-check-table campaign-session-ability-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="campaign-session-player-column">Player</th>
+                    @for (ability of abilityColumns; track ability) {
+                      <th scope="col" class="campaign-session-rotated-heading">
+                        <span>{{ abilityColumnLabel(ability) }}</span>
+                      </th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (player of sessionPlayers(); track player.userId) {
+                    <tr>
+                      <th
+                        scope="row"
+                        class="campaign-session-player-column"
+                        [attr.title]="getMemberDisplayName(player)"
+                      >
+                        {{ getMemberDisplayName(player) }}
+                      </th>
+                      @for (ability of abilityColumns; track ability) {
+                        <td>{{ abilityValue(player, ability) }}</td>
+                      }
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td [attr.colspan]="abilityColumns.length + 1">No players loaded.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="campaign-session-players-table-section">
+            <h2>Skills</h2>
+            <div class="campaign-session-check-table-frame campaign-session-skill-table-frame">
+              <table class="campaign-session-check-table campaign-session-skill-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="campaign-session-player-column">Player</th>
+                    @for (skill of skillColumns; track skill) {
+                      <th scope="col" class="campaign-session-rotated-heading">
+                        <span>{{ skillColumnLabel(skill) }}</span>
+                      </th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (player of sessionPlayers(); track player.userId) {
+                    <tr>
+                      <th
+                        scope="row"
+                        class="campaign-session-player-column"
+                        [attr.title]="getMemberDisplayName(player)"
+                      >
+                        {{ getMemberDisplayName(player) }}
+                      </th>
+                      @for (skill of skillColumns; track skill) {
+                        <td [class]="'campaign-session-skill-value campaign-session-skill-proficiency-' + skillProficiencyLevel(player, skill)">
+                          {{ skillValue(player, skill) }}
+                        </td>
+                      }
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td [attr.colspan]="skillColumns.length + 1">No players loaded.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      }
+    </section>
+
     <textarea
       class="campaign-session-description"
       [value]="descriptionDraft()"
@@ -57,6 +164,313 @@
       (input)="setDescriptionDraft($event)"
       (blur)="saveDescriptionIfDirty()"
     ></textarea>
+
+    @if (presentationWorkspace(); as workspace) {
+      <section class="campaign-session-presentation-panel" aria-label="Presentation mode">
+        <header class="campaign-session-presentation-header">
+          <div>
+            <span class="campaign-session-presentation-eyebrow">Presentation Mode</span>
+            <h2>Live Story Board</h2>
+          </div>
+
+          <span class="campaign-session-presentation-live">
+            {{ workspace.presentation.currentStoryBeatId ? 'Beat selected' : 'Ready' }}
+          </span>
+        </header>
+
+        <div class="campaign-session-presentation-board">
+          @for (block of availablePresentationStoryBlocks(); track block.storyBlock.storyBlockId) {
+            <article
+              class="campaign-session-presentation-block"
+              [class.campaign-session-presentation-block-active]="isActivePresentationStoryBlock(block)"
+            >
+              <header class="campaign-session-presentation-block-header">
+                <svg lucideMap aria-hidden="true"></svg>
+                <div>
+                  <span>Story Block {{ block.storyBlock.orderIndex + 1 }}</span>
+                  <h3>{{ block.storyBlock.title || 'Untitled Story Block' }}</h3>
+                </div>
+
+                <button
+                  type="button"
+                  [disabled]="isEnablingPresentationMode() || isActivePresentationStoryBlock(block)"
+                  (click)="selectPresentationStoryBlock(block)"
+                >
+                  {{ isActivePresentationStoryBlock(block) ? 'Active' : 'Use' }}
+                </button>
+              </header>
+
+              <div class="campaign-session-presentation-beats">
+                @for (storyBeat of block.storyBeats; track storyBeat.storyBeatId) {
+                  <button
+                    type="button"
+                    class="campaign-session-presentation-beat"
+                    [class.campaign-session-presentation-beat-current]="isCurrentPresentationStoryBeat(storyBeat)"
+                    [class.campaign-session-presentation-beat-presented]="hasPresentedStoryBeat(storyBeat)"
+                    [disabled]="presentingStoryBeatId() !== null"
+                    (click)="presentStoryBeat(storyBeat)"
+                  >
+                    <span class="campaign-session-presentation-beat-index">
+                      {{ storyBeat.orderIndex + 1 }}.{{ storyBeat.secondaryOrderIndex + 1 }}
+                    </span>
+
+                    <span class="campaign-session-presentation-beat-content">
+                      <strong>{{ storyBeat.title || 'Untitled Story Beat' }}</strong>
+                      <span>{{ storyBeatTypeLabel(storyBeat) }}</span>
+                      <p>{{ storyBeatPreview(storyBeat) }}</p>
+
+                      @if (storyBeatQuestTaskTitles(storyBeat); as questTasks) {
+                        @if (questTasks.length > 0) {
+                          <span class="campaign-session-presentation-quest-tasks">
+                            {{ questTasks.join(', ') }}
+                          </span>
+                        }
+                      }
+                    </span>
+                  </button>
+                } @empty {
+                  <p class="campaign-session-presentation-empty">No unplayed story beats in this block.</p>
+                }
+              </div>
+            </article>
+          } @empty {
+            <p class="campaign-session-presentation-empty">No story blocks available.</p>
+          }
+        </div>
+
+        @if (currentPresentationStoryBeat(); as currentStoryBeat) {
+          <section class="campaign-session-presentation-detail" aria-label="Presented story beat data">
+            <header class="campaign-session-presentation-detail-header">
+              <div>
+                <span>{{ currentPresentationStoryBlock()?.storyBlock?.title || 'Story Block' }}</span>
+                <h3>{{ currentStoryBeat.title || 'Untitled Story Beat' }}</h3>
+              </div>
+
+              <div class="campaign-session-presentation-detail-actions">
+                <strong>{{ storyBeatTypeLabel(currentStoryBeat) }}</strong>
+
+                <button
+                  type="button"
+                  [disabled]="finishingStoryBeatId() !== null || hasStoryBeatPlayedNote(currentStoryBeat)"
+                  (click)="finishStoryBeat(currentStoryBeat)"
+                >
+                  {{ hasStoryBeatPlayedNote(currentStoryBeat) ? 'Played' : finishingStoryBeatId() === currentStoryBeat.storyBeatId ? 'Finishing...' : 'Finish Beat' }}
+                </button>
+              </div>
+            </header>
+
+            @if (currentStoryBeat.roleplaying) {
+              <p class="campaign-session-presentation-detail-summary">
+                @for (part of roleplayingPreviewParts(currentStoryBeat); track $index) {
+                  @if (part.className) {
+                    <span [class]="part.className">{{ part.text }}</span>
+                  } @else {
+                    <span>{{ part.text }}</span>
+                  }
+                }
+              </p>
+            } @else {
+              <p class="campaign-session-presentation-detail-summary">
+                @if (currentStoryBeat.information) {
+                  @for (part of informationNarrativeParts(currentStoryBeat); track $index) {
+                    @if (part.kind === 'text') {
+                      <span>{{ part.text }}</span>
+                    } @else {
+                      @if (optionalInformationQualifiedPlayerCount(part.information) > 0) {
+                        <span
+                          class="campaign-session-presentation-information-badge"
+                          [attr.title]="optionalInformationAccessTooltip(part.information)"
+                          [attr.aria-label]="optionalInformationQualifiedPlayerCount(part.information) + ' players can access this information'"
+                        >
+                          {{ optionalInformationQualifiedPlayerCount(part.information) }}
+                        </span>
+                        <span>{{ part.information.information }}</span>
+                      } @else {
+                        <span
+                          class="campaign-session-presentation-information-missing"
+                          [attr.title]="optionalInformationAccessTooltip(part.information)"
+                          aria-label="No players can access this hidden information"
+                        >
+                          X
+                        </span>
+                      }
+                    }
+                  }
+                } @else {
+                  {{ storyBeatPreview(currentStoryBeat) }}
+                }
+              </p>
+            }
+
+            @if (currentPresentationQuestTaskTitles(); as questTasks) {
+              @if (questTasks.length > 0) {
+                <div class="campaign-session-presentation-detail-tags">
+                  @for (questTask of questTasks; track questTask + ':' + $index) {
+                    <span>{{ questTask }}</span>
+                  }
+                </div>
+              }
+            }
+
+            <div class="campaign-session-presentation-detail-grid">
+              @if (currentStoryBeat.information) {
+                <section>
+                  <h4>Information</h4>
+                  <p class="campaign-session-presentation-information-narrative">
+                    @for (part of informationNarrativeParts(currentStoryBeat); track $index) {
+                      @if (part.kind === 'text') {
+                        <span>{{ part.text }}</span>
+                      } @else {
+                        @if (optionalInformationQualifiedPlayerCount(part.information) > 0) {
+                          <span
+                            class="campaign-session-presentation-information-badge"
+                            [attr.title]="optionalInformationAccessTooltip(part.information)"
+                            [attr.aria-label]="optionalInformationQualifiedPlayerCount(part.information) + ' players can access this information'"
+                          >
+                            {{ optionalInformationQualifiedPlayerCount(part.information) }}
+                          </span>
+                          <span>{{ part.information.information }}</span>
+                        } @else {
+                          <span
+                            class="campaign-session-presentation-information-missing"
+                            [attr.title]="optionalInformationAccessTooltip(part.information)"
+                            aria-label="No players can access this hidden information"
+                          >
+                            X
+                          </span>
+                        }
+                      }
+                    }
+                  </p>
+                </section>
+              }
+
+              @if (currentStoryBeat.narrative) {
+                <section>
+                  <h4>Narrative</h4>
+                  <div class="campaign-session-presentation-detail-list">
+                    @for (paragraph of currentStoryBeat.narrative.paragraphs; track $index) {
+                      <article>
+                        <p>{{ paragraph }}</p>
+                      </article>
+                    }
+                  </div>
+                </section>
+              }
+
+              @if (currentStoryBeat.roleplaying) {
+                <section>
+                  <h4>Roleplaying</h4>
+
+                  @if (currentStoryBeat.roleplaying.discoverableInformation.length > 0) {
+                    <div class="campaign-session-presentation-detail-list">
+                      @for (info of currentStoryBeat.roleplaying.discoverableInformation; track (info.id || info.information || $index) + ':' + $index) {
+                        <article class="campaign-session-roleplaying-check-row">
+                          <label>
+                            <input
+                              type="checkbox"
+                              [checked]="isRoleplayingInformationChecked(currentStoryBeat, info, $index)"
+                              [disabled]="isRoleplayingInformationSaving(info)"
+                              (change)="setRoleplayingInformationChecked(currentStoryBeat, info, $index, $event)"
+                            />
+                            <span>
+                              <strong>{{ roleplayingInformationNpcLabel(currentStoryBeat, info) }}</strong>
+                              <em>{{ roleplayingInformationCheckLabel(info) }}</em>
+                              <p>{{ info.information }}</p>
+                            </span>
+                          </label>
+                        </article>
+                      }
+                    </div>
+                  } @else {
+                    <p>No roleplaying details yet.</p>
+                  }
+                </section>
+              }
+
+              @if (currentStoryBeat.decision) {
+                <section>
+                  <h4>Decision</h4>
+                  <p>{{ currentStoryBeat.decision.description || 'No decision description yet.' }}</p>
+
+                  @if (currentStoryBeat.decision.decisions.length > 0) {
+                    <div class="campaign-session-presentation-decision-list">
+                      @for (decision of currentStoryBeat.decision.decisions; track decision.id) {
+                        <button
+                          type="button"
+                          class="campaign-session-presentation-decision-option"
+                          [class.campaign-session-presentation-decision-option-selected]="isDecisionOptionSelected(currentStoryBeat, decision)"
+                          [disabled]="isDecisionOptionSaving(decision)"
+                          [attr.title]="decision.description"
+                          (click)="chooseDecisionOption(currentStoryBeat, decision)"
+                        >
+                          <strong>{{ decision.title || 'Option' }}</strong>
+                          <p>{{ decision.description }}</p>
+                          <span>{{ isDecisionOptionSelected(currentStoryBeat, decision) ? 'Chosen' : isDecisionOptionSaving(decision) ? 'Saving...' : 'Choose' }}</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </section>
+              }
+
+              @if (currentStoryBeat.combat) {
+                <section>
+                  <h4>Combat</h4>
+                  <p>{{ currentStoryBeat.combat.description || 'No combat description yet.' }}</p>
+
+                  @if (currentStoryBeat.combat.enemyNpcs.length > 0) {
+                    <div class="campaign-session-presentation-detail-list">
+                      @for (enemy of currentStoryBeat.combat.enemyNpcs; track enemy.monsterId + ':' + $index) {
+                        <article>
+                          <strong>Monster {{ enemy.monsterId }}</strong>
+                          <p>Amount: {{ enemy.amount }}</p>
+                        </article>
+                      }
+                    </div>
+                  }
+
+                  @if (combatRewards(currentStoryBeat); as rewards) {
+                    @if (rewards.length > 0) {
+                      <div class="campaign-session-presentation-detail-tags">
+                        @for (reward of rewards; track reward + ':' + $index) {
+                          <span>{{ reward }}</span>
+                        }
+                      </div>
+                    }
+                  }
+                </section>
+              }
+
+              @if (currentStoryBeat.transition) {
+                <section>
+                  <h4>Transition</h4>
+                  <p>{{ currentStoryBeat.transition.description || 'No transition description yet.' }}</p>
+
+                  @if (currentStoryBeat.transition.conclusions.length > 0) {
+                    <div class="campaign-session-presentation-detail-list">
+                      @for (conclusion of currentStoryBeat.transition.conclusions; track conclusion.sourceStoryBeatId + ':' + conclusion.category + ':' + $index) {
+                        <article>
+                          <strong>{{ conclusion.category }}</strong>
+                          <p>{{ conclusion.text }}</p>
+                        </article>
+                      }
+                    </div>
+                  }
+                </section>
+              }
+
+              @if (currentStoryBeat.milestone) {
+                <section>
+                  <h4>Milestone</h4>
+                  <p>{{ currentStoryBeat.milestone.description || currentStoryBeat.milestone.title }}</p>
+                </section>
+              }
+            </div>
+          </section>
+        }
+      </section>
+    }
 
     <div class="campaign-session-notes-stack" aria-label="Session notes">
       @for (note of orderedNotes(); track note.id) {
@@ -67,9 +481,43 @@
           [class.campaign-session-note-milestone]="isCampaignMilestoneNote(note)"
           [class.campaign-session-note-item-found]="isItemFoundNote(note)"
           [class.campaign-session-note-mechanics-change]="isMechanicsChangeNote(note)"
+          [class.campaign-session-note-story-beat-played]="isStoryBeatPlayedNote(note)"
+          [class.campaign-session-note-story-beat-reference]="isStoryBeatReferenceNote(note)"
+          [class.campaign-session-note-click-editable]="canClickEditNote(note)"
+          [attr.title]="canClickEditNote(note) ? 'Edit note' : null"
           (contextmenu)="openNoteContextMenu($event, note)"
+          (click)="openStoryBeatNoteEditor(note)"
         >
-          @if (isItemFoundNote(note)) {
+          @if (isStoryBeatPlayedNote(note)) {
+            <svg lucideMap aria-hidden="true"></svg>
+            <strong>{{ getStoryBeatPlayedTitle(note) }}</strong>
+            <span>{{ getStoryBeatPlayedSubtitle(note) }}</span>
+            @if (isDecisionReferenceNote(note)) {
+              <div class="campaign-session-note-decision-options">
+                @for (decision of decisionNoteOptions(note); track decision.id + ':' + $index) {
+                  <div
+                    class="campaign-session-note-decision-option"
+                    [class.campaign-session-note-decision-option-selected]="decision.isSelected"
+                    [class.campaign-session-note-decision-option-unselected]="!decision.isSelected"
+                    [attr.title]="decisionNoteOptionTooltip(decision)"
+                    tabindex="0"
+                  >
+                    <strong>{{ decision.title || 'Option' }}</strong>
+                    <span>{{ decision.isSelected ? 'Chosen' : 'Not chosen' }}</span>
+                    <p>{{ decision.description }}</p>
+                  </div>
+                }
+              </div>
+            } @else if (isStoryBeatReferenceNote(note)) {
+              <ul class="campaign-session-note-reference-list">
+                @for (reference of note.storyBeatReferences; track reference.id) {
+                  <li>{{ getStoryBeatReferenceText(note, reference) }}</li>
+                }
+              </ul>
+            } @else {
+              <p>{{ note.content }}</p>
+            }
+          } @else if (isItemFoundNote(note)) {
             <svg lucidePackage aria-hidden="true"></svg>
             <strong>{{ getItemFoundTitle(note) }}</strong>
             <span>{{ getItemFoundType(note) }}</span>

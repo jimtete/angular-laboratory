@@ -704,6 +704,32 @@ public sealed class CampaignStoryController : ControllerBase
         };
     }
 
+    [HttpPut("{storyBlockId:guid}/beats/order")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StoryBeatResponse>>>> ReorderStoryBeats(
+        Guid campaignId,
+        Guid storyBlockId,
+        ReorderStoryBeatsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<StoryBeatResponse>>();
+        }
+
+        var result = await _campaignStoryService.ReorderStoryBeatsAsync(
+            userId.Value,
+            campaignId,
+            storyBlockId,
+            request,
+            cancellationToken);
+
+        return MapStoryBeatListResponse(
+            result,
+            "Story beats reordered successfully.");
+    }
+
     [HttpGet("{storyBlockId:guid}/beats")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<StoryBeatResponse>>>> FetchStoryBeats(
         Guid campaignId,
@@ -1079,6 +1105,12 @@ public sealed class CampaignStoryController : ControllerBase
                 Message = successMessage,
                 Data = result.Data
             }),
+            ApplicationStatusCode.InvalidStoryBeat => BadRequest(new ApiResponse<IReadOnlyList<StoryBeatResponse>>
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Story beat request is invalid.",
+                Data = null
+            }),
             ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<IReadOnlyList<StoryBeatResponse>>
             {
                 StatusCode = StatusCodes.Status404NotFound,
@@ -1097,6 +1129,13 @@ public sealed class CampaignStoryController : ControllerBase
                 Message = "Story block was not found.",
                 Data = null
             }),
+            ApplicationStatusCode.StoryBeatTransitionMustBeFinal => Conflict(
+                new ApiResponse<IReadOnlyList<StoryBeatResponse>>
+                {
+                    StatusCode = StatusCodes.Status409Conflict,
+                    Message = "The transition story beat must remain the final beat in the story block.",
+                    Data = null
+                }),
             ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
                 StatusCodes.Status403Forbidden,
                 new ApiResponse<IReadOnlyList<StoryBeatResponse>>

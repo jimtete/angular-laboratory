@@ -8,6 +8,7 @@ using LearningLab.Data.Repositories.CampaignMilestoneRepository;
 using LearningLab.Data.Repositories.CampaignNpcRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.MonsterRepository;
+using LearningLab.Data.Repositories.StoryBeatIndexPathRuleRepository;
 using LearningLab.Data.Repositories.StoryBeatRepository;
 using LearningLab.Data.Repositories.StoryBlockMilestoneRepository;
 using LearningLab.Data.Repositories.StoryBlockRepository;
@@ -36,6 +37,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
     private const int MaximumTransitionDescriptionLength = 2048;
 
     private readonly IStoryBlockRepository _storyBlockRepository;
+    private readonly IStoryBeatIndexPathRuleRepository _storyBeatIndexPathRuleRepository;
     private readonly IStoryBeatRepository _storyBeatRepository;
     private readonly IStoryBlockMilestoneRepository _storyBlockMilestoneRepository;
     private readonly ICampaignMilestoneRepository _campaignMilestoneRepository;
@@ -46,6 +48,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
     public CampaignStoryService(
         IStoryBlockRepository storyBlockRepository,
+        IStoryBeatIndexPathRuleRepository storyBeatIndexPathRuleRepository,
         IStoryBeatRepository storyBeatRepository,
         IStoryBlockMilestoneRepository storyBlockMilestoneRepository,
         ICampaignMilestoneRepository campaignMilestoneRepository,
@@ -55,6 +58,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
         IUserRepository userRepository)
     {
         _storyBlockRepository = storyBlockRepository;
+        _storyBeatIndexPathRuleRepository = storyBeatIndexPathRuleRepository;
         _storyBeatRepository = storyBeatRepository;
         _storyBlockMilestoneRepository = storyBlockMilestoneRepository;
         _campaignMilestoneRepository = campaignMilestoneRepository;
@@ -1694,6 +1698,85 @@ public sealed class CampaignStoryService : ICampaignStoryService
         return new ServiceResult<object>(ApplicationStatusCode.Success);
     }
 
+    public async Task<ServiceResult<IReadOnlyList<StoryBeatResponse>>> ReorderStoryBeatsAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        ReorderStoryBeatsRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!IsValidReorderStoryBeatsRequest(request))
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
+                ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(validationStatusCode.Value);
+        }
+
+        var storyBlock = await _storyBlockRepository.GetByCampaignIdAndStoryBlockIdAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        if (storyBlock is null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
+                ApplicationStatusCode.StoryBlockNotFound);
+        }
+
+        var storyBeats = await _storyBeatRepository.ListTrackedByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
+        var requestedStoryBeatIds = request!.StoryBeats
+            .Select(beat => beat.StoryBeatId)
+            .ToList();
+
+        if (storyBeats.Count != request.StoryBeats.Count
+            || storyBeats.Select(beat => beat.Id).Except(requestedStoryBeatIds).Any())
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
+                ApplicationStatusCode.InvalidStoryBeat);
+        }
+
+        if (!TransitionWouldRemainFinal(storyBeats, request.StoryBeats))
+        {
+            return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
+                ApplicationStatusCode.StoryBeatTransitionMustBeFinal);
+        }
+
+        await ApplyStoryBeatOrderAsync(
+            storyBeats,
+            request.StoryBeats,
+            cancellationToken);
+
+        var orderedStoryBeats = storyBeats
+            .OrderBy(beat => beat.OrderIndex)
+            .ThenBy(beat => beat.SecondaryOrderIndex)
+            .ThenBy(beat => beat.Id)
+            .ToList();
+        var indexPathRules = await GetStoryBeatIndexPathRulesByOrderIndexAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
+            ApplicationStatusCode.Success,
+            orderedStoryBeats
+                .Select(storyBeat => ToResponse(
+                    storyBeat,
+                    orderedStoryBeats,
+                    indexPathRules))
+                .ToList());
+    }
+
     public async Task<ServiceResult<IReadOnlyList<StoryBeatResponse>>> GetStoryBeatsAsync(
         Guid userId,
         Guid campaignId,
@@ -1724,10 +1807,19 @@ public sealed class CampaignStoryService : ICampaignStoryService
         var storyBeats = await _storyBeatRepository.ListByStoryBlockIdAsync(
             storyBlockId,
             cancellationToken);
+        var indexPathRules = await GetStoryBeatIndexPathRulesByOrderIndexAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
 
         return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
             ApplicationStatusCode.Success,
-            storyBeats.Select(storyBeat => ToResponse(storyBeat, storyBeats)).ToList());
+            storyBeats
+                .Select(storyBeat => ToResponse(
+                    storyBeat,
+                    storyBeats,
+                    indexPathRules))
+                .ToList());
     }
 
     public async Task<ServiceResult<IReadOnlyList<CampaignNpcResponse>>>
@@ -2564,6 +2656,81 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 StringComparison.OrdinalIgnoreCase));
     }
 
+    private static bool IsValidReorderStoryBeatsRequest(ReorderStoryBeatsRequest? request)
+    {
+        if (request?.StoryBeats is null
+            || request.StoryBeats.Count == 0
+            || request.StoryBeats
+                .Select(beat => beat.StoryBeatId)
+                .Distinct()
+                .Count() != request.StoryBeats.Count)
+        {
+            return false;
+        }
+
+        if (request.StoryBeats.Any(beat =>
+                beat.StoryBeatId == Guid.Empty
+                || beat.OrderIndex < 1
+                || beat.SecondaryOrderIndex < 1))
+        {
+            return false;
+        }
+
+        return request.StoryBeats
+            .Select(beat => (beat.OrderIndex, beat.SecondaryOrderIndex))
+            .Distinct()
+            .Count() == request.StoryBeats.Count;
+    }
+
+    private static bool TransitionWouldRemainFinal(
+        IReadOnlyList<StoryBeat> storyBeats,
+        IReadOnlyList<ReorderStoryBeatRequest> requestedStoryBeats)
+    {
+        var transitionBeat = storyBeats.SingleOrDefault(
+            beat => beat.StoryBeatType == StoryBeatType.Transition);
+
+        if (transitionBeat is null)
+        {
+            return true;
+        }
+
+        var positionsByStoryBeatId = requestedStoryBeats.ToDictionary(
+            beat => beat.StoryBeatId);
+        var transitionPosition = positionsByStoryBeatId[transitionBeat.Id];
+
+        return requestedStoryBeats.All(beat =>
+            beat.StoryBeatId == transitionBeat.Id
+            || beat.OrderIndex < transitionPosition.OrderIndex
+            || beat.OrderIndex == transitionPosition.OrderIndex
+                && beat.SecondaryOrderIndex < transitionPosition.SecondaryOrderIndex);
+    }
+
+    private async Task ApplyStoryBeatOrderAsync(
+        IReadOnlyList<StoryBeat> storyBeats,
+        IReadOnlyList<ReorderStoryBeatRequest> requestedStoryBeats,
+        CancellationToken cancellationToken)
+    {
+        var beatsById = storyBeats.ToDictionary(beat => beat.Id);
+
+        for (var index = 0; index < storyBeats.Count; index++)
+        {
+            storyBeats[index].OrderIndex = -(index + 1);
+            storyBeats[index].SecondaryOrderIndex = 1;
+        }
+
+        await _storyBeatRepository.SaveChangesAsync(cancellationToken);
+
+        foreach (var requestedStoryBeat in requestedStoryBeats)
+        {
+            var storyBeat = beatsById[requestedStoryBeat.StoryBeatId];
+
+            storyBeat.OrderIndex = requestedStoryBeat.OrderIndex;
+            storyBeat.SecondaryOrderIndex = requestedStoryBeat.SecondaryOrderIndex;
+        }
+
+        await _storyBeatRepository.SaveChangesAsync(cancellationToken);
+    }
+
     private async Task ApplyStoryBlockOrderAsync(
         IReadOnlyList<StoryBlock> storyBlocks,
         IReadOnlyList<Guid> orderedStoryBlockIds,
@@ -2621,6 +2788,39 @@ public sealed class CampaignStoryService : ICampaignStoryService
         };
     }
 
+    private async Task<IReadOnlyDictionary<int, StoryBeatIndexPathRuleResponse>>
+        GetStoryBeatIndexPathRulesByOrderIndexAsync(
+            Guid campaignId,
+            Guid storyBlockId,
+            CancellationToken cancellationToken)
+    {
+        var indexPathRules = await _storyBeatIndexPathRuleRepository.ListByStoryBlockAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        return indexPathRules
+            .GroupBy(rule => rule.OrderIndex)
+            .ToDictionary(
+                group => group.Key,
+                group => ToResponse(group.First()));
+    }
+
+    private static StoryBeatIndexPathRuleResponse ToResponse(StoryBeatIndexPathRule rule)
+    {
+        return new StoryBeatIndexPathRuleResponse
+        {
+            Id = rule.Id,
+            CampaignId = rule.CampaignId,
+            StoryBlockId = rule.StoryBlockId,
+            OrderIndex = rule.OrderIndex,
+            RelationType = rule.RelationType,
+            IsRequired = rule.IsRequired,
+            CreatedAtUtc = rule.CreatedAtUtc,
+            UpdatedAtUtc = rule.UpdatedAtUtc
+        };
+    }
+
     private static StoryBlockMilestoneResponse ToResponse(StoryBlockMilestone link)
     {
         return new StoryBlockMilestoneResponse
@@ -2666,8 +2866,11 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
     private static StoryBeatResponse ToResponse(
         StoryBeat storyBeat,
-        IReadOnlyList<StoryBeat>? storyBlockBeats = null)
+        IReadOnlyList<StoryBeat>? storyBlockBeats = null,
+        IReadOnlyDictionary<int, StoryBeatIndexPathRuleResponse>? indexPathRulesByOrderIndex = null)
     {
+        var indexPathRule = indexPathRulesByOrderIndex?.GetValueOrDefault(storyBeat.OrderIndex);
+
         return new StoryBeatResponse
         {
             StoryBeatId = storyBeat.Id,
@@ -2696,7 +2899,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 : ToResponse(storyBeat.Transition, storyBeat, storyBlockBeats ?? []),
             Milestone = storyBeat.Milestone is null
                 ? null
-                : ToResponse(storyBeat.Milestone)
+                : ToResponse(storyBeat.Milestone),
+            IndexPathRule = indexPathRule
         };
     }
 

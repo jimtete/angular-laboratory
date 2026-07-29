@@ -327,3 +327,13 @@ export interface UpdateMilestoneStoryBeatRequest {
   title: string | null;
   milestoneId: number;
 }
+
+export interface ReorderStoryBeatRequest {
+  storyBeatId: string;
+  orderIndex: number;
+  secondaryOrderIndex: number;
+}
+
+export interface ReorderStoryBeatsRequest {
+  storyBeats: ReorderStoryBeatRequest[];
+}

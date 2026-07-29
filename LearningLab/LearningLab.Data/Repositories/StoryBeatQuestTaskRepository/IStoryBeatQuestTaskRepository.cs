@@ -4,8 +4,17 @@ namespace LearningLab.Data.Repositories.StoryBeatQuestTaskRepository;
 
 public interface IStoryBeatQuestTaskRepository
 {
+    Task<IReadOnlyList<StoryBeatQuestTask>> ListByCampaignIdAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<StoryBeatQuestTask>> ListByStoryBeatIdAsync(
         Guid storyBeatId,
+        CancellationToken cancellationToken = default);
+
+    Task<StoryBeatQuestTask?> GetByCampaignIdAndQuestTaskIdAsync(
+        Guid campaignId,
+        Guid questTaskId,
         CancellationToken cancellationToken = default);
 
     Task<StoryBeatQuestTask?> GetByStoryBeatIdAndQuestTaskIdAsync(

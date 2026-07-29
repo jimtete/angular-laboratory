@@ -39,7 +39,10 @@
 
 .campaign-session-date-control {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .campaign-session-back-button,
@@ -154,6 +157,18 @@
   color: #1f1235;
   font: 600 1.02rem/1.5 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.campaign-session-note-reference-list {
+  margin: 0.45rem 0 0;
+  padding-left: 1.2rem;
+  color: #1f1235;
+  font: 600 1.02rem/1.5 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-session-note-reference-list li {
+  margin: 0.2rem 0;
   overflow-wrap: anywhere;
 }
 
@@ -625,6 +640,15 @@
   .campaign-session-date-picker {
     right: auto;
     left: 0;
+  }
+
+  .campaign-session-presentation-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .campaign-session-presentation-board {
+    grid-template-columns: 1fr;
   }
 
   .campaign-session-note-choices,

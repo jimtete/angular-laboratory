@@ -17,6 +17,10 @@ public interface IStoryBlockRepository
         Guid storyBlockId,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsByStoryBlockIdAsync(
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default);
+
     Task<StoryBlock?> GetFirstByCampaignIdAsync(
         Guid campaignId,
         CancellationToken cancellationToken = default);

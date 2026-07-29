@@ -4,7 +4,18 @@ export enum SessionNoteType {
   CampaignMilestone = 3,
   ItemFound = 4,
   LevelUpOrMechanicsChange = 5,
+  StoryBeatPlayed = 6,
 }
+
+export enum SessionNoteStoryBeatReferenceType {
+  StoryBeat = 1,
+  RoleplayingNpcInteraction = 2,
+  RoleplayingInformation = 3,
+  DecisionOption = 4,
+}
+
+export type SessionNoteStoryBeatReferenceTypeValue =
+  SessionNoteStoryBeatReferenceType | keyof typeof SessionNoteStoryBeatReferenceType | string | number;
 
 export interface SessionNoteChoiceModel {
   id: number;
@@ -47,12 +58,55 @@ export interface AchieveCampaignMilestoneRequest {
   content?: string | null;
 }
 
+export interface CreateStoryBeatPlayedSessionNoteRequest {
+  storyBeatId: string;
+  content?: string | null;
+}
+
+export interface CreateStoryBeatReferenceSessionNoteRequest {
+  storyBeatId: string;
+  referenceType: SessionNoteStoryBeatReferenceTypeValue;
+  referenceId: string | null;
+  content?: string | null;
+}
+
+export interface UpdateStoryBeatReferenceSessionNoteRequest {
+  storyBeatId: string;
+  referenceType: SessionNoteStoryBeatReferenceTypeValue;
+  referenceId?: string | null;
+  isPlayed: boolean;
+  content?: string | null;
+}
+
+export interface SessionNoteStoryBeatModel {
+  storyBeatId: string;
+  storyBlockId: string;
+  orderIndex: number;
+  secondaryOrderIndex: number;
+  title: string;
+  storyBeatType: string | number;
+}
+
+export interface SessionNoteStoryBeatReferenceModel {
+  id: number;
+  sessionNoteId: number;
+  storyBeatId: string;
+  referenceType: SessionNoteStoryBeatReferenceTypeValue;
+  referenceId: string | null;
+  npcTag: string | null;
+  contentSnapshot: string;
+  createdAt: string;
+}
+
 export interface SessionNoteModel {
   id: number;
   sessionId: number;
   order: number;
   type: SessionNoteType | keyof typeof SessionNoteType | string | number;
   content: string;
+  storyBeatId: string | null;
+  storyBeat: SessionNoteStoryBeatModel | null;
+  storyBeatReferences: SessionNoteStoryBeatReferenceModel[];
   choices: SessionNoteChoiceModel[];
   mechanicsChanges: SessionNoteMechanicsChangeModel[];
   createdAt: string;
