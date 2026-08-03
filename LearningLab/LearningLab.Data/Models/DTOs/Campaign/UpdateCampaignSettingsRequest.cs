@@ -9,6 +9,8 @@ public sealed class UpdateCampaignSettingsRequest
     public int MaxNumberOfPlayers { get; init; }
 
     public PassiveSkillsCheck PassiveSkillsCheck { get; init; }
+
+    public StoreMechanics StoreMechanics { get; init; }
     
     [MaxLength(16384)]
     public string CampaignDescription { get; set; } = string.Empty;

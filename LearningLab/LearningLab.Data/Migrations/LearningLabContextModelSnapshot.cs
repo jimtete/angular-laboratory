@@ -113,9 +113,19 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("nvarchar(64)")
                         .HasColumnName("asset_type");
 
+                    b.Property<string>("AssetUrl")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)")
+                        .HasColumnName("asset_url");
+
                     b.PrimitiveCollection<string>("CampaignIds")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("campaign_ids");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("content_type");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -130,6 +140,10 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("")
                         .HasColumnName("description");
+
+                    b.Property<long?>("FileSizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("file_size_bytes");
 
                     b.Property<string>("ItemType")
                         .HasMaxLength(64)
@@ -377,9 +391,230 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("nvarchar(64)")
                         .HasColumnName("passive_skills_check");
 
+                    b.Property<string>("StoreMechanics")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValue("GlobalStores")
+                        .HasColumnName("store_mechanics");
+
                     b.HasKey("CampaignId");
 
                     b.ToTable("CampaignSettings", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.Map", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("map_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssetId")
+                        .HasColumnType("int")
+                        .HasColumnName("asset_id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("category");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("")
+                        .HasColumnName("description");
+
+                    b.Property<int>("ImageHeightPixels")
+                        .HasColumnType("int")
+                        .HasColumnName("image_height_pixels");
+
+                    b.Property<int>("ImageWidthPixels")
+                        .HasColumnType("int")
+                        .HasColumnName("image_width_pixels");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("ParentMapId")
+                        .HasColumnType("int")
+                        .HasColumnName("parent_map_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId")
+                        .IsUnique();
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("ParentMapId");
+
+                    b.ToTable("Maps", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.MapCampaign", b =>
+                {
+                    b.Property<int>("MapId")
+                        .HasColumnType("int")
+                        .HasColumnName("map_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTimeOffset>("DateAdded")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("date_added")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("MapId", "CampaignId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("MapCampaigns", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.MapPin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("map_pin_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("label");
+
+                    b.Property<int>("MapId")
+                        .HasColumnType("int")
+                        .HasColumnName("map_id");
+
+                    b.Property<string>("TargetId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("target_id");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("target_type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<decimal>("XCoordinate")
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("x_coordinate");
+
+                    b.Property<decimal>("YCoordinate")
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("y_coordinate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MapId");
+
+                    b.ToTable("MapPins", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.MapPinConnection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("map_pin_connection_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("DistanceUnit")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("distance_unit");
+
+                    b.Property<decimal?>("DistanceValue")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("distance_value");
+
+                    b.Property<int>("MapId")
+                        .HasColumnType("int")
+                        .HasColumnName("map_id");
+
+                    b.Property<int>("MapPinAId")
+                        .HasColumnType("int")
+                        .HasColumnName("map_pin_a_id");
+
+                    b.Property<int>("MapPinBId")
+                        .HasColumnType("int")
+                        .HasColumnName("map_pin_b_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MapId");
+
+                    b.HasIndex("MapPinAId");
+
+                    b.HasIndex("MapPinBId");
+
+                    b.HasIndex("MapId", "MapPinAId", "MapPinBId")
+                        .IsUnique();
+
+                    b.ToTable("MapPinConnections", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.PlayerCampaignParticipation", b =>
@@ -1450,6 +1685,105 @@ namespace LearningLab.Data.Migrations
                     b.ToTable("SessionNoteStoryBeatReferences", (string)null);
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Stores.StoreEntry", b =>
+                {
+                    b.Property<int>("StoreId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("store_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreId"));
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<string>("StoreDescription")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("store_description");
+
+                    b.Property<string>("StoreLocation")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("store_location");
+
+                    b.Property<string>("StoreName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("store_name");
+
+                    b.Property<string>("StoreType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("store_type");
+
+                    b.HasKey("StoreId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("StoreEntries", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Stores.StoreItem", b =>
+                {
+                    b.Property<long>("StoreItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("store_item_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("StoreItemId"));
+
+                    b.Property<string>("ItemDescription")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("item_description");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("item_name");
+
+                    b.Property<int>("ItemPrice")
+                        .HasColumnType("int")
+                        .HasColumnName("item_price");
+
+                    b.Property<int>("ItemPriceDiscount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("item_price_discount");
+
+                    b.Property<int>("ItemPricePercentageDiscount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("item_price_percentage_discount");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int")
+                        .HasColumnName("quantity");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int")
+                        .HasColumnName("store_id");
+
+                    b.Property<int>("TimesSold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("times_sold");
+
+                    b.HasKey("StoreItemId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("StoreItems", (string)null);
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1501,6 +1835,59 @@ namespace LearningLab.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("StoryBeats", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeatIndexPathRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_index_path_rule_id");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at_utc")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_required");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("order_index");
+
+                    b.Property<string>("RelationType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasColumnName("relation_type");
+
+                    b.Property<Guid>("StoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at_utc")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("StoryBlockId");
+
+                    b.HasIndex("CampaignId", "StoryBlockId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("StoryBeatIndexPathRules", (string)null);
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlock", b =>
@@ -2111,6 +2498,81 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Campaign");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.Map", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Assets.Asset", "Asset")
+                        .WithMany("Maps")
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Maps.Map", "ParentMap")
+                        .WithMany("ChildMaps")
+                        .HasForeignKey("ParentMapId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Asset");
+
+                    b.Navigation("ParentMap");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.MapCampaign", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("MapCampaigns")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Maps.Map", "Map")
+                        .WithMany("Campaigns")
+                        .HasForeignKey("MapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("Map");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.MapPin", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Maps.Map", "Map")
+                        .WithMany("Pins")
+                        .HasForeignKey("MapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Map");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.MapPinConnection", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Maps.Map", "Map")
+                        .WithMany("PinConnections")
+                        .HasForeignKey("MapId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Maps.MapPin", "MapPinA")
+                        .WithMany("ConnectionsAsA")
+                        .HasForeignKey("MapPinAId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Maps.MapPin", "MapPinB")
+                        .WithMany("ConnectionsAsB")
+                        .HasForeignKey("MapPinBId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Map");
+
+                    b.Navigation("MapPinA");
+
+                    b.Navigation("MapPinB");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.PlayerCampaignParticipation", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
@@ -2596,6 +3058,28 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("StoryBeat");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Stores.StoreEntry", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("Stores")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Stores.StoreItem", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Stores.StoreEntry", "Store")
+                        .WithMany("Items")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.Campaign.CampaignMilestone", "Milestone")
@@ -2899,6 +3383,25 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Transition");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeatIndexPathRule", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
+                        .WithMany("StoryBeatIndexPathRules")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "StoryBlock")
+                        .WithMany("IndexPathRules")
+                        .HasForeignKey("StoryBlockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("StoryBlock");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlock", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.Campaign.Campaign", "Campaign")
@@ -3049,6 +3552,8 @@ namespace LearningLab.Data.Migrations
             modelBuilder.Entity("LearningLab.Data.Models.Assets.Asset", b =>
                 {
                     b.Navigation("Children");
+
+                    b.Navigation("Maps");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
@@ -3058,6 +3563,8 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("ConditionalRules");
 
                     b.Navigation("EventDefinitions");
+
+                    b.Navigation("MapCampaigns");
 
                     b.Navigation("Milestones");
 
@@ -3076,6 +3583,10 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Settings")
                         .IsRequired();
 
+                    b.Navigation("Stores");
+
+                    b.Navigation("StoryBeatIndexPathRules");
+
                     b.Navigation("StoryBlocks");
                 });
 
@@ -3084,6 +3595,24 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("StoryBeat");
 
                     b.Navigation("StoryBlockMilestones");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.Map", b =>
+                {
+                    b.Navigation("Campaigns");
+
+                    b.Navigation("ChildMaps");
+
+                    b.Navigation("PinConnections");
+
+                    b.Navigation("Pins");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Maps.MapPin", b =>
+                {
+                    b.Navigation("ConnectionsAsA");
+
+                    b.Navigation("ConnectionsAsB");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Presentation.CampaignPresentation", b =>
@@ -3142,6 +3671,11 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("StoryBeatReferences");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Stores.StoreEntry", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBeat", b =>
                 {
                     b.Navigation("CurrentPresentations");
@@ -3158,6 +3692,8 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("ActivePresentations");
 
                     b.Navigation("Beats");
+
+                    b.Navigation("IndexPathRules");
 
                     b.Navigation("Milestones");
 

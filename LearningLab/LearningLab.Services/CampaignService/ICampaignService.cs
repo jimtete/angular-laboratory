@@ -15,4 +15,8 @@ public interface ICampaignService
     Task<ServiceResult<IReadOnlyList<CampaignResponse>>> GetAvailableCampaignsAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<IReadOnlyList<CampaignResponse>>> GetJoinedCampaignsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

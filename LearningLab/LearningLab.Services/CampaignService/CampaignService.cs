@@ -2,6 +2,7 @@ using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.DTOs.Campaign;
+using LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
 using LearningLab.Data.Repositories.CampaignQueryRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.UserRepository;
@@ -14,17 +15,20 @@ namespace LearningLab.Services.CampaignService;
 
 public sealed class CampaignService : ICampaignService
 {
+    private readonly ICampaignParticipationInviteRepository _campaignParticipationInviteRepository;
     private readonly ICampaignQueryRepository _campaignQueryRepository;
     private readonly ICampaignRepository _campaignRepository;
     private readonly IUserRepository _userRepository;
     private readonly CampaignPictureStorageOptions _campaignPictureStorageOptions;
 
     public CampaignService(
+        ICampaignParticipationInviteRepository campaignParticipationInviteRepository,
         ICampaignQueryRepository campaignQueryRepository,
         ICampaignRepository campaignRepository,
         IUserRepository userRepository,
         IOptions<CampaignPictureStorageOptions> campaignPictureStorageOptions)
     {
+        _campaignParticipationInviteRepository = campaignParticipationInviteRepository;
         _campaignQueryRepository = campaignQueryRepository;
         _campaignRepository = campaignRepository;
         _userRepository = userRepository;
@@ -79,7 +83,8 @@ public sealed class CampaignService : ICampaignService
             {
                 CampaignId = campaignId,
                 MaxNumberOfPlayers = 1,
-                PassiveSkillsCheck = PassiveSkillsCheck.Manual
+                PassiveSkillsCheck = PassiveSkillsCheck.Manual,
+                StoreMechanics = StoreMechanics.GlobalStores
             }
         };
 
@@ -114,6 +119,33 @@ public sealed class CampaignService : ICampaignService
         }
 
         var campaigns = await _campaignQueryRepository.GetByGameMasterIdAsync(
+            userId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<CampaignResponse>>(
+            ApplicationStatusCode.Success,
+            campaigns);
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<CampaignResponse>>> GetJoinedCampaignsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is null)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignResponse>>(
+                ApplicationStatusCode.UserNotFound);
+        }
+
+        if (!HasRole(user, AccessRoleNames.Player))
+        {
+            return new ServiceResult<IReadOnlyList<CampaignResponse>>(
+                ApplicationStatusCode.CampaignPlayerRoleRequired);
+        }
+
+        var campaigns = await _campaignParticipationInviteRepository.ListJoinedCampaignsByUserIdAsync(
             userId,
             cancellationToken);
 

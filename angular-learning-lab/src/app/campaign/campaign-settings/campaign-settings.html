@@ -44,6 +44,7 @@
     <section class="campaign-settings-column">
       <label
         class="campaign-settings-field"
+        (mouseenter)="showPassiveSkillsInfo()"
         (click)="showPassiveSkillsInfo()"
         (focusin)="showPassiveSkillsInfo()"
       >
@@ -51,9 +52,35 @@
         <select
           class="campaign-settings-select"
           [value]="passiveSkillsCheck()"
+          (pointerdown)="showPassiveSkillsInfo()"
+          (keydown.enter)="showPassiveSkillsInfo()"
+          (keydown.space)="showPassiveSkillsInfo()"
+          (keydown.alt.arrowdown)="showPassiveSkillsInfo()"
           (change)="setPassiveSkillsCheck($event)"
         >
           @for (option of passiveSkillCheckOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label
+        class="campaign-settings-field"
+        (mouseenter)="showStoreMechanicsInfo()"
+        (click)="showStoreMechanicsInfo()"
+        (focusin)="showStoreMechanicsInfo()"
+      >
+        <span>Store Type</span>
+        <select
+          class="campaign-settings-select"
+          [value]="storeMechanics()"
+          (pointerdown)="showStoreMechanicsInfo()"
+          (keydown.enter)="showStoreMechanicsInfo()"
+          (keydown.space)="showStoreMechanicsInfo()"
+          (keydown.alt.arrowdown)="showStoreMechanicsInfo()"
+          (change)="setStoreMechanics($event)"
+        >
+          @for (option of storeMechanicsOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }
         </select>
@@ -84,6 +111,34 @@
       <p>
         <strong>Manual:</strong>
         no automation is applied; the Master decides what information is revealed.
+      </p>
+    </aside>
+  }
+
+  @if (isStoreMechanicsInfoOpen()) {
+    <aside class="campaign-settings-passive-info" aria-live="polite">
+      <button
+        type="button"
+        class="campaign-settings-passive-info-close"
+        aria-label="Close store type information"
+        title="Close"
+        (click)="closeStoreMechanicsInfo()"
+      >
+        X
+      </button>
+      <h2>Store Type</h2>
+      <p>
+        <strong>Unlocking Stores:</strong>
+        new stock becomes available as the party discovers new stores, then stays buyable from any store.
+        Good for adventuring.
+      </p>
+      <p>
+        <strong>Separate Stores:</strong>
+        each store keeps its own inventory and sells different items. Good for detailed shop management.
+      </p>
+      <p>
+        <strong>Global Stores:</strong>
+        every store shares the same available stock at each point of the campaign. Good for sandbox play.
       </p>
     </aside>
   }

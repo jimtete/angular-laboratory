@@ -32,6 +32,40 @@
   min-width: 16rem;
 }
 
+.campaign-members-remove-cell {
+  width: 4rem;
+  text-align: center;
+}
+
+.campaign-members-remove-button {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.campaign-members-remove-button:hover:not(:disabled),
+.campaign-members-remove-button:focus-visible:not(:disabled) {
+  background: rgba(220, 38, 38, 0.08);
+  outline: 0;
+}
+
+.campaign-members-remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.campaign-members-remove-button svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke-width: 2.6;
+}
+
 .campaign-members-proficiencies-editable {
   cursor: pointer;
 }
@@ -348,6 +382,86 @@
 
 .campaign-members-popup-close:hover {
   background: #f3f4f6;
+}
+
+.campaign-members-remove-dialog {
+  position: relative;
+  width: min(100%, 34rem);
+  display: grid;
+  padding: 3rem 2rem 2rem;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1.25rem 3rem rgba(127, 29, 29, 0.26);
+  box-sizing: border-box;
+}
+
+.campaign-members-remove-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.campaign-members-remove-content h2,
+.campaign-members-remove-content p {
+  margin: 0;
+}
+
+.campaign-members-remove-content h2 {
+  color: #7f1d1d;
+  font: 800 2rem/1.05 'Cotemporary', 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-align: center;
+}
+
+.campaign-members-remove-content p,
+.campaign-members-remove-confirmation span {
+  color: #1f1235;
+  font: 700 1rem/1.35 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-members-remove-confirmation {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.campaign-members-remove-confirmation input {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #991b1b;
+  border-radius: 6px;
+  font: 800 1rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.campaign-members-remove-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.campaign-members-remove-actions button {
+  min-width: 7rem;
+  min-height: 2.5rem;
+  border-radius: 6px;
+  font: 800 0.9rem/1.1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-members-remove-cancel {
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #1f1235;
+}
+
+.campaign-members-remove-continue,
+.campaign-members-remove-delete {
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.campaign-members-remove-actions button:disabled,
+.campaign-members-popup-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 @media (max-width: 700px) {

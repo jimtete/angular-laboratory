@@ -1,6 +1,7 @@
 export * from './campaign-information.model';
 export * from './campaign-invite-resolution.model';
 export * from './campaign-member-information.model';
+export * from './campaign-map.model';
 export * from './campaign-milestone.model';
 export * from './campaign-narration.model';
 export * from './campaign-participation-invite.model';
@@ -11,6 +12,7 @@ export * from './campaign-story.model';
 export * from './campaign.model';
 export * from './campaign-settings.model';
 export * from './campaign-session.model';
+export * from './campaign-store.model';
 export * from './campaign-usernames.model';
 export * from './create-campaign-participation-invite-request.model';
 export * from './create-campaign-request.model';

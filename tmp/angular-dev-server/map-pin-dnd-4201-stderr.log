@@ -1,0 +1,2240 @@
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getConnectionPinCoordinate' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:572:16:
+[37m      572 │     return this.[32mgetConnectionPinCoordinate[37m(connection[pinKey], 'x');
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getConnectionPinCoordinate' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:576:16:
+[37m      576 │     return this.[32mgetConnectionPinCoordinate[37m(connection[pinKey], 'y');
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getConnectionDistanceUnitLabel' does not exist on type 'CampaignMapViewer'. Did you mean 'connectionDistanceUnits'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:584:47:
+[37m      584 │ ...ceValue} ${this.[32mgetConnectionDistanceUnitLabel[37m(connection.dist...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'connectionDistanceUnits' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:141:21:
+[37m      141 │   protected readonly [32mconnectionDistanceUnits[37m = [
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getConnectionFormValues' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:599:28:
+[37m      599 │     const formValues = this.[32mgetConnectionFormValues[37m(form);
+          ╵                             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'validateConnectionForm' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:600:34:
+[37m      600 │ ...const validationErrors = this.[32mvalidateConnectionForm[37m(formValues);
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'toCreateConnectionRequest' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:613:11:
+[37m      613 │       this.[32mtoCreateConnectionRequest[37m(pinIds, formValues),
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type '"distanceValue"' is not assignable to parameter of type 'keyof PlaceholderPinFormValues'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:902:59:
+[37m      902 │ ...awDistanceValue = this.getStringValue(formData, [32m'distanceValue'[37m);
+          ╵                                                    [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'isMapPinConnectionDistanceUnit' does not exist on type 'CampaignMapViewer'. Did you mean 'connectionDistanceUnits'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:911:45:
+[37m      911 │ ...anceValue && this.[32misMapPinConnectionDistanceUnit[37m(rawDistanceUnit)
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'connectionDistanceUnits' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:141:21:
+[37m      141 │   protected readonly [32mconnectionDistanceUnits[37m = [
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getConnectionDistanceUnitValue' does not exist on type 'CampaignMapViewer'. Did you mean 'getConnectionDistanceUnitLabel'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1067:27:
+[37m      1067 │ ...t unitValue = this.[32mgetConnectionDistanceUnitValue[37m(distanceUnit);
+           ╵                       [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'getConnectionDistanceUnitLabel' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1064:10:
+[37m      1064 │   private [32mgetConnectionDistanceUnitLabel[37m(
+           ╵           [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'createConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'saveConnection'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.html:222:18:
+[37m      222 │         (submit)="[32mcreateConnection[37m($event)"
+          ╵                   [32m~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignMapViewer.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:93:15:
+[37m      93 │   templateUrl: [32m'./campaign-map-viewer.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getEditingConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'editingConnectionId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:706:28:
+[37m      706 │     const connection = this.[32mgetEditingConnection[37m();
+          ╵                             [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'editingConnectionId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:138:21:
+[37m      138 │   protected readonly [32meditingConnectionId[37m = signal<number | null>(...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getEditingConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'editingConnectionId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:712:22:
+[37m      712 │     const unit = this.[32mgetEditingConnection[37m()?.distanceUnit ?? null;
+          ╵                       [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'editingConnectionId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:138:21:
+[37m      138 │   protected readonly [32meditingConnectionId[37m = signal<number | null>(...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'createConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'saveConnection'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.html:222:18:
+[37m      222 │         (submit)="[32mcreateConnection[37m($event)"
+          ╵                   [32m~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CampaignMapViewer.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:93:15:
+[37m      93 │   templateUrl: [32m'./campaign-map-viewer.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getEditingConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'editingConnectionId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:706:28:
+[37m      706 │     const connection = this.[32mgetEditingConnection[37m();
+          ╵                             [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'editingConnectionId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:138:21:
+[37m      138 │   protected readonly [32meditingConnectionId[37m = signal<number | null>(...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getEditingConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'editingConnectionId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:712:22:
+[37m      712 │     const unit = this.[32mgetEditingConnection[37m()?.distanceUnit ?? null;
+          ╵                       [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'editingConnectionId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:138:21:
+[37m      138 │   protected readonly [32meditingConnectionId[37m = signal<number | null>(...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getEditingConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'editingConnectionId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:706:28:
+[37m      706 │     const connection = this.[32mgetEditingConnection[37m();
+          ╵                             [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'editingConnectionId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:138:21:
+[37m      138 │   protected readonly [32meditingConnectionId[37m = signal<number | null>(...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getEditingConnection' does not exist on type 'CampaignMapViewer'. Did you mean 'editingConnectionId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:712:22:
+[37m      712 │     const unit = this.[32mgetEditingConnection[37m()?.distanceUnit ?? null;
+          ╵                       [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  'editingConnectionId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:138:21:
+[37m      138 │   protected readonly [32meditingConnectionId[37m = signal<number | null>(...
+          ╵                      [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isSupportedPinTool' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:261:14:
+[37m      261 │     if (!this.[32misSupportedPinTool[37m(pinTool)) {
+          ╵               [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'openPlaceholderPinForm' does not exist on type 'CampaignMapViewer'. Did you mean 'placeholderPinForm'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:266:9:
+[37m      266 │     this.[32mopenPlaceholderPinForm[37m(pinTool.targetType ?? MapPinTarge...
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'placeholderPinForm' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:100:19:
+[37m      100 │   private readonly [32mplaceholderPinForm[37m = viewChild<ElementRef<HTML...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getEditingMapLinkTargetMapId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:467:16:
+[37m      467 │     return this.[32mgetEditingMapLinkTargetMapId[37m() === mapId;
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2741: Property 'targetMapId' is missing in type '{ title: string; description: string; }' but required in type 'PlaceholderPinFormValues'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1017:4:
+[37m      1017 │     [32mreturn[37m {
+           ╵     [32m~~~~~~[0m
+
+  'targetMapId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:40:2:
+[37m      40 │   [32mtargetMapId[37m: number | null;
+         ╵   [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isSupportedPinTool' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:261:14:
+[37m      261 │     if (!this.[32misSupportedPinTool[37m(pinTool)) {
+          ╵               [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'openPlaceholderPinForm' does not exist on type 'CampaignMapViewer'. Did you mean 'placeholderPinForm'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:266:9:
+[37m      266 │     this.[32mopenPlaceholderPinForm[37m(pinTool.targetType ?? MapPinTarge...
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'placeholderPinForm' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:100:19:
+[37m      100 │   private readonly [32mplaceholderPinForm[37m = viewChild<ElementRef<HTML...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getEditingMapLinkTargetMapId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:467:16:
+[37m      467 │     return this.[32mgetEditingMapLinkTargetMapId[37m() === mapId;
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isSupportedPinTool' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:820:14:
+[37m      820 │     if (!this.[32misSupportedPinTool[37m(pinTool)) {
+          ╵               [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'openPlaceholderPinForm' does not exist on type 'CampaignMapViewer'. Did you mean 'placeholderPinForm'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:892:9:
+[37m      892 │     this.[32mopenPlaceholderPinForm[37m(pinTool.targetType ?? MapPinTarge...
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'placeholderPinForm' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:100:19:
+[37m      100 │   private readonly [32mplaceholderPinForm[37m = viewChild<ElementRef<HTML...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'pinTool'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:892:32:
+[37m      892 │ ...this.openPlaceholderPinForm([32mpinTool[37m.targetType ?? MapPinTarget...
+          ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2741: Property 'targetMapId' is missing in type '{ title: string; description: string; }' but required in type 'PlaceholderPinFormValues'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1017:4:
+[37m      1017 │     [32mreturn[37m {
+           ╵     [32m~~~~~~[0m
+
+  'targetMapId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:40:2:
+[37m      40 │   [32mtargetMapId[37m: number | null;
+         ╵   [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isSupportedPinTool' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:261:14:
+[37m      261 │     if (!this.[32misSupportedPinTool[37m(pinTool)) {
+          ╵               [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getEditingMapLinkTargetMapId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:467:16:
+[37m      467 │     return this.[32mgetEditingMapLinkTargetMapId[37m() === mapId;
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isSupportedPinTool' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:820:14:
+[37m      820 │     if (!this.[32misSupportedPinTool[37m(pinTool)) {
+          ╵               [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'pinTool'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:892:32:
+[37m      892 │ ...this.openPlaceholderPinForm([32mpinTool[37m.targetType ?? MapPinTarget...
+          ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getMapLinkTargetMap' does not exist on type 'CampaignMapViewer'. Did you mean 'mapLinkTargetMaps'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1022:13:
+[37m      1022 │       : this.[32mgetMapLinkTargetMap[37m(targetMapId);
+           ╵              [32m~~~~~~~~~~~~~~~~~~~[0m
+
+  'mapLinkTargetMaps' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:167:21:
+[37m      167 │   protected readonly [32mmapLinkTargetMaps[37m = computed(() => {
+          ╵                      [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getMapLinkTargetMap' does not exist on type 'CampaignMapViewer'. Did you mean 'mapLinkTargetMaps'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1048:51:
+[37m      1048 │ ...Id === null || !this.[32mgetMapLinkTargetMap[37m(formValues.targetMap...
+           ╵                         [32m~~~~~~~~~~~~~~~~~~~[0m
+
+  'mapLinkTargetMaps' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:167:21:
+[37m      167 │   protected readonly [32mmapLinkTargetMaps[37m = computed(() => {
+          ╵                      [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getPlaceholderPinTargetId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1112:21:
+[37m      1112 │       targetId: this.[32mgetPlaceholderPinTargetId[37m(targetType, formV...
+           ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getPlaceholderPinTargetId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1312:23:
+[37m      1312 │ ...   targetId: this.[32mgetPlaceholderPinTargetId[37m(targetType, formV...
+           ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isSupportedPinTool' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:261:14:
+[37m      261 │     if (!this.[32misSupportedPinTool[37m(pinTool)) {
+          ╵               [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getEditingMapLinkTargetMapId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:467:16:
+[37m      467 │     return this.[32mgetEditingMapLinkTargetMapId[37m() === mapId;
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'isSupportedPinTool' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:820:14:
+[37m      820 │     if (!this.[32misSupportedPinTool[37m(pinTool)) {
+          ╵               [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getMapLinkTargetMap' does not exist on type 'CampaignMapViewer'. Did you mean 'mapLinkTargetMaps'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1022:13:
+[37m      1022 │       : this.[32mgetMapLinkTargetMap[37m(targetMapId);
+           ╵              [32m~~~~~~~~~~~~~~~~~~~[0m
+
+  'mapLinkTargetMaps' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:167:21:
+[37m      167 │   protected readonly [32mmapLinkTargetMaps[37m = computed(() => {
+          ╵                      [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getMapLinkTargetMap' does not exist on type 'CampaignMapViewer'. Did you mean 'mapLinkTargetMaps'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1048:51:
+[37m      1048 │ ...Id === null || !this.[32mgetMapLinkTargetMap[37m(formValues.targetMap...
+           ╵                         [32m~~~~~~~~~~~~~~~~~~~[0m
+
+  'mapLinkTargetMaps' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:167:21:
+[37m      167 │   protected readonly [32mmapLinkTargetMaps[37m = computed(() => {
+          ╵                      [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getPlaceholderPinTargetId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1112:21:
+[37m      1112 │       targetId: this.[32mgetPlaceholderPinTargetId[37m(targetType, formV...
+           ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getPlaceholderPinTargetId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1312:23:
+[37m      1312 │ ...   targetId: this.[32mgetPlaceholderPinTargetId[37m(targetType, formV...
+           ╵                      [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getRouteMapId' does not exist on type 'CampaignMapViewer'. Did you mean 'routeMapId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:128:59:
+[37m      128 │ ...eadonly routeMapId = signal<number | null>(this.[32mgetRouteMapId[37m());
+          ╵                                                    [32m~~~~~~~~~~~~~[0m
+
+  'routeMapId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:128:19:
+[37m      128 │   private readonly [32mrouteMapId[37m = signal<number | null>(this.getRou...
+          ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'normalizeRouteMapId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:185:29:
+[37m      185 │ ...onst nextMapId = this.[32mnormalizeRouteMapId[37m(paramMap.get('mapId'));
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'resetMapViewerForRouteChange' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:192:11:
+[37m      192 │       this.[32mresetMapViewerForRouteChange[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getRouteMapId' does not exist on type 'CampaignMapViewer'. Did you mean 'routeMapId'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:128:59:
+[37m      128 │ ...eadonly routeMapId = signal<number | null>(this.[32mgetRouteMapId[37m());
+          ╵                                                    [32m~~~~~~~~~~~~~[0m
+
+  'routeMapId' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:128:19:
+[37m      128 │   private readonly [32mrouteMapId[37m = signal<number | null>(this.getRou...
+          ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'normalizeRouteMapId' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:185:29:
+[37m      185 │ ...onst nextMapId = this.[32mnormalizeRouteMapId[37m(paramMap.get('mapId'));
+          ╵                          [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'resetMapViewerForRouteChange' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:192:11:
+[37m      192 │       this.[32mresetMapViewerForRouteChange[37m();
+          ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getContextPinTargetMapId' does not exist on type 'CampaignMapViewer'. Did you mean 'openContextPinTargetMap'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:381:16:
+[37m      381 │     return this.[32mgetContextPinTargetMapId[37m() !== null;
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'openContextPinTargetMap' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:384:12:
+[37m      384 │   protected [32mopenContextPinTargetMap[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'getContextPinTargetMapId' does not exist on type 'CampaignMapViewer'. Did you mean 'openContextPinTargetMap'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:386:29:
+[37m      386 │     const targetMapId = this.[32mgetContextPinTargetMapId[37m();
+          ╵                              [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'openContextPinTargetMap' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:384:12:
+[37m      384 │   protected [32mopenContextPinTargetMap[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1116:24:
+[37m      1116 │       (existingViewport.[32mscrollLeft[37m > 0 || existingViewport.scrol...
+           ╵                         [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1116:59:
+[37m      1116 │ ...stingViewport.scrollLeft > 0 || existingViewport.[32mscrollTop[37m > 0),
+           ╵                                                     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'scrollLeft' does not exist in type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1126:6:
+[37m      1126 │       [32mscrollLeft[37m,
+           ╵       [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1638:38:
+[37m      1638 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1639:17:
+[37m      1639 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1640:17:
+[37m      1640 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1641:19:
+[37m      1641 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1641:41:
+[37m      1641 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1643:37:
+[37m      1643 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1644:17:
+[37m      1644 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1645:17:
+[37m      1645 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1646:19:
+[37m      1646 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1646:40:
+[37m      1646 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1648:36:
+[37m      1648 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1649:17:
+[37m      1649 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1651:35:
+[37m      1651 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1652:17:
+[37m      1652 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2420: Class 'CampaignMapViewer' incorrectly implements interface 'AfterViewInit'.
+  Property 'ngAfterViewInit' is missing in type 'CampaignMapViewer' but required in type 'AfterViewInit'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:133:13:
+[37m      133 │ export class [32mCampaignMapViewer[37m implements OnInit, AfterViewInit, ...
+          ╵              [32m~~~~~~~~~~~~~~~~~[0m
+
+  'ngAfterViewInit' is declared here.
+
+    node_modules/@angular/core/types/core.d.ts:3326:4:
+[37m      3326 │     [32mngAfterViewInit(): void;[37m
+           ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1126:24:
+[37m      1126 │       (existingViewport.[32mscrollLeft[37m > 0 || existingViewport.scrol...
+           ╵                         [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1126:59:
+[37m      1126 │ ...stingViewport.scrollLeft > 0 || existingViewport.[32mscrollTop[37m > 0),
+           ╵                                                     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'scrollLeft' does not exist in type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1136:6:
+[37m      1136 │       [32mscrollLeft[37m,
+           ╵       [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1648:38:
+[37m      1648 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1649:17:
+[37m      1649 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1650:17:
+[37m      1650 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1651:19:
+[37m      1651 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1651:41:
+[37m      1651 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1653:37:
+[37m      1653 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1654:17:
+[37m      1654 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1655:17:
+[37m      1655 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1656:19:
+[37m      1656 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1656:40:
+[37m      1656 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1658:36:
+[37m      1658 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1659:17:
+[37m      1659 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1661:35:
+[37m      1661 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1662:17:
+[37m      1662 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportClamp' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:238:61:
+[37m      238 │ ...rver = new ResizeObserver(() => this.[32mscheduleMapViewportClamp[37m());
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:242:9:
+[37m      242 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1143:24:
+[37m      1143 │       (existingViewport.[32mscrollLeft[37m > 0 || existingViewport.scrol...
+           ╵                         [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1143:59:
+[37m      1143 │ ...stingViewport.scrollLeft > 0 || existingViewport.[32mscrollTop[37m > 0),
+           ╵                                                     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'scrollLeft' does not exist in type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1153:6:
+[37m      1153 │       [32mscrollLeft[37m,
+           ╵       [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1665:38:
+[37m      1665 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1666:17:
+[37m      1666 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1667:17:
+[37m      1667 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1668:19:
+[37m      1668 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1668:41:
+[37m      1668 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1670:37:
+[37m      1670 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1671:17:
+[37m      1671 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1672:17:
+[37m      1672 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1673:19:
+[37m      1673 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1673:40:
+[37m      1673 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1675:36:
+[37m      1675 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1676:17:
+[37m      1676 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1678:35:
+[37m      1678 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1679:17:
+[37m      1679 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportClamp' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:238:61:
+[37m      238 │ ...rver = new ResizeObserver(() => this.[32mscheduleMapViewportClamp[37m());
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:242:9:
+[37m      242 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:325:9:
+[37m      325 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:346:9:
+[37m      346 │     this.[32mzoomMapAtViewportCenter[37m(MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:350:9:
+[37m      350 │     this.[32mzoomMapAtViewportCenter[37m(1 / MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:357:28:
+[37m      357 │ ...cusPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMapZoomAt' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:363:9:
+[37m      363 │     this.[32mapplyMapZoomAt[37m(focusPoint, event.deltaY < 0 ? MAP_VIEWPO...
+          ╵          [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'startMapPinch' does not exist on type 'CampaignMapViewer'. Did you mean 'startMapPan'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:380:11:
+[37m      380 │       this.[32mstartMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+  'startMapPan' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:366:12:
+[37m      366 │   protected [32mstartMapPan[37m(event: PointerEvent): void {
+          ╵             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'updateMapPinch' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:403:11:
+[37m      403 │       this.[32mupdateMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:414:33:
+[37m      414 │       const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportMapSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:415:27:
+[37m      415 │       const mapSize = this.[32mgetMapViewportMapSize[37m();
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1276:24:
+[37m      1276 │       (existingViewport.[32mscrollLeft[37m > 0 || existingViewport.scrol...
+           ╵                         [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1276:59:
+[37m      1276 │ ...stingViewport.scrollLeft > 0 || existingViewport.[32mscrollTop[37m > 0),
+           ╵                                                     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'scrollLeft' does not exist in type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1286:6:
+[37m      1286 │       [32mscrollLeft[37m,
+           ╵       [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1798:38:
+[37m      1798 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1799:17:
+[37m      1799 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1800:17:
+[37m      1800 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1801:19:
+[37m      1801 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1801:41:
+[37m      1801 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1803:37:
+[37m      1803 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1804:17:
+[37m      1804 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1805:17:
+[37m      1805 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1806:19:
+[37m      1806 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1806:40:
+[37m      1806 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1808:36:
+[37m      1808 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1809:17:
+[37m      1809 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1811:35:
+[37m      1811 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1812:17:
+[37m      1812 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportClamp' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:238:61:
+[37m      238 │ ...rver = new ResizeObserver(() => this.[32mscheduleMapViewportClamp[37m());
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:242:9:
+[37m      242 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:325:9:
+[37m      325 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:346:9:
+[37m      346 │     this.[32mzoomMapAtViewportCenter[37m(MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:350:9:
+[37m      350 │     this.[32mzoomMapAtViewportCenter[37m(1 / MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:357:28:
+[37m      357 │ ...cusPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMapZoomAt' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:363:9:
+[37m      363 │     this.[32mapplyMapZoomAt[37m(focusPoint, event.deltaY < 0 ? MAP_VIEWPO...
+          ╵          [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'startMapPinch' does not exist on type 'CampaignMapViewer'. Did you mean 'startMapPan'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:380:11:
+[37m      380 │       this.[32mstartMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+  'startMapPan' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:366:12:
+[37m      366 │   protected [32mstartMapPan[37m(event: PointerEvent): void {
+          ╵             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'updateMapPinch' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:403:11:
+[37m      403 │       this.[32mupdateMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:414:33:
+[37m      414 │       const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportMapSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:415:27:
+[37m      415 │       const mapSize = this.[32mgetMapViewportMapSize[37m();
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:701:9:
+[37m      701 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1277:24:
+[37m      1277 │       (existingViewport.[32mscrollLeft[37m > 0 || existingViewport.scrol...
+           ╵                         [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1277:59:
+[37m      1277 │ ...stingViewport.scrollLeft > 0 || existingViewport.[32mscrollTop[37m > 0),
+           ╵                                                     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'scrollLeft' does not exist in type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1287:6:
+[37m      1287 │       [32mscrollLeft[37m,
+           ╵       [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1799:38:
+[37m      1799 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1800:17:
+[37m      1800 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1801:17:
+[37m      1801 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1802:19:
+[37m      1802 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1802:41:
+[37m      1802 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1804:37:
+[37m      1804 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1805:17:
+[37m      1805 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1806:17:
+[37m      1806 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1807:19:
+[37m      1807 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1807:40:
+[37m      1807 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1809:36:
+[37m      1809 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1810:17:
+[37m      1810 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1812:35:
+[37m      1812 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1813:17:
+[37m      1813 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportClamp' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:238:61:
+[37m      238 │ ...rver = new ResizeObserver(() => this.[32mscheduleMapViewportClamp[37m());
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:242:9:
+[37m      242 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:325:9:
+[37m      325 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:346:9:
+[37m      346 │     this.[32mzoomMapAtViewportCenter[37m(MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:350:9:
+[37m      350 │     this.[32mzoomMapAtViewportCenter[37m(1 / MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:357:28:
+[37m      357 │ ...cusPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMapZoomAt' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:363:9:
+[37m      363 │     this.[32mapplyMapZoomAt[37m(focusPoint, event.deltaY < 0 ? MAP_VIEWPO...
+          ╵          [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'startMapPinch' does not exist on type 'CampaignMapViewer'. Did you mean 'startMapPan'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:380:11:
+[37m      380 │       this.[32mstartMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+  'startMapPan' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:366:12:
+[37m      366 │   protected [32mstartMapPan[37m(event: PointerEvent): void {
+          ╵             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'updateMapPinch' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:403:11:
+[37m      403 │       this.[32mupdateMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:414:33:
+[37m      414 │       const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportMapSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:415:27:
+[37m      415 │       const mapSize = this.[32mgetMapViewportMapSize[37m();
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:701:9:
+[37m      701 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:799:31:
+[37m      799 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1275:24:
+[37m      1275 │       (existingViewport.[32mscrollLeft[37m > 0 || existingViewport.scrol...
+           ╵                         [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1275:59:
+[37m      1275 │ ...stingViewport.scrollLeft > 0 || existingViewport.[32mscrollTop[37m > 0),
+           ╵                                                     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'scrollLeft' does not exist in type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1285:6:
+[37m      1285 │       [32mscrollLeft[37m,
+           ╵       [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1797:38:
+[37m      1797 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1798:17:
+[37m      1798 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1799:17:
+[37m      1799 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1800:19:
+[37m      1800 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1800:41:
+[37m      1800 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1802:37:
+[37m      1802 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1803:17:
+[37m      1803 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1804:17:
+[37m      1804 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1805:19:
+[37m      1805 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1805:40:
+[37m      1805 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1807:36:
+[37m      1807 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1808:17:
+[37m      1808 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1810:35:
+[37m      1810 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1811:17:
+[37m      1811 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportClamp' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:238:61:
+[37m      238 │ ...rver = new ResizeObserver(() => this.[32mscheduleMapViewportClamp[37m());
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:242:9:
+[37m      242 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:325:9:
+[37m      325 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:346:9:
+[37m      346 │     this.[32mzoomMapAtViewportCenter[37m(MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:350:9:
+[37m      350 │     this.[32mzoomMapAtViewportCenter[37m(1 / MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:357:28:
+[37m      357 │ ...cusPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMapZoomAt' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:363:9:
+[37m      363 │     this.[32mapplyMapZoomAt[37m(focusPoint, event.deltaY < 0 ? MAP_VIEWPO...
+          ╵          [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'startMapPinch' does not exist on type 'CampaignMapViewer'. Did you mean 'startMapPan'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:380:11:
+[37m      380 │       this.[32mstartMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+  'startMapPan' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:366:12:
+[37m      366 │   protected [32mstartMapPan[37m(event: PointerEvent): void {
+          ╵             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'updateMapPinch' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:403:11:
+[37m      403 │       this.[32mupdateMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:414:33:
+[37m      414 │       const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportMapSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:415:27:
+[37m      415 │       const mapSize = this.[32mgetMapViewportMapSize[37m();
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:701:9:
+[37m      701 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:799:31:
+[37m      799 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1275:24:
+[37m      1275 │       (existingViewport.[32mscrollLeft[37m > 0 || existingViewport.scrol...
+           ╵                         [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1275:59:
+[37m      1275 │ ...stingViewport.scrollLeft > 0 || existingViewport.[32mscrollTop[37m > 0),
+           ╵                                                     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'scrollLeft' does not exist in type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1285:6:
+[37m      1285 │       [32mscrollLeft[37m,
+           ╵       [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1456:31:
+[37m      1456 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+           ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1500:31:
+[37m      1500 │ ...rtPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+           ╵                   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1799:38:
+[37m      1799 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1800:17:
+[37m      1800 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1801:17:
+[37m      1801 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1802:19:
+[37m      1802 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1802:41:
+[37m      1802 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1804:37:
+[37m      1804 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1805:17:
+[37m      1805 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1806:17:
+[37m      1806 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1807:19:
+[37m      1807 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1807:40:
+[37m      1807 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1809:36:
+[37m      1809 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1810:17:
+[37m      1810 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1812:35:
+[37m      1812 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1813:17:
+[37m      1813 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportClamp' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:238:61:
+[37m      238 │ ...rver = new ResizeObserver(() => this.[32mscheduleMapViewportClamp[37m());
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:242:9:
+[37m      242 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:325:9:
+[37m      325 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:346:9:
+[37m      346 │     this.[32mzoomMapAtViewportCenter[37m(MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:350:9:
+[37m      350 │     this.[32mzoomMapAtViewportCenter[37m(1 / MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:357:28:
+[37m      357 │ ...cusPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMapZoomAt' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:363:9:
+[37m      363 │     this.[32mapplyMapZoomAt[37m(focusPoint, event.deltaY < 0 ? MAP_VIEWPO...
+          ╵          [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'startMapPinch' does not exist on type 'CampaignMapViewer'. Did you mean 'startMapPan'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:380:11:
+[37m      380 │       this.[32mstartMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+  'startMapPan' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:366:12:
+[37m      366 │   protected [32mstartMapPan[37m(event: PointerEvent): void {
+          ╵             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'updateMapPinch' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:403:11:
+[37m      403 │       this.[32mupdateMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:414:33:
+[37m      414 │       const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportMapSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:415:27:
+[37m      415 │       const mapSize = this.[32mgetMapViewportMapSize[37m();
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:701:9:
+[37m      701 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:799:31:
+[37m      799 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1438:31:
+[37m      1438 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+           ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1482:31:
+[37m      1482 │ ...rtPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+           ╵                   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1770:38:
+[37m      1770 │     const leftRatio = typeof viewport.[32mscrollLeftRatio[37m === 'number'
+           ╵                                       [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeftRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1771:17:
+[37m      1771 │       ? viewport.[32mscrollLeftRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1772:17:
+[37m      1772 │       : viewport.[32mscrollWidth[37m > 0
+           ╵                  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1773:19:
+[37m      1773 │         ? viewport.[32mscrollLeft[37m / viewport.scrollWidth
+           ╵                    [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1773:41:
+[37m      1773 │         ? viewport.scrollLeft / viewport.[32mscrollWidth[37m
+           ╵                                          [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1775:37:
+[37m      1775 │     const topRatio = typeof viewport.[32mscrollTopRatio[37m === 'number'
+           ╵                                      [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTopRatio' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1776:17:
+[37m      1776 │       ? viewport.[32mscrollTopRatio[37m
+           ╵                  [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1777:17:
+[37m      1777 │       : viewport.[32mscrollHeight[37m > 0
+           ╵                  [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1778:19:
+[37m      1778 │         ? viewport.[32mscrollTop[37m / viewport.scrollHeight
+           ╵                    [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1778:40:
+[37m      1778 │         ? viewport.scrollTop / viewport.[32mscrollHeight[37m
+           ╵                                         [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollWidth' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1780:36:
+[37m      1780 │ ...extScrollLeft = viewport.[32mscrollWidth[37m === scrollElement.scroll...
+           ╵                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollLeft' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1781:17:
+[37m      1781 │       ? viewport.[32mscrollLeft[37m
+           ╵                  [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollHeight' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1783:35:
+[37m      1783 │ ...nextScrollTop = viewport.[32mscrollHeight[37m === scrollElement.scrol...
+           ╵                             [32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'scrollTop' does not exist on type 'MapViewportCacheEntry'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1784:17:
+[37m      1784 │       ? viewport.[32mscrollTop[37m
+           ╵                  [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportClamp' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:238:61:
+[37m      238 │ ...rver = new ResizeObserver(() => this.[32mscheduleMapViewportClamp[37m());
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:242:9:
+[37m      242 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:325:9:
+[37m      325 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:346:9:
+[37m      346 │     this.[32mzoomMapAtViewportCenter[37m(MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'zoomMapAtViewportCenter' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:350:9:
+[37m      350 │     this.[32mzoomMapAtViewportCenter[37m(1 / MAP_VIEWPORT_ZOOM_STEP);
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:357:28:
+[37m      357 │ ...cusPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'applyMapZoomAt' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:363:9:
+[37m      363 │     this.[32mapplyMapZoomAt[37m(focusPoint, event.deltaY < 0 ? MAP_VIEWPO...
+          ╵          [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'startMapPinch' does not exist on type 'CampaignMapViewer'. Did you mean 'startMapPan'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:380:11:
+[37m      380 │       this.[32mstartMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~[0m
+
+  'startMapPan' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:366:12:
+[37m      366 │   protected [32mstartMapPan[37m(event: PointerEvent): void {
+          ╵             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'updateMapPinch' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:403:11:
+[37m      403 │       this.[32mupdateMapPinch[37m();
+          ╵            [32m~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:414:33:
+[37m      414 │       const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportMapSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:415:27:
+[37m      415 │       const mapSize = this.[32mgetMapViewportMapSize[37m();
+          ╵                            [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'scheduleMapViewportReset' does not exist on type 'CampaignMapViewer'. Did you mean 'scheduleMapViewportSave'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:701:9:
+[37m      701 │     this.[32mscheduleMapViewportReset[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'scheduleMapViewportSave' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:308:12:
+[37m      308 │   protected [32mscheduleMapViewportSave[37m(): void {
+          ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:799:31:
+[37m      799 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1438:31:
+[37m      1438 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+           ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getViewportPointFromClientPoint' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1482:31:
+[37m      1482 │ ...rtPoint = this.[32mgetViewportPointFromClientPoint[37m(event.clientX,...
+           ╵                   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportContainerSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1757:31:
+[37m      1757 │     const containerSize = this.[32mgetMapViewportContainerSize[37m();
+           ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getMapViewportMapSize' does not exist on type 'CampaignMapViewer'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1758:25:
+[37m      1758 │     const mapSize = this.[32mgetMapViewportMapSize[37m();
+           ╵                          [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'resetMapViewport' does not exist on type 'CampaignMapViewer'. Did you mean 'restoreMapViewport'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1767:11:
+[37m      1767 │       this.[32mresetMapViewport[37m();
+           ╵            [32m~~~~~~~~~~~~~~~~[0m
+
+  'restoreMapViewport' is declared here.
+
+    src/app/campaign/campaign-map-viewer/campaign-map-viewer.ts:1755:10:
+[37m      1755 │   private [32mrestoreMapViewport[37m(): void {
+           ╵           [32m~~~~~~~~~~~~~~~~~~[0m
+
+

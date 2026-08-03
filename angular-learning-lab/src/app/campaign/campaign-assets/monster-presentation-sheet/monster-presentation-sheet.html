@@ -1,7 +1,9 @@
 <section class="monster-presentation-page" aria-label="Monster presentation sheet">
-  <button type="button" class="monster-presentation-back" aria-label="Go back" title="Go back" (click)="goBack()">
-    <svg lucideArrowLeft aria-hidden="true"></svg>
-  </button>
+  <header class="monster-presentation-actions">
+    <button type="button" class="monster-presentation-back" aria-label="Go back" title="Go back" (click)="goBack()">
+      <svg lucideArrowLeft aria-hidden="true"></svg>
+    </button>
+  </header>
 
   @if (isLoadingMonster()) {
     <p class="monster-presentation-status">Loading monster...</p>
@@ -108,5 +110,16 @@
         </section>
       }
     </article>
+
+    @if (canRemoveFromCampaign()) {
+      <button
+        type="button"
+        class="monster-presentation-remove"
+        [disabled]="isRemovingFromCampaign()"
+        (click)="removeFromCampaign()"
+      >
+        {{ isRemovingFromCampaign() ? 'Removing...' : 'Remove from Campaign' }}
+      </button>
+    }
   }
 </section>

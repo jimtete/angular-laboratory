@@ -1,0 +1,551 @@
+<section class="campaign-map-viewer-page" aria-label="Campaign map">
+  <header class="campaign-map-viewer-header">
+    <button
+      type="button"
+      class="campaign-map-viewer-back"
+      aria-label="Back to maps"
+      title="Back to maps"
+      (click)="goBackToMaps()"
+    >
+      <svg lucideArrowLeft aria-hidden="true"></svg>
+      <span>Maps</span>
+    </button>
+
+    @if (selectedMap(); as map) {
+      <div class="campaign-map-viewer-title">
+        <p>{{ getMapCategoryLabel(map) }}</p>
+        <h1>{{ map.name }}</h1>
+      </div>
+    }
+  </header>
+
+  <div class="campaign-map-viewer-workspace">
+    <div
+      #mapStage
+      class="campaign-map-viewer-stage"
+    >
+      @if (isLoadingMap()) {
+        <p class="campaign-map-viewer-status">Loading map...</p>
+      } @else if (selectedMap(); as map) {
+        <article class="campaign-map-viewer-frame">
+          <div
+            #mapScroll
+            class="campaign-map-viewer-scroll"
+            (wheel)="onMapWheel($event)"
+            (pointerdown)="startMapPan($event)"
+            (pointermove)="panMap($event)"
+            (pointerup)="finishMapPan($event)"
+            (pointercancel)="finishMapPan($event)"
+          >
+            @if (resolveMapAssetUrl(map); as mapAssetUrl) {
+              <div
+                #mapImageLayer
+                class="campaign-map-viewer-image-layer"
+                [style.width.px]="getMapLayerWidth()"
+                [style.height.px]="getMapLayerHeight()"
+                [style.transform]="getMapLayerTransform()"
+              >
+                <img
+                  #mapImage
+                  [src]="mapAssetUrl"
+                  [alt]="map.name"
+                  draggable="false"
+                  (load)="setImageNaturalSize($event)"
+                />
+
+                @if (mapPinConnections().length > 0) {
+                  <svg
+                    class="campaign-map-connections-layer"
+                    [attr.viewBox]="getMapConnectionViewBox()"
+                    preserveAspectRatio="none"
+                    aria-label="Map point connections"
+                  >
+                    @for (connection of mapPinConnections(); track connection.id) {
+                      @if (canRenderConnection(connection)) {
+                        <g
+                          class="campaign-map-connection-path"
+                          (pointerdown)="$event.stopPropagation()"
+                          (pointerenter)="showConnectionTooltip(connection, $event)"
+                          (pointermove)="moveConnectionTooltip($event)"
+                          (pointerleave)="hideConnectionTooltip()"
+                          (click)="openConnectionEditor(connection, $event)"
+                        >
+                          <line
+                            class="campaign-map-connection-hit-line"
+                            stroke="transparent"
+                            stroke-width="22"
+                            vector-effect="non-scaling-stroke"
+                            pointer-events="stroke"
+                            cursor="pointer"
+                            [attr.x1]="getConnectionLineX(connection, 'mapPinAId')"
+                            [attr.y1]="getConnectionLineY(connection, 'mapPinAId')"
+                            [attr.x2]="getConnectionLineX(connection, 'mapPinBId')"
+                            [attr.y2]="getConnectionLineY(connection, 'mapPinBId')"
+                          />
+                          <line
+                            class="campaign-map-connection-line"
+                            [attr.x1]="getConnectionLineX(connection, 'mapPinAId')"
+                            [attr.y1]="getConnectionLineY(connection, 'mapPinAId')"
+                            [attr.x2]="getConnectionLineX(connection, 'mapPinBId')"
+                            [attr.y2]="getConnectionLineY(connection, 'mapPinBId')"
+                            pointer-events="none"
+                          />
+                        </g>
+                      }
+                    }
+                  </svg>
+                }
+
+                @for (pin of mapPins(); track pin.id) {
+                  <button
+                    type="button"
+                    class="campaign-map-rendered-pin"
+                    [class.campaign-map-rendered-pin-placeholder]="isPlaceholderPin(pin)"
+                    [class.campaign-map-rendered-pin-map-link]="isMapLinkPin(pin)"
+                    [class.campaign-map-rendered-pin-selected]="isSelectedPin(pin) || isMovingPin(pin)"
+                    [class.campaign-map-rendered-pin-connection-start]="isConnectionStartPin(pin)"
+                    [style.left]="getPinLeft(pin)"
+                    [style.top]="getPinTop(pin)"
+                    [attr.aria-label]="pin.label"
+                    (click)="handlePinClick(pin, $event)"
+                    (pointerdown)="startPinDrag(pin, $event)"
+                    (pointermove)="dragPin($event)"
+                    (pointerup)="finishPinDrag(pin, $event)"
+                    (pointercancel)="finishPinDrag(pin, $event)"
+                    (contextmenu)="openPinContextMenu(pin, $event)"
+                  >
+                    <span class="campaign-map-rendered-pin-title">{{ pin.label }}</span>
+                    @if (pin.description) {
+                      <span class="campaign-map-rendered-pin-description">{{ pin.description }}</span>
+                    }
+                  </button>
+                }
+              </div>
+              <div
+                class="campaign-map-zoom-controls"
+                style="position: absolute; right: 0.75rem; top: 0.75rem; z-index: 4; display: grid; gap: 0.4rem;"
+                (pointerdown)="$event.stopPropagation()"
+              >
+                <button
+                  type="button"
+                  class="campaign-map-connection-tool"
+                  aria-label="Zoom in"
+                  title="Zoom in"
+                  (click)="zoomMapIn()"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  class="campaign-map-connection-tool"
+                  aria-label="Zoom out"
+                  title="Zoom out"
+                  (click)="zoomMapOut()"
+                >
+                  -
+                </button>
+              </div>
+            } @else {
+              <div class="campaign-map-viewer-missing">
+                <svg lucideMap aria-hidden="true"></svg>
+                <p>Map image unavailable.</p>
+              </div>
+            }
+          </div>
+
+          @if (map.description) {
+            <p class="campaign-map-viewer-description">{{ map.description }}</p>
+          }
+
+          <section class="campaign-map-points" aria-label="Map points">
+            <header class="campaign-map-points-header">
+              <h2>Map Points</h2>
+              <span>{{ mapPins().length }}</span>
+            </header>
+
+            @if (mapPins().length > 0) {
+              <div class="campaign-map-points-table-wrap">
+                <table class="campaign-map-points-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Name</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (pin of mapPins(); track pin.id) {
+                      <tr
+                        tabindex="0"
+                        [class.campaign-map-points-row-selected]="isSelectedPin(pin)"
+                        (click)="focusPin(pin)"
+                        (keydown.enter)="focusPin(pin)"
+                        (keydown.space)="$event.preventDefault(); focusPin(pin)"
+                      >
+                        <td>{{ pin.label }}</td>
+                        <td>
+                          <span
+                            class="campaign-map-point-type"
+                            style="display: inline-flex; align-items: center; gap: 0.42rem; font-weight: 900;"
+                          >
+                            <span
+                              class="campaign-map-point-type-marker"
+                              style="width: 0.7rem; height: 0.7rem; border: 1px solid #2b1a10; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);"
+                              [style.background]="getPinTypeColor(pin)"
+                              aria-hidden="true"
+                            ></span>
+                            <span>{{ getPinTypeLabel(pin) }}</span>
+                          </span>
+                        </td>
+                        <td>{{ getPinDescriptionPreview(pin) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="campaign-map-points-empty">No points have been added to this map.</p>
+            }
+          </section>
+        </article>
+      } @else {
+        <p class="campaign-map-viewer-status">Map was not found.</p>
+      }
+    </div>
+
+    <aside class="campaign-map-pin-panel" aria-label="Map pin tools">
+      <button
+        type="button"
+        class="campaign-map-connection-tool"
+        [class.campaign-map-connection-tool-active]="isConnectionModeActive()"
+        [attr.aria-pressed]="isConnectionModeActive()"
+        [attr.aria-label]="getConnectionModeLabel()"
+        [title]="getConnectionModeLabel()"
+        (click)="toggleConnectionMode()"
+      >
+        <span aria-hidden="true"></span>
+      </button>
+
+      @for (pinTool of pinTools; track pinTool.label) {
+        <button
+          type="button"
+          class="campaign-map-pin-tool"
+          [class]="'campaign-map-pin-tool campaign-map-pin-tool-' + pinTool.className"
+          [class.campaign-map-pin-tool-dragging]="draggingPinTool()?.pinTool === pinTool"
+          [attr.aria-label]="pinTool.label + ' pin'"
+          (pointerdown)="startPinToolDrag(pinTool, $event)"
+          (click)="openPinTool(pinTool)"
+        >
+          <span class="campaign-map-pin-marker" aria-hidden="true"></span>
+          <span class="campaign-map-pin-tooltip">{{ pinTool.label }}</span>
+        </button>
+      }
+    </aside>
+  </div>
+
+  @if (draggingPinTool(); as draggedTool) {
+    <div
+      class="campaign-map-pin-drag-preview"
+      [class.campaign-map-pin-drag-preview-over-map]="draggedTool.isOverMap"
+      [style.left.px]="draggedTool.x"
+      [style.top.px]="draggedTool.y"
+      aria-hidden="true"
+    >
+      <span class="campaign-map-pin-marker"></span>
+      <span>{{ draggedTool.pinTool.label }}</span>
+    </div>
+  }
+
+  @if (connectionTooltip(); as tooltip) {
+    <div
+      class="campaign-map-pin-drag-preview campaign-map-connection-tooltip"
+      [style.left.px]="tooltip.x"
+      [style.top.px]="tooltip.y"
+      [style.transform]="'translate(0.75rem, calc(-100% - 0.75rem))'"
+      role="tooltip"
+    >
+      {{ tooltip.label }}
+    </div>
+  }
+
+  @if (pinContextMenu(); as menu) {
+    <div
+      class="campaign-map-pin-context-backdrop"
+      role="presentation"
+      (click)="closePinContextMenu()"
+      (contextmenu)="$event.preventDefault(); closePinContextMenu()"
+    >
+      <nav
+        class="campaign-map-pin-context-menu"
+        aria-label="Pin actions"
+        [style.left.px]="menu.x"
+        [style.top.px]="menu.y"
+        (click)="$event.stopPropagation()"
+      >
+        @if (canOpenContextPinTargetMap()) {
+          <button type="button" (click)="openContextPinTargetMap()">Go to Map</button>
+        }
+        <button type="button" (click)="startMoveContextPin()">Move Point</button>
+        <button type="button" (click)="editContextPin()">Edit</button>
+        <button type="button" (click)="deleteContextPin()">Delete</button>
+      </nav>
+    </div>
+  }
+
+  @if (movingPin()) {
+    <div
+      class="campaign-map-pin-drag-preview"
+      style="left: 50%; bottom: 1.25rem; top: auto; z-index: 65; pointer-events: auto; transform: translateX(-50%); border-radius: 6px;"
+    >
+      <span>Move Point</span>
+      <button
+        type="button"
+        class="campaign-map-pin-primary-button"
+        [disabled]="isSavingMovedPin()"
+        (click)="confirmMovePoint()"
+      >
+        @if (isSavingMovedPin()) {
+          Saving...
+        } @else {
+          Confirm
+        }
+      </button>
+      <button
+        type="button"
+        class="campaign-map-pin-secondary-button"
+        [disabled]="isSavingMovedPin()"
+        (click)="cancelMovePoint()"
+      >
+        Cancel
+      </button>
+    </div>
+  }
+
+  @if (pendingMapNavigation(); as navigation) {
+    <section
+      class="campaign-map-pin-dialog-backdrop"
+      role="presentation"
+      (click)="closeMapNavigationPrompt()"
+    >
+      <div
+        class="campaign-map-pin-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Confirm map navigation"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="campaign-map-pin-dialog-header">
+          <div>
+            <p>Map Link</p>
+            <h2>Go to Map?</h2>
+          </div>
+        </header>
+
+        <p class="campaign-map-pin-dialog-note">
+          Do you want to open {{ navigation.targetMapName }}?
+        </p>
+
+        <footer class="campaign-map-pin-dialog-actions">
+          <button
+            type="button"
+            class="campaign-map-pin-secondary-button"
+            (click)="closeMapNavigationPrompt()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="campaign-map-pin-primary-button"
+            (click)="confirmMapNavigation()"
+          >
+            Go to Map
+          </button>
+        </footer>
+      </div>
+    </section>
+  }
+
+  @if (isConnectionFormOpen()) {
+    <section
+      class="campaign-map-pin-dialog-backdrop"
+      role="presentation"
+      (click)="closeConnectionForm()"
+    >
+      <form
+        class="campaign-map-pin-dialog campaign-map-connection-dialog"
+        aria-label="Create map point connection"
+        (submit)="saveConnection($event)"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="campaign-map-pin-dialog-header">
+          <div>
+            <p>Map Point Connection</p>
+            <h2>{{ getConnectionDialogTitle() }}</h2>
+          </div>
+
+          <button
+            type="button"
+            class="campaign-map-pin-dialog-close"
+            [disabled]="isCreatingConnection()"
+            aria-label="Close"
+            title="Close"
+            (click)="closeConnectionForm()"
+          >
+            X
+          </button>
+        </header>
+
+        <label class="campaign-map-pin-field">
+          <span>Duration</span>
+          <input
+            type="number"
+            name="distanceValue"
+            min="0"
+            step="0.25"
+            placeholder="Optional"
+            [value]="getConnectionDialogDistanceValue() ?? ''"
+            [class.campaign-map-pin-field-invalid]="connectionValidationErrors().distanceValue"
+          />
+        </label>
+
+        <label class="campaign-map-pin-field">
+          <span>Unit</span>
+          <select name="distanceUnit">
+            @for (distanceUnit of connectionDistanceUnits; track distanceUnit.unit) {
+              <option
+                [value]="distanceUnit.unit"
+                [selected]="isConnectionDialogDistanceUnitSelected(distanceUnit.unit)"
+              >
+                {{ distanceUnit.label }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <footer class="campaign-map-pin-dialog-actions">
+          <button
+            type="button"
+            class="campaign-map-pin-secondary-button"
+            [disabled]="isCreatingConnection()"
+            (click)="closeConnectionForm()"
+          >
+            Close
+          </button>
+
+          <button
+            type="submit"
+            class="campaign-map-pin-primary-button"
+            [disabled]="isCreatingConnection()"
+          >
+            @if (isCreatingConnection()) {
+              Saving...
+            } @else {
+              {{ getConnectionDialogSubmitLabel() }}
+            }
+          </button>
+        </footer>
+      </form>
+    </section>
+  }
+
+  @if (isPlaceholderPinFormOpen()) {
+    <section
+      class="campaign-map-pin-dialog-backdrop"
+      role="presentation"
+      (click)="closePlaceholderPinForm()"
+    >
+      <form
+        #placeholderPinForm
+        class="campaign-map-pin-dialog"
+        aria-label="Create map pin"
+        (submit)="createPlaceholderPin($event)"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="campaign-map-pin-dialog-header">
+          <div>
+            <p>{{ getPlaceholderPinDialogEyebrow() }}</p>
+            <h2>{{ getPlaceholderPinDialogTitle() }}</h2>
+          </div>
+
+          <button
+            type="button"
+            class="campaign-map-pin-dialog-close"
+            [disabled]="isCreatingPlaceholderPin()"
+            aria-label="Close"
+            title="Close"
+            (click)="closePlaceholderPinForm()"
+          >
+            X
+          </button>
+        </header>
+
+        <label class="campaign-map-pin-field">
+          <span>Title</span>
+          <input
+            type="text"
+            name="title"
+            maxlength="256"
+            autocomplete="off"
+            [class.campaign-map-pin-field-invalid]="placeholderPinValidationErrors().title"
+          />
+        </label>
+
+        @if (shouldShowMapLinkTargetField()) {
+          <label class="campaign-map-pin-field">
+            <span>Target Map</span>
+            <select
+              name="targetMapId"
+              [class.campaign-map-pin-field-invalid]="placeholderPinValidationErrors().targetMapId"
+            >
+              <option value="">Select a map</option>
+              @for (targetMap of mapLinkTargetMaps(); track targetMap.id) {
+                <option
+                  [value]="targetMap.id"
+                  [selected]="isMapLinkTargetSelected(targetMap.id)"
+                >
+                  {{ targetMap.name }}
+                </option>
+              }
+            </select>
+          </label>
+        }
+
+        <label class="campaign-map-pin-field">
+          <span>Description</span>
+          <textarea name="description" maxlength="4096" rows="5"></textarea>
+        </label>
+
+        <p class="campaign-map-pin-dialog-note">
+          @if (pendingPlaceholderPinCoordinates()) {
+            The pin will be placed where it was dropped on the map.
+          } @else {
+            The pin will be placed at the center of the visible map area.
+          }
+        </p>
+
+        <footer class="campaign-map-pin-dialog-actions">
+          <button
+            type="button"
+            class="campaign-map-pin-secondary-button"
+            [disabled]="isCreatingPlaceholderPin()"
+            (click)="closePlaceholderPinForm()"
+          >
+            Close
+          </button>
+
+          <button
+            type="submit"
+            class="campaign-map-pin-primary-button"
+            [disabled]="isCreatingPlaceholderPin()"
+          >
+            @if (isCreatingPlaceholderPin()) {
+              Saving...
+            } @else {
+              {{ getPlaceholderPinSubmitLabel() }}
+            }
+          </button>
+        </footer>
+      </form>
+    </section>
+  }
+</section>

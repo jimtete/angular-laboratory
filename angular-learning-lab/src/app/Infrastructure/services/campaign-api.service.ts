@@ -7,6 +7,9 @@ import {
   CampaignInformationModel,
   CampaignInviteResolutionModel,
   CampaignMemberInformationModel,
+  CampaignMapModel,
+  CreateMapPinRequest,
+  CreateMapPinConnectionRequest,
   CampaignMilestoneModel,
   CampaignMilestoneRequest,
   CampaignModel,
@@ -15,6 +18,7 @@ import {
   CampaignQuestModel,
   CampaignSessionModel,
   CampaignSettingsModel,
+  CampaignStoreModel,
   CreateStoryBlockRequest,
   CreateCombatStoryBeatRequest,
   CreateDecisionStoryBeatRequest,
@@ -27,9 +31,17 @@ import {
   CampaignUsernamesModel,
   CreateCampaignParticipationInviteRequest,
   CreateCampaignRequest,
+  CreateCampaignMapRequest,
+  CreateStoreRequest,
+  MapPinModel,
+  MapPinConnectionModel,
+  MapPinsByMapModel,
+  UpdateMapPinConnectionRequest,
+  UpdateMapPinRequest,
   CreateAssetFolderRequest,
   CreateItemAssetRequest,
   CreateCampaignQuestRequest,
+  CampaignQuestDeleteBlockerModel,
   UpdateCampaignQuestRequest,
   CampaignNpcModel,
   StoryBeatModel,
@@ -37,6 +49,7 @@ import {
   StoryBlockModel,
   ReorderStoryBlocksRequest,
   ReorderStoryBeatsRequest,
+  StoryBeatIndexPathRuleModel,
   UpdateCombatStoryBeatRequest,
   UpdateDecisionStoryBeatRequest,
   UpdateInformationStoryBeatRequest,
@@ -46,10 +59,12 @@ import {
   UpdateTransitionStoryBeatRequest,
   UpdateRoleplayingStoryBeatRequest,
   UpdateStoryBlockTitleRequest,
+  UpsertStoryBeatIndexPathRuleRequest,
   UpdateCampaignMemberNicknameRequest,
   UpdateCampaignMemberSkillsRequest,
   UpdateCampaignSettingsRequest,
   UpdateItemAssetRequest,
+  UpdateStoreItemPurchaseStateRequest,
 } from '../models';
 import { ApiClient } from './api-client.service';
 
@@ -61,6 +76,10 @@ export class CampaignApiService {
 
   fetchAvailableCampaigns(): Observable<ApiResponse<CampaignModel[]>> {
     return this.apiClient.get<ApiResponse<CampaignModel[]>>('/api/campaigns');
+  }
+
+  fetchJoinedCampaigns(): Observable<ApiResponse<CampaignModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignModel[]>>('/api/campaigns/joined');
   }
 
   fetchPendingInvites(): Observable<ApiResponse<CampaignPendingInviteModel[]>> {
@@ -82,6 +101,110 @@ export class CampaignApiService {
   ): Observable<ApiResponse<CampaignInformationModel>> {
     return this.apiClient.get<ApiResponse<CampaignInformationModel>>(
       `/api/campaigns/${campaignId}/settings/information`,
+    );
+  }
+
+  fetchCampaignMaps(campaignId: string): Observable<ApiResponse<CampaignMapModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignMapModel[]>>(
+      `/api/campaigns/${campaignId}/maps`,
+    );
+  }
+
+  uploadCampaignMap(
+    campaignId: string,
+    request: CreateCampaignMapRequest,
+    mapFile: File,
+  ): Observable<ApiResponse<CampaignMapModel>> {
+    const formData = new FormData();
+
+    if (request.parentMapId !== null) {
+      formData.append('ParentMapId', request.parentMapId.toString());
+    }
+
+    formData.append('Category', request.category.toString());
+    formData.append('ImageWidthPixels', request.imageWidthPixels.toString());
+    formData.append('ImageHeightPixels', request.imageHeightPixels.toString());
+    formData.append('Name', request.name);
+    formData.append('Description', request.description);
+    formData.append('mapFile', mapFile, mapFile.name);
+
+    return this.apiClient.post<ApiResponse<CampaignMapModel>, FormData>(
+      `/api/campaigns/${campaignId}/maps`,
+      formData,
+    );
+  }
+
+  fetchCampaignMapPins(
+    campaignId: string,
+    mapId: number,
+  ): Observable<ApiResponse<MapPinsByMapModel>> {
+    return this.apiClient.get<ApiResponse<MapPinsByMapModel>>(
+      `/api/map-pins/campaigns/${campaignId}/maps/${mapId}`,
+    );
+  }
+
+  createCampaignMapPin(
+    campaignId: string,
+    mapId: number,
+    request: CreateMapPinRequest,
+  ): Observable<ApiResponse<MapPinModel>> {
+    return this.apiClient.post<ApiResponse<MapPinModel>, CreateMapPinRequest>(
+      `/api/campaigns/${campaignId}/maps/${mapId}/pins`,
+      request,
+    );
+  }
+
+  updateCampaignMapPin(
+    campaignId: string,
+    mapId: number,
+    pinId: number,
+    request: UpdateMapPinRequest,
+  ): Observable<ApiResponse<MapPinModel>> {
+    return this.apiClient.put<ApiResponse<MapPinModel>, UpdateMapPinRequest>(
+      `/api/campaigns/${campaignId}/maps/${mapId}/pins/${pinId}`,
+      request,
+    );
+  }
+
+  deleteCampaignMapPin(
+    campaignId: string,
+    mapId: number,
+    pinId: number,
+  ): Observable<ApiResponse<object>> {
+    return this.apiClient.delete<ApiResponse<object>>(
+      `/api/campaigns/${campaignId}/maps/${mapId}/pins/${pinId}`,
+    );
+  }
+
+  fetchCampaignMapPinConnections(
+    campaignId: string,
+    mapId: number,
+  ): Observable<ApiResponse<MapPinConnectionModel[]>> {
+    return this.apiClient.get<ApiResponse<MapPinConnectionModel[]>>(
+      `/api/campaigns/${campaignId}/maps/${mapId}/pins/connections`,
+    );
+  }
+
+  createCampaignMapPinConnection(
+    campaignId: string,
+    mapId: number,
+    request: CreateMapPinConnectionRequest,
+  ): Observable<ApiResponse<MapPinConnectionModel>> {
+    return this.apiClient.post<ApiResponse<MapPinConnectionModel>, CreateMapPinConnectionRequest>(
+      `/api/campaigns/${campaignId}/maps/${mapId}/pins/connections`,
+      request,
+    );
+  }
+
+  updateCampaignMapPinConnection(
+    campaignId: string,
+    mapId: number,
+    connectionId: number,
+    request: UpdateMapPinConnectionRequest,
+  ): Observable<ApiResponse<MapPinConnectionModel>> {
+    return this.apiClient.put<ApiResponse<MapPinConnectionModel>, UpdateMapPinConnectionRequest>(
+      `/api/campaigns/${campaignId}/maps/${mapId}/pins/connections/${connectionId}`,
+      request,
     );
   }
 
@@ -213,6 +336,15 @@ export class CampaignApiService {
     >(`/api/campaigns/${campaignId}/content/quests/${questId}`, request);
   }
 
+  deleteCampaignQuest(
+    campaignId: string,
+    questId: string,
+  ): Observable<ApiResponse<CampaignQuestDeleteBlockerModel[]>> {
+    return this.apiClient.delete<ApiResponse<CampaignQuestDeleteBlockerModel[]>>(
+      `/api/campaigns/${campaignId}/content/quests/${questId}`,
+    );
+  }
+
   fetchCampaignStoryBeatQuestTasks(
     campaignId: string,
   ): Observable<ApiResponse<StoryBeatQuestTaskModel[]>> {
@@ -334,6 +466,40 @@ export class CampaignApiService {
   ): Observable<ApiResponse<StoryBeatModel[]>> {
     return this.apiClient.get<ApiResponse<StoryBeatModel[]>>(
       `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/beats`,
+    );
+  }
+
+  fetchStoryBeatIndexPathRules(
+    campaignId: string,
+    storyBlockId: string,
+  ): Observable<ApiResponse<StoryBeatIndexPathRuleModel[]>> {
+    return this.apiClient.get<ApiResponse<StoryBeatIndexPathRuleModel[]>>(
+      `/api/campaigns/${campaignId}/story-blocks/${storyBlockId}/story-beat-index-path-rules`,
+    );
+  }
+
+  upsertStoryBeatIndexPathRule(
+    campaignId: string,
+    storyBlockId: string,
+    orderIndex: number,
+    request: UpsertStoryBeatIndexPathRuleRequest,
+  ): Observable<ApiResponse<StoryBeatIndexPathRuleModel>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBeatIndexPathRuleModel>,
+      UpsertStoryBeatIndexPathRuleRequest
+    >(
+      `/api/campaigns/${campaignId}/story-blocks/${storyBlockId}/story-beat-index-path-rules/${orderIndex}`,
+      request,
+    );
+  }
+
+  deleteStoryBeatIndexPathRule(
+    campaignId: string,
+    storyBlockId: string,
+    orderIndex: number,
+  ): Observable<ApiResponse<object>> {
+    return this.apiClient.delete<ApiResponse<object>>(
+      `/api/campaigns/${campaignId}/story-blocks/${storyBlockId}/story-beat-index-path-rules/${orderIndex}`,
     );
   }
 
@@ -570,6 +736,44 @@ export class CampaignApiService {
     );
   }
 
+  fetchCampaignStores(
+    campaignId: string,
+  ): Observable<ApiResponse<CampaignStoreModel[]>> {
+    return this.apiClient.get<ApiResponse<CampaignStoreModel[]>>(
+      `/api/campaigns/${campaignId}/stores`,
+    );
+  }
+
+  fetchCampaignStore(
+    campaignId: string,
+    storeId: number,
+  ): Observable<ApiResponse<CampaignStoreModel>> {
+    return this.apiClient.get<ApiResponse<CampaignStoreModel>>(
+      `/api/campaigns/${campaignId}/stores/${storeId}`,
+    );
+  }
+
+  createCampaignStore(
+    campaignId: string,
+    request: CreateStoreRequest,
+  ): Observable<ApiResponse<CampaignStoreModel>> {
+    return this.apiClient.post<ApiResponse<CampaignStoreModel>, CreateStoreRequest>(
+      `/api/campaigns/${campaignId}/stores`,
+      request,
+    );
+  }
+
+  updateCampaignStoreItemPurchases(
+    campaignId: string,
+    storeId: number,
+    request: UpdateStoreItemPurchaseStateRequest,
+  ): Observable<ApiResponse<CampaignStoreModel>> {
+    return this.apiClient.put<ApiResponse<CampaignStoreModel>, UpdateStoreItemPurchaseStateRequest>(
+      `/api/campaigns/${campaignId}/stores/${storeId}/item-purchases`,
+      request,
+    );
+  }
+
   createAssetFolder(
     request: CreateAssetFolderRequest,
   ): Observable<ApiResponse<AssetModel>> {
@@ -633,6 +837,12 @@ export class CampaignApiService {
     >(
       `/api/campaigns/${campaignId}/users/${encodeURIComponent(username)}/skills`,
       request,
+    );
+  }
+
+  removeCampaignPlayer(campaignId: string, username: string): Observable<ApiResponse<boolean>> {
+    return this.apiClient.delete<ApiResponse<boolean>>(
+      `/api/campaigns/${campaignId}/users/${encodeURIComponent(username)}`,
     );
   }
 

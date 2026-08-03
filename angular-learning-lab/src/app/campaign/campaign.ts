@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { LucideBookOpen, LucideCalendarDays, LucideCog, LucideHouse, LucideRefreshCw, LucideUsers } from '@lucide/angular';
+import { LucideBookOpen, LucideCalendarDays, LucideCog, LucideHouse, LucideMap, LucideRefreshCw, LucideUsers } from '@lucide/angular';
 
 import { ApiError, CampaignInformationCacheService, TokenStorageService } from '../Infrastructure';
 import { ModalHelper } from '../shared/helpers/modal.helper';
@@ -13,7 +13,7 @@ type RefreshableCampaignPage = {
 
 @Component({
   selector: 'app-campaign',
-  imports: [RouterOutlet, LucideBookOpen, LucideCalendarDays, LucideCog, LucideHouse, LucideRefreshCw, LucideUsers],
+  imports: [RouterOutlet, LucideBookOpen, LucideCalendarDays, LucideCog, LucideHouse, LucideMap, LucideRefreshCw, LucideUsers],
   templateUrl: './campaign.html',
   styleUrl: './campaign.css',
 })
@@ -42,6 +42,7 @@ export class Campaign implements OnInit {
   protected readonly isCampaignHome = computed(() => {
     return !this.isCampaignMembers() &&
       !this.isCampaignContent() &&
+      !this.isCampaignMaps() &&
       !this.isCampaignSessions() &&
       !this.isCampaignSettings();
   });
@@ -53,6 +54,10 @@ export class Campaign implements OnInit {
   });
   protected readonly isCampaignSessions = computed(() => {
     return this.currentUrl().includes('/campaign-sessions');
+  });
+
+  protected readonly isCampaignMaps = computed(() => {
+    return this.currentUrl().includes('/maps');
   });
 
   protected readonly isCampaignSettings = computed(() => {
@@ -98,6 +103,9 @@ export class Campaign implements OnInit {
     void this.router.navigate(['/campaigns', this.campaignId(), 'campaign-sessions']);
   }
 
+  protected goToCampaignMaps(): void {
+    void this.router.navigate(['/campaigns', this.campaignId(), 'maps']);
+  }
 
   protected goToCampaignSettings(): void {
     void this.router.navigate(['/campaigns', this.campaignId(), 'campaign-settings']);

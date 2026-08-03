@@ -9,6 +9,10 @@ public interface ICampaignParticipationInviteRepository
         Guid userId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<CampaignResponse>> ListJoinedCampaignsByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<string>> ListParticipantUsernamesByCampaignIdAsync(
         Guid campaignId,
         CancellationToken cancellationToken = default);
@@ -59,6 +63,8 @@ public interface ICampaignParticipationInviteRepository
         CancellationToken cancellationToken = default);
 
     void RemoveInvite(CampaignParticipationInvite invite);
+
+    void RemoveParticipation(PlayerCampaignParticipation participation);
 
     Task ExecuteInTransactionAsync(
         Func<Task> operation,

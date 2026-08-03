@@ -10,8 +10,14 @@
   box-sizing: border-box;
 }
 
+.monster-presentation-actions {
+  width: min(100%, 58rem);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .monster-presentation-back {
-  justify-self: start;
   min-height: 2.4rem;
   width: 2.4rem;
   padding: 0.5rem 0.8rem;
@@ -27,6 +33,35 @@
 .monster-presentation-back svg {
   width: 1.1rem;
   height: 1.1rem;
+}
+
+.monster-presentation-remove {
+  width: min(100%, 58rem);
+  min-height: 3.4rem;
+  padding: 0.85rem 1.25rem;
+  border: 4px double #facc15;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(153, 27, 27, 0.98), rgba(69, 10, 10, 0.98)),
+    #7f1d1d;
+  color: #fff7ed;
+  font: 900 0.9rem/1 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.monster-presentation-remove:hover,
+.monster-presentation-remove:focus-visible {
+  background:
+    linear-gradient(180deg, rgba(185, 28, 28, 0.98), rgba(127, 29, 29, 0.98)),
+    #991b1b;
+  outline: none;
+}
+
+.monster-presentation-remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .monster-presentation-sheet {

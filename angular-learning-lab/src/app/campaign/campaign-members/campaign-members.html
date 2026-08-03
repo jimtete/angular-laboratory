@@ -7,6 +7,9 @@
         <th scope="col">Last Name</th>
         <th scope="col">Nickname</th>
         <th scope="col">Proficiencies</th>
+        @if (isMaster()) {
+          <th scope="col">Remove</th>
+        }
       </tr>
     </thead>
     <tbody>
@@ -139,16 +142,30 @@
               }
             </div>
           </td>
+          @if (isMaster()) {
+            <td class="campaign-members-remove-cell">
+              <button
+                type="button"
+                class="campaign-members-remove-button"
+                [disabled]="removingPlayerUsername() !== null"
+                [attr.aria-label]="'Remove ' + member.username + ' from campaign'"
+                title="Remove from campaign"
+                (click)="openRemovePlayerDialog(member)"
+              >
+                <svg lucideX aria-hidden="true"></svg>
+              </button>
+            </td>
+          }
         </tr>
       } @empty {
         <tr>
-          <td colspan="5" class="campaign-members-empty-row">No members yet.</td>
+          <td [attr.colspan]="isMaster() ? 6 : 5" class="campaign-members-empty-row">No members yet.</td>
         </tr>
       }
 
       @if (isMaster()) {
         <tr class="campaign-members-invite-row">
-          <td colspan="5">
+          <td colspan="6">
             <button
               type="button"
               class="campaign-members-invite-button"
@@ -211,6 +228,89 @@
             <p class="campaign-members-empty-players">No available players.</p>
           }
         </div>
+      </section>
+    </div>
+  }
+
+  @if (removePlayerMember(); as member) {
+    <div
+      class="campaign-members-popup-backdrop"
+      role="presentation"
+      (click)="closeRemovePlayerDialog()"
+    >
+      <section
+        class="campaign-members-remove-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Remove ' + member.username + ' from campaign'"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="campaign-members-popup-close"
+          aria-label="Close remove player dialog"
+          [disabled]="removingPlayerUsername() !== null"
+          (click)="closeRemovePlayerDialog()"
+        >
+          X
+        </button>
+
+        @if (removePlayerStep() === 'warning') {
+          <div class="campaign-members-remove-content">
+            <h2>Remove Player</h2>
+            <p>
+              This will remove <strong>{{ member.username }}</strong> from the campaign.
+            </p>
+            <div class="campaign-members-remove-actions">
+              <button
+                type="button"
+                class="campaign-members-remove-cancel"
+                (click)="closeRemovePlayerDialog()"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="campaign-members-remove-continue"
+                (click)="continueRemovePlayerDialog()"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="campaign-members-remove-content">
+            <h2>Confirm Removal</h2>
+            <label class="campaign-members-remove-confirmation">
+              <span>Type DELETE to remove {{ member.username }}</span>
+              <input
+                type="text"
+                autocomplete="off"
+                [value]="removePlayerConfirmationDraft()"
+                [disabled]="removingPlayerUsername() !== null"
+                (input)="setRemovePlayerConfirmationDraft($event)"
+              />
+            </label>
+            <div class="campaign-members-remove-actions">
+              <button
+                type="button"
+                class="campaign-members-remove-cancel"
+                [disabled]="removingPlayerUsername() !== null"
+                (click)="closeRemovePlayerDialog()"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="campaign-members-remove-delete"
+                [disabled]="!canConfirmRemovePlayer()"
+                (click)="removePlayerFromCampaign()"
+              >
+                {{ removingPlayerUsername() ? 'Removing...' : 'Remove Player' }}
+              </button>
+            </div>
+          </div>
+        }
       </section>
     </div>
   }

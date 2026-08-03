@@ -32,19 +32,6 @@ public class FinishStoryBeatAction
                 ApplicationStatusCode.InvalidCampaignPresentation);
         }
 
-        var workspaceResult = await _getPresentationModeWorkspaceAction.ExecuteAsync(
-            userId,
-            campaignId,
-            sessionId,
-            cancellationToken);
-
-        if (workspaceResult.StatusCode != ApplicationStatusCode.Success
-            || workspaceResult.Data is null)
-        {
-            return new ServiceResult<PresentationModeStoryBeatPlayedResponse>(
-                workspaceResult.StatusCode);
-        }
-
         var sessionResult = await _campaignSessionService.CreateStoryBeatPlayedSessionNoteAsync(
             userId,
             campaignId,
@@ -58,6 +45,19 @@ public class FinishStoryBeatAction
         {
             return new ServiceResult<PresentationModeStoryBeatPlayedResponse>(
                 sessionResult.StatusCode);
+        }
+
+        var workspaceResult = await _getPresentationModeWorkspaceAction.ExecuteAsync(
+            userId,
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (workspaceResult.StatusCode != ApplicationStatusCode.Success
+            || workspaceResult.Data is null)
+        {
+            return new ServiceResult<PresentationModeStoryBeatPlayedResponse>(
+                workspaceResult.StatusCode);
         }
 
         return new ServiceResult<PresentationModeStoryBeatPlayedResponse>(

@@ -1,3 +1,4 @@
+using LearningLab.Assets.Configuration;
 using LearningLab.Services.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
@@ -17,6 +18,12 @@ public static class StaticAssetApplicationBuilderExtensions
         });
 
         services.Configure<CampaignPictureStorageOptions>(options =>
+        {
+            options.RootPath = assetsRoot;
+            options.RequestPath = LearningLabStaticAssetDefaults.RequestPath;
+        });
+
+        services.Configure<MapAssetStorageOptions>(options =>
         {
             options.RootPath = assetsRoot;
             options.RequestPath = LearningLabStaticAssetDefaults.RequestPath;

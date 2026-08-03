@@ -11,6 +11,8 @@ public class CampaignSettings
     public int MaxNumberOfPlayers { get; set; }
 
     public PassiveSkillsCheck PassiveSkillsCheck { get; set; } = PassiveSkillsCheck.Manual;
+
+    public StoreMechanics StoreMechanics { get; set; } = StoreMechanics.GlobalStores;
     
     [MaxLength(16384)]
     public string CampaignDescription { get; set; } = string.Empty;

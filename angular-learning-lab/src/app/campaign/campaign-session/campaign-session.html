@@ -183,6 +183,8 @@
             <article
               class="campaign-session-presentation-block"
               [class.campaign-session-presentation-block-active]="isActivePresentationStoryBlock(block)"
+              [class.campaign-session-presentation-block-finished]="isFinishedPresentationStoryBlock(block)"
+              [class.campaign-session-presentation-block-finished-collapsed]="isFinishedPresentationStoryBlock(block) && !isFinishedPresentationStoryBlockExpanded(block)"
             >
               <header class="campaign-session-presentation-block-header">
                 <svg lucideMap aria-hidden="true"></svg>
@@ -191,47 +193,76 @@
                   <h3>{{ block.storyBlock.title || 'Untitled Story Block' }}</h3>
                 </div>
 
-                <button
-                  type="button"
-                  [disabled]="isEnablingPresentationMode() || isActivePresentationStoryBlock(block)"
-                  (click)="selectPresentationStoryBlock(block)"
-                >
-                  {{ isActivePresentationStoryBlock(block) ? 'Active' : 'Use' }}
-                </button>
-              </header>
-
-              <div class="campaign-session-presentation-beats">
-                @for (storyBeat of block.storyBeats; track storyBeat.storyBeatId) {
+                @if (isFinishedPresentationStoryBlock(block)) {
                   <button
                     type="button"
-                    class="campaign-session-presentation-beat"
-                    [class.campaign-session-presentation-beat-current]="isCurrentPresentationStoryBeat(storyBeat)"
-                    [class.campaign-session-presentation-beat-presented]="hasPresentedStoryBeat(storyBeat)"
-                    [disabled]="presentingStoryBeatId() !== null"
-                    (click)="presentStoryBeat(storyBeat)"
+                    class="campaign-session-presentation-block-finished-toggle"
+                    [attr.aria-expanded]="isFinishedPresentationStoryBlockExpanded(block)"
+                    (click)="toggleFinishedPresentationStoryBlock(block)"
                   >
-                    <span class="campaign-session-presentation-beat-index">
-                      {{ storyBeat.orderIndex + 1 }}.{{ storyBeat.secondaryOrderIndex + 1 }}
-                    </span>
-
-                    <span class="campaign-session-presentation-beat-content">
-                      <strong>{{ storyBeat.title || 'Untitled Story Beat' }}</strong>
-                      <span>{{ storyBeatTypeLabel(storyBeat) }}</span>
-                      <p>{{ storyBeatPreview(storyBeat) }}</p>
-
-                      @if (storyBeatQuestTaskTitles(storyBeat); as questTasks) {
-                        @if (questTasks.length > 0) {
-                          <span class="campaign-session-presentation-quest-tasks">
-                            {{ questTasks.join(', ') }}
-                          </span>
-                        }
-                      }
-                    </span>
+                    {{ isFinishedPresentationStoryBlockExpanded(block) ? 'Hide' : 'Open' }}
                   </button>
-                } @empty {
-                  <p class="campaign-session-presentation-empty">No unplayed story beats in this block.</p>
+                } @else {
+                  <button
+                    type="button"
+                    [disabled]="isEnablingPresentationMode() || isActivePresentationStoryBlock(block)"
+                    (click)="selectPresentationStoryBlock(block)"
+                  >
+                    {{ isActivePresentationStoryBlock(block) ? 'Active' : 'Use' }}
+                  </button>
                 }
-              </div>
+              </header>
+
+              @if (!isFinishedPresentationStoryBlock(block) || isFinishedPresentationStoryBlockExpanded(block)) {
+                <div class="campaign-session-presentation-beats">
+                  @for (storyBeat of block.storyBeats; track storyBeat.storyBeatId) {
+                    <button
+                      type="button"
+                      class="campaign-session-presentation-beat"
+                      [class.campaign-session-presentation-beat-current]="isCurrentPresentationStoryBeat(storyBeat)"
+                      [class.campaign-session-presentation-beat-presented]="hasPresentedStoryBeat(storyBeat)"
+                      [class.campaign-session-presentation-beat-index-choice]="isPresentationIndexChoice(storyBeat)"
+                      [disabled]="presentingStoryBeatId() !== null"
+                      (click)="presentStoryBeat(storyBeat)"
+                    >
+                      <span class="campaign-session-presentation-beat-index">
+                        {{ storyBeat.orderIndex + 1 }}.{{ storyBeat.secondaryOrderIndex + 1 }}
+                      </span>
+
+                      <span class="campaign-session-presentation-beat-content">
+                        <strong>{{ storyBeat.title || 'Untitled Story Beat' }}</strong>
+                        <span>{{ storyBeatTypeLabel(storyBeat) }}</span>
+                        @if (isPresentationIndexChoice(storyBeat)) {
+                          <small class="campaign-session-presentation-beat-choice-label">
+                            {{ presentationIndexChoiceLabel(storyBeat) }}
+                          </small>
+                        }
+                        @if (hasPresentationIndexPathRule(storyBeat)) {
+                          <em
+                            [class]="'campaign-session-presentation-index-path ' + presentationIndexPathRuleClass(storyBeat)"
+                            [attr.title]="presentationIndexPathRuleGuidance(storyBeat)"
+                          >
+                            {{ presentationIndexPathRuleLabel(storyBeat) }}
+                          </em>
+                        }
+                        <p>{{ storyBeatPreview(storyBeat) }}</p>
+
+                        @if (storyBeatQuestTaskTitles(storyBeat); as questTasks) {
+                          @if (questTasks.length > 0) {
+                            <span class="campaign-session-presentation-quest-tasks">
+                              {{ questTasks.join(', ') }}
+                            </span>
+                          }
+                        }
+                      </span>
+                    </button>
+                  } @empty {
+                    <p class="campaign-session-presentation-empty">No remaining story beats in this block.</p>
+                  }
+                </div>
+              } @else {
+                <p class="campaign-session-presentation-block-finished-status">Finished</p>
+              }
             </article>
           } @empty {
             <p class="campaign-session-presentation-empty">No story blocks available.</p>
@@ -258,6 +289,61 @@
                 </button>
               </div>
             </header>
+
+            @if (hasPresentationIndexPathRule(currentStoryBeat)) {
+              <div
+                [class]="'campaign-session-presentation-index-path-guidance ' + presentationIndexPathRuleClass(currentStoryBeat)"
+                aria-label="Story beat index path statement"
+              >
+                <strong>{{ presentationIndexPathRuleLabel(currentStoryBeat) }}</strong>
+                <span>{{ presentationIndexPathRuleGuidance(currentStoryBeat) }}</span>
+              </div>
+            }
+
+            @if (currentPresentationStoryBeatChoices(); as choices) {
+              @if (choices.length > 1) {
+                <section class="campaign-session-presentation-choice-set" aria-label="Available story beat choices">
+                  <header>
+                    <h4>Available Choices</h4>
+                    <span>Index {{ currentStoryBeat.orderIndex + 1 }}</span>
+                  </header>
+
+                  <div class="campaign-session-presentation-choice-list">
+                    @for (choice of choices; track choice.storyBeatId) {
+                      <button
+                        type="button"
+                        class="campaign-session-presentation-choice"
+                        [class.campaign-session-presentation-choice-current]="isCurrentPresentationStoryBeat(choice)"
+                        [class.campaign-session-presentation-choice-played]="hasStoryBeatPlayedNote(choice)"
+                        [disabled]="presentingStoryBeatId() !== null || isCurrentPresentationStoryBeat(choice)"
+                        [attr.aria-label]="'Present story beat choice ' + (choice.title || 'Untitled Story Beat')"
+                        (click)="presentStoryBeat(choice)"
+                      >
+                        <span class="campaign-session-presentation-choice-index">
+                          {{ choice.orderIndex + 1 }}.{{ choice.secondaryOrderIndex + 1 }}
+                        </span>
+
+                        <span class="campaign-session-presentation-choice-content">
+                          <strong>{{ choice.title || 'Untitled Story Beat' }}</strong>
+                          <em>{{ storyBeatTypeLabel(choice) }}</em>
+                          <p>{{ storyBeatPreview(choice) }}</p>
+
+                          @if (storyBeatQuestTaskTitles(choice); as questTasks) {
+                            @if (questTasks.length > 0) {
+                              <small>{{ questTasks.join(', ') }}</small>
+                            }
+                          }
+                        </span>
+
+                        <span class="campaign-session-presentation-choice-state">
+                          {{ isCurrentPresentationStoryBeat(choice) ? 'Current' : hasStoryBeatPlayedNote(choice) ? 'Played' : 'Choose' }}
+                        </span>
+                      </button>
+                    }
+                  </div>
+                </section>
+              }
+            }
 
             @if (currentStoryBeat.roleplaying) {
               <p class="campaign-session-presentation-detail-summary">

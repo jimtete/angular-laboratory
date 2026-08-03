@@ -178,6 +178,52 @@ public sealed class MonsterService : IMonsterService
             ToResponse(monster));
     }
 
+    public async Task<ServiceResult<bool>> RemoveMonsterFromCampaignAsync(
+        Guid userId,
+        Guid campaignId,
+        int monsterId,
+        CancellationToken cancellationToken = default)
+    {
+        if (monsterId < 1)
+        {
+            return new ServiceResult<bool>(ApplicationStatusCode.InvalidMonster);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<bool>(validationStatusCode.Value);
+        }
+
+        var monsterExists = await _monsterRepository.ExistsByIdAsync(
+            monsterId,
+            cancellationToken);
+
+        if (!monsterExists)
+        {
+            return new ServiceResult<bool>(ApplicationStatusCode.MonsterNotFound);
+        }
+
+        var participation = await _monsterRepository.GetCampaignParticipationAsync(
+            campaignId,
+            monsterId,
+            cancellationToken);
+
+        if (participation is null)
+        {
+            return new ServiceResult<bool>(ApplicationStatusCode.CampaignMonsterNotFound);
+        }
+
+        _monsterRepository.RemoveCampaignParticipation(participation);
+        await _monsterRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<bool>(ApplicationStatusCode.Success, true);
+    }
+
     public async Task<ServiceResult<MonsterResponse>> UpdateMonsterBasicInformationAsync(
         int monsterId,
         UpdateMonsterBasicInformationRequest request,

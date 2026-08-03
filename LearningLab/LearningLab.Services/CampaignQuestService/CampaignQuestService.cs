@@ -159,6 +159,59 @@ public sealed class CampaignQuestService : ICampaignQuestService
             ToResponse(quest));
     }
 
+    public async Task<ServiceResult<IReadOnlyList<CampaignQuestDeleteBlockerResponse>>> DeleteCampaignQuestAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid questId,
+        CancellationToken cancellationToken = default)
+    {
+        if (questId == Guid.Empty)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignQuestDeleteBlockerResponse>>(
+                ApplicationStatusCode.InvalidCampaignQuest);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignQuestDeleteBlockerResponse>>(
+                validationStatusCode.Value);
+        }
+
+        var quest = await _campaignQuestRepository.GetByCampaignIdAndQuestIdAsync(
+            campaignId,
+            questId,
+            cancellationToken);
+
+        if (quest is null)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignQuestDeleteBlockerResponse>>(
+                ApplicationStatusCode.CampaignQuestNotFound);
+        }
+
+        var storyBeatLinks = await _storyBeatQuestTaskRepository.ListByCampaignIdAndQuestIdAsync(
+            campaignId,
+            questId,
+            cancellationToken);
+
+        if (storyBeatLinks.Count > 0)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignQuestDeleteBlockerResponse>>(
+                ApplicationStatusCode.CampaignQuestDeleteBlocked,
+                storyBeatLinks.Select(ToDeleteBlockerResponse).ToList());
+        }
+
+        _campaignQuestRepository.Remove(quest);
+        await _campaignQuestRepository.SaveChangesAsync(cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<CampaignQuestDeleteBlockerResponse>>(
+            ApplicationStatusCode.Success);
+    }
+
     public async Task<ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>> GetStoryBeatQuestTasksAsync(
         Guid userId,
         Guid campaignId,
@@ -595,6 +648,26 @@ public sealed class CampaignQuestService : ICampaignQuestService
             Description = link.QuestTask.Description,
             DateCompleted = link.QuestTask.DateCompleted,
             LinkedAt = link.LinkedAt
+        };
+    }
+
+    private static CampaignQuestDeleteBlockerResponse ToDeleteBlockerResponse(
+        StoryBeatQuestTask link)
+    {
+        return new CampaignQuestDeleteBlockerResponse
+        {
+            BlockerType = "StoryBeatQuestTask",
+            Message =
+                $"Quest task \"{link.QuestTask.Title}\" is linked to story beat \"{link.StoryBeat.Title}\" in story block \"{link.StoryBeat.StoryBlock.Title}\".",
+            QuestTaskId = link.QuestTaskId,
+            QuestTaskTitle = link.QuestTask.Title,
+            StoryBlockId = link.StoryBeat.StoryBlockId,
+            StoryBlockTitle = link.StoryBeat.StoryBlock.Title,
+            StoryBlockOrderIndex = link.StoryBeat.StoryBlock.OrderIndex,
+            StoryBeatId = link.StoryBeatId,
+            StoryBeatTitle = link.StoryBeat.Title,
+            StoryBeatOrderIndex = link.StoryBeat.OrderIndex,
+            StoryBeatSecondaryOrderIndex = link.StoryBeat.SecondaryOrderIndex
         };
     }
 }

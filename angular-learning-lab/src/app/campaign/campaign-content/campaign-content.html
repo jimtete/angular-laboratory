@@ -53,6 +53,15 @@
     >
       Combat Npcs
     </button>
+
+    <button
+      type="button"
+      class="campaign-content-tab"
+      [class.campaign-content-tab-active]="selectedTab() === 'campaign-stores'"
+      (click)="selectTab('campaign-stores')"
+    >
+      Campaign Stores
+    </button>
   </nav>
 
   @if (selectedTab() === 'main-story') {
@@ -498,6 +507,20 @@
                       </div>
 
                       <div class="story-beat-row-controls" aria-label="Story beat row controls">
+                        @if (storyBeatRow.beats.length > 1) {
+                          <button
+                            type="button"
+                            class="story-beat-row-add story-beat-row-path-rule"
+                            [class.story-beat-row-path-rule-configured]="storyBeatIndexPathRuleFor(storyBeatRow) !== null"
+                            [attr.aria-label]="'Configure index path for story beat index ' + storyBeatRow.orderIndex"
+                            [attr.title]="storyBeatIndexPathRuleDescription(storyBeatRow)"
+                            [disabled]="isSavingStoryBeatIndexPathRule() || isDeletingStoryBeatIndexPathRule()"
+                            (click)="openStoryBeatIndexPathRuleDialog(storyBlock, storyBeatRow)"
+                          >
+                            <span>{{ storyBeatIndexPathRuleLabel(storyBeatRow) }}</span>
+                          </button>
+                        }
+
                         <button
                           type="button"
                           class="story-beat-row-add"
@@ -531,6 +554,100 @@
         }
       </section>
     </section>
+  }
+
+  @if (storyBeatIndexPathRuleDialog(); as pathDialog) {
+    <div class="campaign-milestone-dialog-backdrop" role="presentation">
+      <section
+        class="story-beat-dialog story-beat-index-path-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Index path settings for story beat index ' + pathDialog.storyBeatRow.orderIndex"
+      >
+        <header class="story-beat-dialog-header">
+          <div>
+            <p>Index Path</p>
+            <h2>{{ storyBlockTitle(pathDialog.storyBlock) }} - Index {{ pathDialog.storyBeatRow.orderIndex }}</h2>
+          </div>
+          <span>{{ pathDialog.storyBeatRow.beats.length }} Paths</span>
+        </header>
+
+        <div class="story-beat-index-path-body">
+          <section class="story-beat-index-path-beats" aria-label="Story beats at this index">
+            @for (beat of pathDialog.storyBeatRow.beats; track beat.storyBeatId) {
+              <article [class]="'story-beat-index-path-beat ' + storyBeatTypeClass(beat)">
+                <strong>{{ storyBeatSequenceLabel(pathDialog.storyBeatRow, beat) }}</strong>
+                <div>
+                  <span>{{ storyBeatTypeLabel(beat) }}</span>
+                  <h3>{{ storyBeatTitle(beat) }}</h3>
+                </div>
+              </article>
+            }
+          </section>
+
+          <section class="story-beat-index-path-settings" aria-label="Index path relation">
+            @for (relationType of storyBeatIndexPathRelationTypes; track relationType.value) {
+              <label
+                class="story-beat-index-path-option"
+                [class.story-beat-index-path-option-active]="storyBeatIndexPathRelationTypeDraft() === relationType.value"
+              >
+                <input
+                  type="radio"
+                  name="storyBeatIndexPathRelation"
+                  [value]="relationType.value"
+                  [checked]="storyBeatIndexPathRelationTypeDraft() === relationType.value"
+                  [disabled]="isSavingStoryBeatIndexPathRule() || isDeletingStoryBeatIndexPathRule()"
+                  (change)="setStoryBeatIndexPathRelationType($event)"
+                />
+                <strong>{{ relationType.label }}</strong>
+                <span>{{ relationType.description }}</span>
+              </label>
+            }
+
+            <label class="story-beat-index-path-required">
+              <input
+                type="checkbox"
+                [checked]="storyBeatIndexPathRequiredDraft()"
+                [disabled]="isSavingStoryBeatIndexPathRule() || isDeletingStoryBeatIndexPathRule()"
+                (change)="setStoryBeatIndexPathRequired($event)"
+              />
+              <span>Required path</span>
+            </label>
+          </section>
+        </div>
+
+        <div class="campaign-milestone-dialog-actions">
+          @if (storyBeatIndexPathRuleFor(pathDialog.storyBeatRow)) {
+            <button
+              type="button"
+              class="campaign-milestone-delete-confirm"
+              [disabled]="isDeletingStoryBeatIndexPathRule() || isSavingStoryBeatIndexPathRule()"
+              (click)="deleteStoryBeatIndexPathRule()"
+            >
+              {{ isDeletingStoryBeatIndexPathRule() ? 'Deleting...' : 'Delete Rule' }}
+            </button>
+          }
+
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="isSavingStoryBeatIndexPathRule() || isDeletingStoryBeatIndexPathRule()"
+            (click)="closeStoryBeatIndexPathRuleDialog()"
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            class="campaign-milestone-create"
+            [disabled]="!canSaveStoryBeatIndexPathRule()"
+            (click)="saveStoryBeatIndexPathRule()"
+          >
+            {{ isSavingStoryBeatIndexPathRule() ? 'Saving...' : 'Save Rule' }}
+          </button>
+        </div>
+      </section>
+    </div>
   }
 
   @if (isCreateStoryBlockDialogOpen()) {
@@ -1752,6 +1869,10 @@
     <app-combat-npcs-page />
   }
 
+  @if (selectedTab() === 'campaign-stores') {
+    <app-campaign-stores-page />
+  }
+
   @if (isCreateMilestoneDialogOpen()) {
     <div class="campaign-milestone-dialog-backdrop" role="presentation">
       <section
@@ -1862,7 +1983,7 @@
           <button
             type="button"
             [class.campaign-quest-step-active]="questFormStep() === 'details'"
-            [disabled]="isCreatingQuest()"
+            [disabled]="isCreatingQuest() || isDeletingQuest()"
             (click)="showQuestDetailsStep()"
           >
             Quest Details
@@ -1871,7 +1992,7 @@
           <button
             type="button"
             [class.campaign-quest-step-active]="questFormStep() === 'tasks'"
-            [disabled]="!canContinueQuestDetails()"
+            [disabled]="!canContinueQuestDetails() || isDeletingQuest()"
             (click)="showQuestTasksStep()"
           >
             Quest Tasks
@@ -1953,6 +2074,7 @@
                   class="campaign-quest-task-remove"
                   aria-label="Remove quest task"
                   title="Remove task"
+                  [disabled]="isDeletingQuest()"
                   (click)="removeQuestTaskDraft(task.draftId)"
                 >
                   X
@@ -1965,6 +2087,7 @@
               class="campaign-quest-task-add"
               aria-label="Add quest task"
               title="Add quest task"
+              [disabled]="isDeletingQuest()"
               (click)="addQuestTaskDraft()"
             >
               +
@@ -1973,10 +2096,21 @@
         }
 
         <div class="campaign-milestone-dialog-actions">
+          @if (editingQuest()) {
+            <button
+              type="button"
+              class="campaign-milestone-delete-confirm"
+              [disabled]="isCreatingQuest() || isDeletingQuest()"
+              (click)="deleteQuest()"
+            >
+              {{ isDeletingQuest() ? 'Deleting...' : 'Delete Quest' }}
+            </button>
+          }
+
           <button
             type="button"
             class="campaign-milestone-close"
-            [disabled]="isCreatingQuest()"
+            [disabled]="isCreatingQuest() || isDeletingQuest()"
             (click)="closeCreateQuestDialog()"
           >
             Close
@@ -1995,7 +2129,7 @@
             <button
               type="button"
               class="campaign-milestone-close"
-              [disabled]="isCreatingQuest()"
+              [disabled]="isCreatingQuest() || isDeletingQuest()"
               (click)="showQuestDetailsStep()"
             >
               Back

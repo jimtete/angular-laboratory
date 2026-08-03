@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="LearningLab.Assets/LearningLab.Assets.csproj" />
   <Project Path="LearningLab.Data/LearningLab.Data.csproj" />
   <Project Path="LearningLab.Presentation/LearningLab.Presentation.csproj" />
   <Project Path="LearningLab.Services/LearningLab.Services.csproj" />

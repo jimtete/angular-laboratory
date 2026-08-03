@@ -96,6 +96,12 @@ export const routes: Routes = [
         canActivate: [masterRoleGuard]
       },
       {
+        path: 'campaign-content/campaign-stores',
+        loadComponent: () => import('./campaign/campaign-content/campaign-stores-page/campaign-stores-page')
+          .then((module) => module.CampaignStoresPage),
+        canActivate: [masterRoleGuard]
+      },
+      {
         path: 'campaign-content',
         loadComponent: () => import('./campaign/campaign-content/campaign-content')
           .then((module) => module.CampaignContent),
@@ -112,6 +118,18 @@ export const routes: Routes = [
         component: CampaignSession,
         canActivate: [masterRoleGuard],
         canDeactivate: [pendingChangesGuard]
+      },
+      {
+        path: 'maps/:mapId',
+        loadComponent: () => import('./campaign/campaign-map-viewer/campaign-map-viewer')
+          .then((module) => module.CampaignMapViewer),
+        canActivate: [masterRoleGuard]
+      },
+      {
+        path: 'maps',
+        loadComponent: () => import('./campaign/campaign-maps/campaign-maps')
+          .then((module) => module.CampaignMaps),
+        canActivate: [masterRoleGuard]
       },
       {
         path: 'campaign-settings',

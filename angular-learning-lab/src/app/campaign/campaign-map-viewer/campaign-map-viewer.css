@@ -1,0 +1,662 @@
+:host {
+  display: block;
+}
+
+.campaign-map-viewer-page {
+  min-height: calc(100dvh - 10rem);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.campaign-map-viewer-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 1rem;
+  padding-right: 2.5rem;
+}
+
+.campaign-map-viewer-back {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 1rem;
+  border: 1px solid #7c2d12;
+  border-radius: 6px;
+  background: #fffaf0;
+  color: #7c2d12;
+  font: 900 0.9rem/1 'Inter Tight', 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.campaign-map-viewer-back svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.campaign-map-viewer-title {
+  min-width: 0;
+  text-align: center;
+}
+
+.campaign-map-viewer-title p {
+  margin: 0 0 0.25rem;
+  color: #7c2d12;
+  font: 900 0.78rem/1.1 'Inter Tight', 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-map-viewer-title h1 {
+  margin: 0;
+  color: #2b1a10;
+  font: 900 clamp(2rem, 4vw, 4rem)/0.95 'Cotemporary', Palatino, Georgia, serif;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.campaign-map-viewer-workspace {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.25rem;
+  gap: 0.75rem;
+}
+
+.campaign-map-viewer-stage {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  align-items: start;
+  padding: 0;
+  border: 4px double #b98b62;
+  background: rgba(255, 253, 244, 0.82);
+}
+
+.campaign-map-viewer-frame {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 0.85rem;
+  box-sizing: border-box;
+}
+
+.campaign-map-viewer-scroll {
+  position: relative;
+  width: 100%;
+  height: clamp(24rem, calc(100dvh - 23rem), 44rem);
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.campaign-map-viewer-scroll img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  pointer-events: none;
+}
+
+.campaign-map-viewer-image-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.campaign-map-connections-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.campaign-map-connection-line {
+  stroke: #111827;
+  stroke-width: 3;
+  stroke-dasharray: 10 8;
+  stroke-linecap: round;
+  opacity: 0.82;
+  vector-effect: non-scaling-stroke;
+}
+
+.campaign-map-viewer-description,
+.campaign-map-viewer-status,
+.campaign-map-viewer-missing p {
+  margin: 0;
+  color: #24143f;
+  font: 800 1rem/1.35 'Inter Tight', 'Segoe UI', sans-serif;
+  text-align: center;
+}
+
+.campaign-map-viewer-missing {
+  min-width: 18rem;
+  min-height: 14rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  border: 1px dashed rgba(124, 45, 18, 0.44);
+}
+
+.campaign-map-viewer-missing svg {
+  width: 3rem;
+  height: 3rem;
+  color: #7c2d12;
+}
+
+.campaign-map-pin-panel {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 0.45rem;
+  border: 4px double #b98b62;
+  background: rgba(255, 253, 244, 0.88);
+}
+
+.campaign-map-connection-tool {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  padding: 0;
+  border: 1px solid rgba(43, 26, 16, 0.45);
+  border-radius: 50%;
+  background: #fffaf0;
+  color: #2b1a10;
+  cursor: pointer;
+}
+
+.campaign-map-connection-tool span {
+  position: relative;
+  width: 1.65rem;
+  height: 1.1rem;
+  border-top: 2px dashed currentColor;
+  transform: rotate(-18deg);
+}
+
+.campaign-map-connection-tool span::before,
+.campaign-map-connection-tool span::after {
+  content: '';
+  position: absolute;
+  top: -0.34rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.campaign-map-connection-tool span::before {
+  left: 0;
+}
+
+.campaign-map-connection-tool span::after {
+  right: 0;
+}
+
+.campaign-map-connection-tool:hover,
+.campaign-map-connection-tool:focus-visible,
+.campaign-map-connection-tool-active {
+  outline: 2px solid rgba(43, 26, 16, 0.28);
+  outline-offset: 2px;
+  background: #fff2d7;
+}
+
+.campaign-map-pin-tool {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(124, 45, 18, 0.5);
+  border-radius: 999px;
+  background: #fffaf0;
+  cursor: pointer;
+}
+
+.campaign-map-pin-tool:hover,
+.campaign-map-pin-tool:focus-visible {
+  outline: 2px solid rgba(124, 45, 18, 0.32);
+  outline-offset: 2px;
+}
+
+.campaign-map-pin-tool-dragging {
+  opacity: 0.68;
+}
+
+.campaign-map-pin-marker {
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2px solid #2b1a10;
+  border-radius: 50% 50% 50% 0;
+  background: #ffffff;
+  transform: rotate(-45deg);
+}
+
+.campaign-map-pin-tool-store .campaign-map-pin-marker {
+  background: #facc15;
+}
+
+.campaign-map-pin-tool-map-link .campaign-map-pin-marker {
+  background: #38bdf8;
+}
+
+.campaign-map-pin-tool-story-block .campaign-map-pin-marker {
+  background: #a78bfa;
+}
+
+.campaign-map-pin-tooltip {
+  position: absolute;
+  right: calc(100% + 0.55rem);
+  top: 50%;
+  z-index: 2;
+  width: max-content;
+  max-width: 12rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(124, 45, 18, 0.5);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: #2b1a10;
+  font: 900 0.92rem/1.05 'Cotemporary', Palatino, Georgia, serif;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(0.35rem);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.campaign-map-pin-tool:hover .campaign-map-pin-tooltip,
+.campaign-map-pin-tool:focus-visible .campaign-map-pin-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.campaign-map-rendered-pin {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  width: 2rem;
+  height: 2.45rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2b1a10;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transform: translate(-50%, -100%);
+}
+
+.campaign-map-rendered-pin:active {
+  cursor: grabbing;
+}
+
+.campaign-map-rendered-pin:focus-visible {
+  outline: 3px solid rgba(22, 101, 52, 0.36);
+  outline-offset: 4px;
+}
+
+.campaign-map-rendered-pin::before {
+  content: '';
+  width: 1.3rem;
+  height: 1.3rem;
+  border: 2px solid #2b1a10;
+  border-radius: 50% 50% 50% 0;
+  background: #ffffff;
+  transform: rotate(-45deg);
+  box-shadow: 0 0.2rem 0.45rem rgba(43, 26, 16, 0.3);
+}
+
+.campaign-map-rendered-pin-map-link::before {
+  background: #38bdf8;
+}
+
+.campaign-map-rendered-pin-selected::before {
+  background: #bbf7d0;
+  border-color: #166534;
+  box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.22), 0 0.2rem 0.45rem rgba(43, 26, 16, 0.3);
+}
+
+.campaign-map-rendered-pin-connection-start::before {
+  background: #fde68a;
+  border-color: #92400e;
+  box-shadow: 0 0 0 5px rgba(146, 64, 14, 0.22), 0 0.2rem 0.45rem rgba(43, 26, 16, 0.3);
+}
+
+.campaign-map-rendered-pin-title {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.35rem);
+  width: max-content;
+  max-width: 12rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(43, 26, 16, 0.5);
+  border-radius: 2px;
+  background: rgba(255, 250, 240, 0.96);
+  font: 900 0.88rem/1.1 'Cotemporary', Palatino, Georgia, serif;
+  overflow-wrap: anywhere;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-0.2rem);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.campaign-map-rendered-pin:hover .campaign-map-rendered-pin-title,
+.campaign-map-rendered-pin:focus-visible .campaign-map-rendered-pin-title,
+.campaign-map-rendered-pin-selected .campaign-map-rendered-pin-title {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.campaign-map-rendered-pin-description {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.55rem);
+  width: max-content;
+  max-width: 18rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(124, 45, 18, 0.5);
+  border-radius: 2px;
+  background: #fffaf0;
+  color: #24143f;
+  font: 800 0.9rem/1.25 'Inter Tight', 'Segoe UI', sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(0.35rem);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.campaign-map-rendered-pin:hover .campaign-map-rendered-pin-description,
+.campaign-map-rendered-pin:focus-visible .campaign-map-rendered-pin-description {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.campaign-map-points {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.campaign-map-points-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(124, 45, 18, 0.24);
+}
+
+.campaign-map-points-header h2 {
+  margin: 0;
+  color: #2b1a10;
+  font: 900 1.25rem/1 'Cotemporary', Palatino, Georgia, serif;
+}
+
+.campaign-map-points-header span {
+  color: #7c2d12;
+  font: 900 0.82rem/1 'Inter Tight', 'Segoe UI', sans-serif;
+}
+
+.campaign-map-points-table-wrap {
+  max-height: 18rem;
+  overflow: auto;
+  border: 1px solid rgba(124, 45, 18, 0.32);
+  background: #fffef7;
+}
+
+.campaign-map-points-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.campaign-map-points-table th,
+.campaign-map-points-table td {
+  padding: 0.62rem 0.7rem;
+  border-bottom: 1px solid rgba(124, 45, 18, 0.18);
+  color: #2b1a10;
+  font: 750 0.9rem/1.25 'Inter Tight', 'Segoe UI', sans-serif;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.campaign-map-points-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff2d7;
+  color: #7c2d12;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.campaign-map-points-table th:nth-child(1) {
+  width: 30%;
+}
+
+.campaign-map-points-table th:nth-child(2) {
+  width: 10rem;
+}
+
+.campaign-map-points-table tbody tr {
+  cursor: pointer;
+}
+
+.campaign-map-points-table tbody tr:hover,
+.campaign-map-points-table tbody tr:focus-visible {
+  background: rgba(22, 101, 52, 0.08);
+  outline: 2px solid rgba(22, 101, 52, 0.24);
+  outline-offset: -2px;
+}
+
+.campaign-map-points-row-selected {
+  background: rgba(22, 101, 52, 0.12);
+}
+
+.campaign-map-points-empty {
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px dashed rgba(124, 45, 18, 0.35);
+  color: #5f2f14;
+  font: 800 0.92rem/1.35 'Inter Tight', 'Segoe UI', sans-serif;
+}
+
+.campaign-map-pin-drag-preview {
+  position: fixed;
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba(43, 26, 16, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.95);
+  color: #2b1a10;
+  font: 900 0.85rem/1 'Inter Tight', 'Segoe UI', sans-serif;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0.45rem 1.2rem rgba(43, 26, 16, 0.18);
+}
+
+.campaign-map-pin-drag-preview-over-map {
+  border-color: #166534;
+  box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.18), 0 0.45rem 1.2rem rgba(43, 26, 16, 0.18);
+}
+
+.campaign-map-pin-drag-preview .campaign-map-pin-marker {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.campaign-map-pin-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(17, 24, 39, 0.58);
+}
+
+.campaign-map-pin-dialog {
+  width: min(100%, 32rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.35rem;
+  border: 4px double #7c2d12;
+  background: rgba(255, 253, 244, 0.98);
+  box-sizing: border-box;
+}
+
+.campaign-map-pin-dialog-header,
+.campaign-map-pin-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.campaign-map-pin-dialog-header p {
+  margin: 0 0 0.25rem;
+  color: #7c2d12;
+  font: 900 0.78rem/1.1 'Inter Tight', 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-map-pin-dialog-header h2 {
+  margin: 0;
+  color: #2b1a10;
+  font: 900 1.9rem/1 'Cotemporary', Palatino, Georgia, serif;
+}
+
+.campaign-map-pin-dialog-close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(124, 45, 18, 0.55);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: #7c2d12;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.campaign-map-pin-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.campaign-map-pin-field span {
+  color: #3b2415;
+  font: 900 0.78rem/1 'Inter Tight', 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-map-pin-field input,
+.campaign-map-pin-field textarea,
+.campaign-map-pin-field select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(124, 45, 18, 0.5);
+  background: #fffef7;
+  color: #1f1235;
+  font: 700 1rem/1.25 'Inter Tight', 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+}
+
+.campaign-map-pin-field textarea {
+  resize: vertical;
+}
+
+.campaign-map-pin-field select {
+  cursor: pointer;
+}
+
+.campaign-map-pin-field-invalid {
+  border-color: #dc2626 !important;
+}
+
+.campaign-map-pin-dialog-note {
+  margin: 0;
+  color: #7c2d12;
+  font: 800 0.88rem/1.3 'Inter Tight', 'Segoe UI', sans-serif;
+}
+
+.campaign-map-pin-dialog-actions {
+  justify-content: end;
+}
+
+.campaign-map-pin-primary-button,
+.campaign-map-pin-secondary-button {
+  min-width: 6.5rem;
+  min-height: 2.6rem;
+  padding: 0 1rem;
+  border-radius: 6px;
+  font: 900 0.9rem/1 'Inter Tight', 'Segoe UI', sans-serif;
+  cursor: pointer;
+}
+
+.campaign-map-pin-primary-button {
+  border: 1px solid #166534;
+  background: #166534;
+  color: #ffffff;
+}
+
+.campaign-map-pin-secondary-button {
+  border: 1px solid rgba(43, 26, 16, 0.5);
+  background: #fffef7;
+  color: #2b1a10;
+}
+
+.campaign-map-pin-context-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+}
+
+.campaign-map-pin-context-menu {
+  position: fixed;
+  display: grid;
+  min-width: 8rem;
+  overflow: hidden;
+  border: 2px solid rgba(124, 45, 18, 0.75);
+  border-radius: 6px;
+  background: #fffaf0;
+}
+
+.campaign-map-pin-context-menu button {
+  min-height: 2.35rem;
+  padding: 0 0.8rem;
+  border: 0;
+  border-bottom: 1px solid rgba(124, 45, 18, 0.24);
+  background: transparent;
+  color: #2b1a10;
+  font: 900 0.92rem/1 'Cotemporary', Palatino, Georgia, serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.campaign-map-pin-context-menu button:last-child {
+  border-bottom: 0;
+  color: #991b1b;
+}
+
+.campaign-map-pin-context-menu button:hover,
+.campaign-map-pin-context-menu button:focus-visible {
+  background: rgba(124, 45, 18, 0.1);
+  outline: 0;
+}

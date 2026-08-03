@@ -9,7 +9,18 @@ public sealed class PresentationModeStoryBlockResponse
 
     public IReadOnlyList<StoryBeatResponse> StoryBeats { get; init; } = [];
 
+    public IReadOnlyList<PresentationModeStoryBeatChoiceGroupResponse> IndexPathChoiceGroups { get; init; } = [];
+
     public IReadOnlyList<CampaignQuestResponse> Quests { get; init; } = [];
 
     public IReadOnlyList<StoryBeatQuestTaskResponse> StoryBeatQuestTaskLinks { get; init; } = [];
+}
+
+public sealed class PresentationModeStoryBeatChoiceGroupResponse
+{
+    public int OrderIndex { get; init; }
+
+    public StoryBeatIndexPathRuleResponse? IndexPathRule { get; init; }
+
+    public IReadOnlyList<StoryBeatResponse> StoryBeats { get; init; } = [];
 }

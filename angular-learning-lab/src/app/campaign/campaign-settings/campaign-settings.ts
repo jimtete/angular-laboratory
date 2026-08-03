@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { ApiError, CampaignApiService, PassiveSkillsCheck } from '../../Infrastructure';
+import { ApiError, CampaignApiService, PassiveSkillsCheck, StoreMechanics } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 
 @Component({
@@ -19,13 +19,20 @@ export class CampaignSettings implements OnInit {
   protected readonly maxPlayers = signal(1);
   protected readonly campaignDescription = signal('');
   protected readonly passiveSkillsCheck = signal<PassiveSkillsCheck>(PassiveSkillsCheck.Manual);
+  protected readonly storeMechanics = signal<StoreMechanics>(StoreMechanics.GlobalStores);
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly isPassiveSkillsInfoOpen = signal(false);
+  protected readonly isStoreMechanicsInfoOpen = signal(false);
   protected readonly passiveSkillCheckOptions = [
     { value: PassiveSkillsCheck.ProfficiencyBased, label: 'Proficiency Based' },
     { value: PassiveSkillsCheck.StatsBased, label: 'Stats Based' },
     { value: PassiveSkillsCheck.Manual, label: 'Manual' },
+  ];
+  protected readonly storeMechanicsOptions = [
+    { value: StoreMechanics.UnlockingStores, label: 'Unlocking Stores' },
+    { value: StoreMechanics.SeparateStores, label: 'Separate Stores' },
+    { value: StoreMechanics.GlobalStores, label: 'Global Stores' },
   ];
 
   ngOnInit(): void {
@@ -46,12 +53,26 @@ export class CampaignSettings implements OnInit {
     this.passiveSkillsCheck.set(Number((event.target as HTMLSelectElement).value));
   }
 
+  protected setStoreMechanics(event: Event): void {
+    this.storeMechanics.set(Number((event.target as HTMLSelectElement).value));
+  }
+
   protected showPassiveSkillsInfo(): void {
+    this.isStoreMechanicsInfoOpen.set(false);
     this.isPassiveSkillsInfoOpen.set(true);
   }
 
   protected closePassiveSkillsInfo(): void {
     this.isPassiveSkillsInfoOpen.set(false);
+  }
+
+  protected showStoreMechanicsInfo(): void {
+    this.isPassiveSkillsInfoOpen.set(false);
+    this.isStoreMechanicsInfoOpen.set(true);
+  }
+
+  protected closeStoreMechanicsInfo(): void {
+    this.isStoreMechanicsInfoOpen.set(false);
   }
 
   protected warnAboutLargeCampaignIfNeeded(): void {
@@ -82,6 +103,7 @@ export class CampaignSettings implements OnInit {
       .updateCampaignSettings(campaignId, {
         maxNumberOfPlayers: this.maxPlayers(),
         passiveSkillsCheck: this.passiveSkillsCheck(),
+        storeMechanics: this.storeMechanics(),
         campaignDescription: this.campaignDescription(),
       })
       .pipe(finalize(() => this.isSaving.set(false)))
@@ -90,6 +112,7 @@ export class CampaignSettings implements OnInit {
           if (response.data) {
             this.maxPlayers.set(this.clampMaxPlayers(response.data.maxNumberOfPlayers));
             this.passiveSkillsCheck.set(this.toPassiveSkillsCheck(response.data.passiveSkillsCheck));
+            this.storeMechanics.set(this.toStoreMechanics(response.data.storeMechanics));
             this.campaignDescription.set(response.data.campaignDescription ?? this.campaignDescription());
           }
 
@@ -122,6 +145,7 @@ export class CampaignSettings implements OnInit {
           if (response.data) {
             this.maxPlayers.set(this.clampMaxPlayers(response.data.maxNumberOfPlayers));
             this.passiveSkillsCheck.set(this.toPassiveSkillsCheck(response.data.passiveSkillsCheck));
+            this.storeMechanics.set(this.toStoreMechanics(response.data.storeMechanics));
             this.campaignDescription.set(response.data.campaignDescription ?? '');
           }
         },
@@ -157,6 +181,16 @@ export class CampaignSettings implements OnInit {
     }
 
     return PassiveSkillsCheck[value as keyof typeof PassiveSkillsCheck] ?? PassiveSkillsCheck.Manual;
+  }
+
+  private toStoreMechanics(
+    value: StoreMechanics | keyof typeof StoreMechanics | string | number,
+  ): StoreMechanics {
+    if (typeof value === 'number') {
+      return value in StoreMechanics ? value as StoreMechanics : StoreMechanics.GlobalStores;
+    }
+
+    return StoreMechanics[value as keyof typeof StoreMechanics] ?? StoreMechanics.GlobalStores;
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

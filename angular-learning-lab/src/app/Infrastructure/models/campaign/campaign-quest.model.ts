@@ -47,6 +47,20 @@ export interface CreateCampaignQuestRequest {
 
 export interface UpdateCampaignQuestRequest extends CreateCampaignQuestRequest {}
 
+export interface CampaignQuestDeleteBlockerModel {
+  blockerType: string;
+  message: string;
+  questTaskId: string;
+  questTaskTitle: string;
+  storyBlockId: string | null;
+  storyBlockTitle: string | null;
+  storyBlockOrderIndex: number | null;
+  storyBeatId: string | null;
+  storyBeatTitle: string | null;
+  storyBeatOrderIndex: number | null;
+  storyBeatSecondaryOrderIndex: number | null;
+}
+
 export interface StoryBeatQuestTaskModel {
   storyBeatId: string;
   questTaskId: string;

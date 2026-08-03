@@ -39,4 +39,10 @@ public interface ICampaignParticipationInviteService
         Guid userId,
         Guid campaignId,
         CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<bool>> RemovePlayerFromCampaignAsync(
+        Guid userId,
+        Guid campaignId,
+        string username,
+        CancellationToken cancellationToken = default);
 }

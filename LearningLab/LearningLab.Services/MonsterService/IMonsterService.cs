@@ -32,6 +32,12 @@ public interface IMonsterService
         int monsterId,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<bool>> RemoveMonsterFromCampaignAsync(
+        Guid userId,
+        Guid campaignId,
+        int monsterId,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<MonsterResponse>> UpdateMonsterBasicInformationAsync(
         int monsterId,
         UpdateMonsterBasicInformationRequest request,

@@ -27,6 +27,15 @@ export enum StoryBeatOptionalInformationPlacement {
   Inline = 1,
 }
 
+export enum StoryBeatIndexPathRuleRelationType {
+  And = 0,
+  Or = 1,
+  ExactlyOne = 2,
+}
+
+export type StoryBeatIndexPathRuleRelationTypeValue =
+  StoryBeatIndexPathRuleRelationType | keyof typeof StoryBeatIndexPathRuleRelationType | string | number;
+
 export interface StoryBlockModel {
   storyBlockId: string;
   campaignId: string;
@@ -44,6 +53,22 @@ export interface UpdateStoryBlockTitleRequest {
 
 export interface ReorderStoryBlocksRequest {
   storyBlockIds: string[];
+}
+
+export interface StoryBeatIndexPathRuleModel {
+  id: string;
+  campaignId: string;
+  storyBlockId: string;
+  orderIndex: number;
+  relationType: StoryBeatIndexPathRuleRelationTypeValue;
+  isRequired: boolean;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
+export interface UpsertStoryBeatIndexPathRuleRequest {
+  relationType: StoryBeatIndexPathRuleRelationType;
+  isRequired: boolean;
 }
 
 export interface StoryBeatOptionalInformationModel {
@@ -177,6 +202,7 @@ export interface StoryBeatModel {
   combat: StoryBeatCombatModel | null;
   transition: StoryBeatTransitionModel | null;
   milestone: CampaignMilestoneModel | null;
+  indexPathRule: StoryBeatIndexPathRuleModel | null;
 }
 
 export interface StoryBeatOptionalInformationRequest {

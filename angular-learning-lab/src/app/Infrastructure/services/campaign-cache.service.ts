@@ -1,20 +1,28 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, finalize, of, tap } from 'rxjs';
+import { Observable, finalize, forkJoin, map, of, tap } from 'rxjs';
 
 import { ApiResponse, CampaignModel } from '../models';
 import { CampaignApiService } from './campaign-api.service';
+import { TokenStorageService } from './token-storage.service';
+
+export type CampaignAccessKind = 'created' | 'joined';
+
+export interface CampaignCardModel extends CampaignModel {
+  accessKind: CampaignAccessKind;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class CampaignCacheService {
   private readonly campaignApiService = inject(CampaignApiService);
+  private readonly tokenStorage = inject(TokenStorageService);
   private hasLoaded = false;
 
-  readonly campaigns = signal<CampaignModel[]>([]);
+  readonly campaigns = signal<CampaignCardModel[]>([]);
   readonly isLoading = signal(false);
 
-  loadAvailableCampaigns(forceRefresh = false): Observable<ApiResponse<CampaignModel[]>> {
+  loadAvailableCampaigns(forceRefresh = false): Observable<ApiResponse<CampaignCardModel[]>> {
     if (this.hasLoaded && !forceRefresh) {
       return of({
         statusCode: 200,
@@ -25,7 +33,27 @@ export class CampaignCacheService {
 
     this.isLoading.set(true);
 
-    return this.campaignApiService.fetchAvailableCampaigns().pipe(
+    const createdCampaignsRequest = this.campaignApiService.fetchAvailableCampaigns();
+    const joinedCampaignsRequest = this.tokenStorage.hasAnyRole('Player')
+      ? this.campaignApiService.fetchJoinedCampaigns()
+      : of({
+        statusCode: 200,
+        message: 'Joined campaigns skipped.',
+        data: [] as CampaignModel[],
+      });
+
+    return forkJoin({
+      createdCampaigns: createdCampaignsRequest,
+      joinedCampaigns: joinedCampaignsRequest,
+    }).pipe(
+      map(({ createdCampaigns, joinedCampaigns }) => ({
+        statusCode: createdCampaigns.statusCode,
+        message: createdCampaigns.message,
+        data: this.toCampaignCards(
+          createdCampaigns.data ?? [],
+          joinedCampaigns.data ?? [],
+        ),
+      })),
       tap((response) => {
         this.campaigns.set(response.data ?? []);
         this.hasLoaded = true;
@@ -46,5 +74,26 @@ export class CampaignCacheService {
     this.campaigns.set([]);
     this.hasLoaded = false;
     this.isLoading.set(false);
+  }
+
+  private toCampaignCards(
+    createdCampaigns: CampaignModel[],
+    joinedCampaigns: CampaignModel[],
+  ): CampaignCardModel[] {
+    const createdCampaignIds = new Set(createdCampaigns.map((campaign) => campaign.campaignId));
+    const cards = [
+      ...createdCampaigns.map((campaign) => ({
+        ...campaign,
+        accessKind: 'created' as const,
+      })),
+      ...joinedCampaigns
+        .filter((campaign) => !createdCampaignIds.has(campaign.campaignId))
+        .map((campaign) => ({
+          ...campaign,
+          accessKind: 'joined' as const,
+        })),
+    ];
+
+    return cards;
   }
 }

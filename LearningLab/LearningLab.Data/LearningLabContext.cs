@@ -2,10 +2,12 @@ using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Assets;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Campaign.Maps;
 using LearningLab.Data.Models.Campaign.Presentation;
 using LearningLab.Data.Models.Campaign.Quests;
 using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.Campaign.Sessions;
+using LearningLab.Data.Models.Campaign.Stores;
 using LearningLab.Data.Models.Campaign.Story;
 using LearningLab.Data.Models.Character;
 using LearningLab.Data.Models.Monsters;
@@ -35,6 +37,10 @@ public class LearningLabContext : DbContext
     public DbSet<SessionNoteStoryBeatReference> SessionNoteStoryBeatReferences { get; set; }
     public DbSet<CampaignMilestone> CampaignMilestones { get; set; }
     public DbSet<Asset> Assets { get; set; }
+    public DbSet<Map> Maps { get; set; }
+    public DbSet<MapCampaign> MapCampaigns { get; set; }
+    public DbSet<MapPin> MapPins { get; set; }
+    public DbSet<MapPinConnection> MapPinConnections { get; set; }
     public DbSet<StoryBlock> StoryBlocks { get; set; }
     public DbSet<StoryBeat> StoryBeats { get; set; }
     public DbSet<StoryBeatIndexPathRule> StoryBeatIndexPathRules { get; set; }
@@ -53,6 +59,8 @@ public class LearningLabContext : DbContext
     public DbSet<CampaignChoiceDefinition> CampaignChoiceDefinitions { get; set; }
     public DbSet<CampaignChoiceOption> CampaignChoiceOptions { get; set; }
     public DbSet<CampaignChoiceSelection> CampaignChoiceSelections { get; set; }
+    public DbSet<StoreEntry> StoreEntries { get; set; }
+    public DbSet<StoreItem> StoreItems { get; set; }
     public DbSet<PlayerCampaignParticipation> PlayerCampaignParticipations { get; set; }
     public DbSet<CampaignParticipationInvite> CampaignParticipationInvites { get; set; }
     public DbSet<Notification> Notifications { get; set; }
@@ -1210,6 +1218,103 @@ public class LearningLabContext : DbContext
                 .HasMaxLength(64)
                 .HasConversion<string>()
                 .IsRequired();
+
+            entity.Property(settings => settings.StoreMechanics)
+                .HasColumnName("store_mechanics")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .HasDefaultValue(StoreMechanics.GlobalStores)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<StoreEntry>(entity =>
+        {
+            entity.ToTable("StoreEntries");
+
+            entity.HasKey(store => store.StoreId);
+
+            entity.Property(store => store.StoreId)
+                .HasColumnName("store_id");
+
+            entity.Property(store => store.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(store => store.StoreType)
+                .HasColumnName("store_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(store => store.StoreLocation)
+                .HasColumnName("store_location")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(store => store.StoreName)
+                .HasColumnName("store_name")
+                .HasMaxLength(256);
+
+            entity.Property(store => store.StoreDescription)
+                .HasColumnName("store_description")
+                .HasMaxLength(4096);
+
+            entity.HasIndex(store => store.CampaignId);
+
+            entity.HasMany(store => store.Items)
+                .WithOne(item => item.Store)
+                .HasForeignKey(item => item.StoreId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(store => store.Campaign)
+                .WithMany(campaign => campaign.Stores)
+                .HasForeignKey(store => store.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StoreItem>(entity =>
+        {
+            entity.ToTable("StoreItems");
+
+            entity.HasKey(item => item.StoreItemId);
+
+            entity.Property(item => item.StoreItemId)
+                .HasColumnName("store_item_id");
+
+            entity.Property(item => item.StoreId)
+                .HasColumnName("store_id");
+
+            entity.Property(item => item.Quantity)
+                .HasColumnName("quantity");
+
+            entity.Property(item => item.TimesSold)
+                .HasColumnName("times_sold")
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(item => item.ItemName)
+                .HasColumnName("item_name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(item => item.ItemDescription)
+                .HasColumnName("item_description")
+                .HasMaxLength(4096);
+
+            entity.Property(item => item.ItemPrice)
+                .HasColumnName("item_price")
+                .IsRequired();
+
+            entity.Property(item => item.ItemPriceDiscount)
+                .HasColumnName("item_price_discount")
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.Property(item => item.ItemPricePercentageDiscount)
+                .HasColumnName("item_price_percentage_discount")
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            entity.HasIndex(item => item.StoreId);
         });
 
         modelBuilder.Entity<PlayerCampaignParticipation>(entity =>
@@ -1973,6 +2078,17 @@ public class LearningLabContext : DbContext
                 .HasColumnName("campaign_ids")
                 .HasColumnType("nvarchar(max)");
 
+            entity.Property(asset => asset.AssetUrl)
+                .HasColumnName("asset_url")
+                .HasMaxLength(1024);
+
+            entity.Property(asset => asset.ContentType)
+                .HasColumnName("content_type")
+                .HasMaxLength(128);
+
+            entity.Property(asset => asset.FileSizeBytes)
+                .HasColumnName("file_size_bytes");
+
             entity.Property(asset => asset.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
@@ -1992,6 +2108,241 @@ public class LearningLabContext : DbContext
             {
                 asset.ParentAssetId,
                 asset.Name
+            })
+            .IsUnique();
+        });
+
+        modelBuilder.Entity<Map>(entity =>
+        {
+            entity.ToTable("Maps");
+
+            entity.HasKey(map => map.Id);
+
+            entity.Property(map => map.Id)
+                .HasColumnName("map_id");
+
+            entity.Property(map => map.ParentMapId)
+                .HasColumnName("parent_map_id");
+
+            entity.Property(map => map.AssetId)
+                .HasColumnName("asset_id")
+                .IsRequired();
+
+            entity.Property(map => map.Category)
+                .HasColumnName("category")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(map => map.ImageWidthPixels)
+                .HasColumnName("image_width_pixels")
+                .IsRequired();
+
+            entity.Property(map => map.ImageHeightPixels)
+                .HasColumnName("image_height_pixels")
+                .IsRequired();
+
+            entity.Property(map => map.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(map => map.Description)
+                .HasColumnName("description")
+                .HasMaxLength(4096)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(map => map.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(map => map.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(map => map.Asset)
+                .WithMany(asset => asset.Maps)
+                .HasForeignKey(map => map.AssetId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(map => map.ParentMap)
+                .WithMany(map => map.ChildMaps)
+                .HasForeignKey(map => map.ParentMapId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(map => map.AssetId)
+                .IsUnique();
+
+            entity.HasIndex(map => map.ParentMapId);
+
+            entity.HasIndex(map => map.Name);
+        });
+
+        modelBuilder.Entity<MapCampaign>(entity =>
+        {
+            entity.ToTable("MapCampaigns");
+
+            entity.HasKey(mapCampaign => new
+            {
+                mapCampaign.MapId,
+                mapCampaign.CampaignId
+            });
+
+            entity.Property(mapCampaign => mapCampaign.MapId)
+                .HasColumnName("map_id");
+
+            entity.Property(mapCampaign => mapCampaign.CampaignId)
+                .HasColumnName("campaign_id");
+
+            entity.Property(mapCampaign => mapCampaign.DateAdded)
+                .HasColumnName("date_added")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(mapCampaign => mapCampaign.Map)
+                .WithMany(map => map.Campaigns)
+                .HasForeignKey(mapCampaign => mapCampaign.MapId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(mapCampaign => mapCampaign.Campaign)
+                .WithMany(campaign => campaign.MapCampaigns)
+                .HasForeignKey(mapCampaign => mapCampaign.CampaignId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(mapCampaign => mapCampaign.CampaignId);
+        });
+
+        modelBuilder.Entity<MapPin>(entity =>
+        {
+            entity.ToTable("MapPins");
+
+            entity.HasKey(pin => pin.Id);
+
+            entity.Property(pin => pin.Id)
+                .HasColumnName("map_pin_id");
+
+            entity.Property(pin => pin.MapId)
+                .HasColumnName("map_id")
+                .IsRequired();
+
+            entity.Property(pin => pin.XCoordinate)
+                .HasColumnName("x_coordinate")
+                .HasColumnType("decimal(18,4)")
+                .IsRequired();
+
+            entity.Property(pin => pin.YCoordinate)
+                .HasColumnName("y_coordinate")
+                .HasColumnType("decimal(18,4)")
+                .IsRequired();
+
+            entity.Property(pin => pin.Label)
+                .HasColumnName("label")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(pin => pin.Description)
+                .HasColumnName("description")
+                .HasMaxLength(4096)
+                .HasDefaultValue("")
+                .IsRequired();
+
+            entity.Property(pin => pin.TargetType)
+                .HasColumnName("target_type")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .IsRequired();
+
+            entity.Property(pin => pin.TargetId)
+                .HasColumnName("target_id")
+                .HasMaxLength(128);
+
+            entity.Property(pin => pin.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(pin => pin.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(pin => pin.Map)
+                .WithMany(map => map.Pins)
+                .HasForeignKey(pin => pin.MapId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(pin => pin.MapId);
+        });
+
+        modelBuilder.Entity<MapPinConnection>(entity =>
+        {
+            entity.ToTable("MapPinConnections");
+
+            entity.HasKey(connection => connection.Id);
+
+            entity.Property(connection => connection.Id)
+                .HasColumnName("map_pin_connection_id");
+
+            entity.Property(connection => connection.MapId)
+                .HasColumnName("map_id")
+                .IsRequired();
+
+            entity.Property(connection => connection.MapPinAId)
+                .HasColumnName("map_pin_a_id")
+                .IsRequired();
+
+            entity.Property(connection => connection.MapPinBId)
+                .HasColumnName("map_pin_b_id")
+                .IsRequired();
+
+            entity.Property(connection => connection.DistanceValue)
+                .HasColumnName("distance_value")
+                .HasColumnType("decimal(18,2)");
+
+            entity.Property(connection => connection.DistanceUnit)
+                .HasColumnName("distance_unit")
+                .HasMaxLength(64)
+                .HasConversion<string>();
+
+            entity.Property(connection => connection.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(connection => connection.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(connection => connection.Map)
+                .WithMany(map => map.PinConnections)
+                .HasForeignKey(connection => connection.MapId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(connection => connection.MapPinA)
+                .WithMany(pin => pin.ConnectionsAsA)
+                .HasForeignKey(connection => connection.MapPinAId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(connection => connection.MapPinB)
+                .WithMany(pin => pin.ConnectionsAsB)
+                .HasForeignKey(connection => connection.MapPinBId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(connection => connection.MapId);
+
+            entity.HasIndex(connection => connection.MapPinAId);
+
+            entity.HasIndex(connection => connection.MapPinBId);
+
+            entity.HasIndex(connection => new
+            {
+                connection.MapId,
+                connection.MapPinAId,
+                connection.MapPinBId
             })
             .IsUnique();
         });

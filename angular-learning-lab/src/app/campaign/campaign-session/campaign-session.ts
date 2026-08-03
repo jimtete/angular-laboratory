@@ -33,6 +33,9 @@ import {
   AbilityValue,
   StoryBeatModel,
   StoryBeatDecisionOptionModel,
+  StoryBeatIndexPathRuleModel,
+  StoryBeatIndexPathRuleRelationType,
+  StoryBeatIndexPathRuleRelationTypeValue,
   StoryBeatOptionalInformationModel,
   StoryBeatOptionalInformationPlacement,
   StoryBeatRoleplayingCheckType,
@@ -140,6 +143,7 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected readonly roleplayingChecklist = signal<Record<string, boolean>>({});
   protected readonly isPresentationModeVisible = signal(false);
   protected readonly isSessionPlayersPanelOpen = signal(false);
+  protected readonly expandedFinishedPresentationStoryBlockIds = signal<Set<string>>(new Set());
   protected readonly markingRoleplayingInformationIds = signal<Set<string>>(new Set());
   protected readonly markingDecisionOptionIds = signal<Set<string>>(new Set());
   private allowNativeContextMenuNoteId: number | null = null;
@@ -194,7 +198,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     Skill.Survival,
   ];
   protected readonly playedStoryBeatIds = computed(() => new Set(
-    this.orderedNotes()
+    [
+      ...this.sessions().flatMap((session) => session.notes ?? []),
+      ...this.orderedNotes(),
+    ]
       .filter((note) => this.isFullStoryBeatPlayedNote(note))
       .map((note) => note.storyBeatId)
       .filter((storyBeatId): storyBeatId is string => Boolean(storyBeatId)),
@@ -205,12 +212,33 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected readonly presentationStoryBlocks = computed(() => this.presentationWorkspace()?.storyBlocks ?? []);
   protected readonly availablePresentationStoryBlocks = computed(() => {
     const playedStoryBeatIds = this.playedStoryBeatIds();
+    const currentStoryBeatId = this.currentPresentationStoryBeatId();
+    const currentStoryBeat = currentStoryBeatId
+      ? this.presentationStoryBlocks()
+        .flatMap((block) => block.storyBeats)
+        .find((storyBeat) => storyBeat.storyBeatId === currentStoryBeatId) ?? null
+      : null;
 
     return this.presentationStoryBlocks().map((block) => ({
       ...block,
-      storyBeats: block.storyBeats.filter((storyBeat) => !playedStoryBeatIds.has(storyBeat.storyBeatId)),
+      storyBeats: block.storyBeats.filter((storyBeat) => (
+        this.shouldShowPresentationBoardStoryBeat(storyBeat, playedStoryBeatIds, currentStoryBeat)
+      )),
       storyBeatQuestTaskLinks: block.storyBeatQuestTaskLinks
-        .filter((link) => !playedStoryBeatIds.has(link.storyBeatId)),
+        .filter((link) => {
+          if (!playedStoryBeatIds.has(link.storyBeatId)) {
+            return true;
+          }
+
+          return Boolean(currentStoryBeat &&
+            link.storyBeatId &&
+            !this.isPresentationIndexSatisfied(currentStoryBeat, playedStoryBeatIds) &&
+            block.storyBeats.some((storyBeat) => (
+              storyBeat.storyBeatId === link.storyBeatId &&
+              storyBeat.storyBlockId === currentStoryBeat.storyBlockId &&
+              storyBeat.orderIndex === currentStoryBeat.orderIndex
+            )));
+        }),
     }));
   });
   protected readonly currentPresentationStoryBeatId = computed(() => (
@@ -240,6 +268,30 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       .flatMap((block) => block.storyBeats)
       .find((storyBeat) => storyBeat.storyBeatId === storyBeatId) ?? null;
   });
+  protected readonly currentPresentationStoryBeatChoices = computed(() => {
+    const currentStoryBeat = this.currentPresentationStoryBeat();
+    const currentStoryBlock = this.currentPresentationStoryBlock();
+
+    if (!currentStoryBeat ||
+      !currentStoryBlock ||
+      this.isPresentationIndexSatisfied(currentStoryBeat, this.playedStoryBeatIds())) {
+      return [];
+    }
+
+    const socketChoiceGroup = currentStoryBlock.indexPathChoiceGroups
+      ?.find((choiceGroup) => choiceGroup.orderIndex === currentStoryBeat.orderIndex);
+    const choices = (socketChoiceGroup?.storyBeats?.length ? socketChoiceGroup.storyBeats : currentStoryBlock.storyBeats)
+      .filter((storyBeat) => (
+        storyBeat.storyBlockId === currentStoryBeat.storyBlockId &&
+        storyBeat.orderIndex === currentStoryBeat.orderIndex
+      ))
+      .sort((first, second) => (
+        first.secondaryOrderIndex - second.secondaryOrderIndex ||
+        first.storyBeatId.localeCompare(second.storyBeatId)
+      ));
+
+    return choices.length > 1 ? choices : [];
+  });
   protected readonly currentPresentationQuestTaskTitles = computed(() => {
     const storyBeat = this.currentPresentationStoryBeat();
 
@@ -256,6 +308,25 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
     return this.presentationWorkspace() ? 'Presentation Active' : 'Enable Presentation Mode';
   });
+
+  private shouldShowPresentationBoardStoryBeat(
+    storyBeat: StoryBeatModel,
+    playedStoryBeatIds: ReadonlySet<string>,
+    currentStoryBeat: StoryBeatModel | null,
+  ): boolean {
+    if (!playedStoryBeatIds.has(storyBeat.storyBeatId)) {
+      if (this.isPresentationIndexSatisfied(storyBeat, playedStoryBeatIds)) {
+        return false;
+      }
+
+      return true;
+    }
+
+    return Boolean(currentStoryBeat &&
+      !this.isPresentationIndexSatisfied(currentStoryBeat, playedStoryBeatIds) &&
+          storyBeat.storyBlockId === currentStoryBeat.storyBlockId &&
+          storyBeat.orderIndex === currentStoryBeat.orderIndex);
+  }
   protected readonly selectedMechanicsChanges = computed(() => this.toMechanicsChangeRequests());
   protected readonly headerText = computed(() => {
     const session = this.session();
@@ -676,6 +747,33 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     return this.activePresentationStoryBlockId() === block.storyBlock.storyBlockId;
   }
 
+  protected isFinishedPresentationStoryBlock(block: PresentationModeStoryBlockModel): boolean {
+    const originalBlock = this.presentationStoryBlocks()
+      .find((candidate) => candidate.storyBlock.storyBlockId === block.storyBlock.storyBlockId);
+
+    return block.storyBeats.length === 0 && Boolean(originalBlock?.storyBeats.length);
+  }
+
+  protected isFinishedPresentationStoryBlockExpanded(block: PresentationModeStoryBlockModel): boolean {
+    return this.expandedFinishedPresentationStoryBlockIds().has(block.storyBlock.storyBlockId);
+  }
+
+  protected toggleFinishedPresentationStoryBlock(block: PresentationModeStoryBlockModel): void {
+    const storyBlockId = block.storyBlock.storyBlockId;
+
+    this.expandedFinishedPresentationStoryBlockIds.update((expandedIds) => {
+      const nextExpandedIds = new Set(expandedIds);
+
+      if (nextExpandedIds.has(storyBlockId)) {
+        nextExpandedIds.delete(storyBlockId);
+      } else {
+        nextExpandedIds.add(storyBlockId);
+      }
+
+      return nextExpandedIds;
+    });
+  }
+
   protected isCurrentPresentationStoryBeat(storyBeat: StoryBeatModel): boolean {
     return this.currentPresentationStoryBeatId() === storyBeat.storyBeatId;
   }
@@ -687,6 +785,78 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
   protected storyBeatTypeLabel(storyBeat: StoryBeatModel): string {
     return StoryBeatType[this.toStoryBeatType(storyBeat.storyBeatType)] ?? 'Story Beat';
+  }
+
+  protected presentationIndexPathRuleFor(storyBeat: StoryBeatModel): StoryBeatIndexPathRuleModel | null {
+    if (storyBeat.indexPathRule) {
+      return storyBeat.indexPathRule;
+    }
+
+    return this.presentationStoryBlocks()
+      .find((block) => block.storyBeats.some((beat) => beat.storyBeatId === storyBeat.storyBeatId))
+      ?.storyBeats.find((beat) => (
+        beat.storyBlockId === storyBeat.storyBlockId &&
+        beat.orderIndex === storyBeat.orderIndex &&
+        beat.indexPathRule
+      ))?.indexPathRule ?? null;
+  }
+
+  protected hasPresentationIndexPathRule(storyBeat: StoryBeatModel): boolean {
+    return this.presentationIndexPathRuleFor(storyBeat) !== null &&
+      this.presentationIndexPathSiblingCount(storyBeat) > 1;
+  }
+
+  protected isPresentationIndexChoice(storyBeat: StoryBeatModel): boolean {
+    return this.presentationIndexPathSiblingCount(storyBeat) > 1;
+  }
+
+  protected presentationIndexChoiceLabel(storyBeat: StoryBeatModel): string {
+    const siblings = this.presentationIndexPathSiblings(storyBeat);
+    const index = siblings.findIndex((choice) => choice.storyBeatId === storyBeat.storyBeatId);
+
+    return index >= 0
+      ? `Choice ${index + 1} of ${siblings.length}`
+      : 'Choice';
+  }
+
+  protected presentationIndexPathRuleLabel(storyBeat: StoryBeatModel): string {
+    const rule = this.presentationIndexPathRuleFor(storyBeat);
+
+    return this.presentationIndexPathRelationLabel(rule?.relationType);
+  }
+
+  protected presentationIndexPathRuleGuidance(storyBeat: StoryBeatModel): string {
+    const rule = this.presentationIndexPathRuleFor(storyBeat);
+    const relationType = this.toStoryBeatIndexPathRuleRelationType(rule?.relationType);
+    const count = this.presentationIndexPathSiblingCount(storyBeat);
+
+    switch (relationType) {
+      case StoryBeatIndexPathRuleRelationType.ExactlyOne:
+        return `Exactly One: allow only one choice from these ${count} upcoming paths.`;
+      case StoryBeatIndexPathRuleRelationType.Or:
+        return `OR: allow at least one choice, up to all ${count} upcoming paths.`;
+      case StoryBeatIndexPathRuleRelationType.And:
+        return `AND: allow only all ${count} upcoming choices as a full set.`;
+      default:
+        return 'No index path statement configured.';
+    }
+  }
+
+  protected presentationIndexPathRuleClass(storyBeat: StoryBeatModel): string {
+    const relationType = this.toStoryBeatIndexPathRuleRelationType(
+      this.presentationIndexPathRuleFor(storyBeat)?.relationType,
+    );
+
+    switch (relationType) {
+      case StoryBeatIndexPathRuleRelationType.ExactlyOne:
+        return 'campaign-session-presentation-index-path-exactly-one';
+      case StoryBeatIndexPathRuleRelationType.Or:
+        return 'campaign-session-presentation-index-path-or';
+      case StoryBeatIndexPathRuleRelationType.And:
+        return 'campaign-session-presentation-index-path-and';
+      default:
+        return '';
+    }
   }
 
   protected storyBeatPreview(storyBeat: StoryBeatModel): string {
@@ -2195,6 +2365,93 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     }
 
     return Skill[skill as keyof typeof Skill] as Skill | undefined ?? null;
+  }
+
+  private presentationIndexPathSiblingCount(storyBeat: StoryBeatModel): number {
+    return this.presentationIndexPathSiblings(storyBeat).length;
+  }
+
+  private isPresentationIndexSatisfied(
+    storyBeat: StoryBeatModel,
+    playedStoryBeatIds: ReadonlySet<string>,
+  ): boolean {
+    const siblings = this.presentationIndexPathSiblings(storyBeat);
+
+    if (siblings.length <= 1) {
+      return playedStoryBeatIds.has(storyBeat.storyBeatId);
+    }
+
+    if (siblings.every((sibling) => playedStoryBeatIds.has(sibling.storyBeatId))) {
+      return true;
+    }
+
+    const relationType = this.toStoryBeatIndexPathRuleRelationType(
+      this.presentationIndexPathRuleFor(storyBeat)?.relationType,
+    );
+
+    switch (relationType) {
+      case StoryBeatIndexPathRuleRelationType.ExactlyOne:
+      case StoryBeatIndexPathRuleRelationType.Or:
+        return siblings.some((sibling) => playedStoryBeatIds.has(sibling.storyBeatId));
+      case StoryBeatIndexPathRuleRelationType.And:
+        return siblings.every((sibling) => playedStoryBeatIds.has(sibling.storyBeatId));
+      default:
+        return false;
+    }
+  }
+
+  private presentationIndexPathSiblings(storyBeat: StoryBeatModel): StoryBeatModel[] {
+    return this.presentationStoryBlocks()
+      .find((block) => block.storyBeats.some((beat) => beat.storyBeatId === storyBeat.storyBeatId))
+      ?.storyBeats.filter((beat) => (
+        beat.storyBlockId === storyBeat.storyBlockId &&
+        beat.orderIndex === storyBeat.orderIndex
+      ))
+      .sort((first, second) => (
+        first.secondaryOrderIndex - second.secondaryOrderIndex ||
+        first.storyBeatId.localeCompare(second.storyBeatId)
+      )) ?? [];
+  }
+
+  private presentationIndexPathRelationLabel(
+    relationType: StoryBeatIndexPathRuleRelationTypeValue | null | undefined,
+  ): string {
+    switch (this.toStoryBeatIndexPathRuleRelationType(relationType)) {
+      case StoryBeatIndexPathRuleRelationType.ExactlyOne:
+        return 'Exactly One';
+      case StoryBeatIndexPathRuleRelationType.Or:
+        return 'OR';
+      case StoryBeatIndexPathRuleRelationType.And:
+        return 'AND';
+      default:
+        return 'Path';
+    }
+  }
+
+  private toStoryBeatIndexPathRuleRelationType(
+    relationType: StoryBeatIndexPathRuleRelationTypeValue | null | undefined,
+  ): StoryBeatIndexPathRuleRelationType | null {
+    if (relationType === null || relationType === undefined) {
+      return null;
+    }
+
+    if (typeof relationType === 'number') {
+      return relationType in StoryBeatIndexPathRuleRelationType
+        ? relationType as StoryBeatIndexPathRuleRelationType
+        : null;
+    }
+
+    const parsedRelationType = Number(relationType);
+
+    if (Number.isFinite(parsedRelationType)) {
+      return parsedRelationType in StoryBeatIndexPathRuleRelationType
+        ? parsedRelationType as StoryBeatIndexPathRuleRelationType
+        : null;
+    }
+
+    return StoryBeatIndexPathRuleRelationType[
+      relationType as keyof typeof StoryBeatIndexPathRuleRelationType
+    ] ?? null;
   }
 
   private hasSkill(skills: SkillValue[] | null | undefined, skill: Skill): boolean {

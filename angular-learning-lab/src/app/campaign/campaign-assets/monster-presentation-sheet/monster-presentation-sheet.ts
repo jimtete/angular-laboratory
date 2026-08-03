@@ -27,6 +27,7 @@ export class MonsterPresentationSheet implements OnInit {
 
   protected readonly monster = signal<MonsterModel | null>(null);
   protected readonly isLoadingMonster = signal(false);
+  protected readonly isRemovingFromCampaign = signal(false);
   protected readonly loadError = signal('');
   protected readonly abilityNames = MONSTER_ABILITY_OPTIONS;
 
@@ -35,10 +36,9 @@ export class MonsterPresentationSheet implements OnInit {
   }
 
   protected goBack(): void {
-    const campaignId = this.route.snapshot.queryParamMap.get('campaignId');
-    const returnTab = this.route.snapshot.queryParamMap.get('returnTab');
+    const campaignId = this.getReturnCampaignId();
 
-    if (campaignId && returnTab === 'combat-npcs') {
+    if (campaignId && this.isCombatNpcsReturnContext()) {
       void this.router.navigate(
         ['/campaigns', campaignId, 'campaign-content'],
         { queryParams: { tab: 'combat-npcs' } },
@@ -47,6 +47,37 @@ export class MonsterPresentationSheet implements OnInit {
     }
 
     void this.router.navigate(['/assets']);
+  }
+
+  protected canRemoveFromCampaign(): boolean {
+    return !!this.getReturnCampaignId() && this.isCombatNpcsReturnContext();
+  }
+
+  protected removeFromCampaign(): void {
+    const campaignId = this.getReturnCampaignId();
+    const monsterId = this.getMonsterId();
+
+    if (!campaignId || !monsterId || this.isRemovingFromCampaign()) {
+      return;
+    }
+
+    this.isRemovingFromCampaign.set(true);
+
+    this.monsterApiService
+      .removeMonsterFromCampaign(campaignId, monsterId)
+      .pipe(finalize(() => this.isRemovingFromCampaign.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.modalHelper.showSuccess(response.message);
+          this.goBack();
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Monster could not be removed from campaign.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
   }
 
   protected abilityScore(monster: MonsterModel, abilityName: string): number {
@@ -91,9 +122,9 @@ export class MonsterPresentationSheet implements OnInit {
   }
 
   private loadMonster(): void {
-    const monsterId = Number(this.route.snapshot.paramMap.get('monsterId'));
+    const monsterId = this.getMonsterId();
 
-    if (!Number.isInteger(monsterId) || monsterId < 1) {
+    if (!monsterId) {
       this.loadError.set('Monster id is invalid.');
       return;
     }
@@ -120,6 +151,22 @@ export class MonsterPresentationSheet implements OnInit {
           this.modalHelper.showError(message, { statusCode: this.getErrorStatus(error) });
         },
       });
+  }
+
+  private getMonsterId(): number | null {
+    const monsterId = Number(this.route.snapshot.paramMap.get('monsterId'));
+
+    return Number.isInteger(monsterId) && monsterId > 0
+      ? monsterId
+      : null;
+  }
+
+  private getReturnCampaignId(): string | null {
+    return this.route.snapshot.queryParamMap.get('campaignId');
+  }
+
+  private isCombatNpcsReturnContext(): boolean {
+    return this.route.snapshot.queryParamMap.get('returnTab') === 'combat-npcs';
   }
 
   private toFeatureCategory(

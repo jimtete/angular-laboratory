@@ -32,6 +32,11 @@ public interface IMonsterRepository
         int monsterId,
         CancellationToken cancellationToken = default);
 
+    Task<CampaignNpcParticipation?> GetCampaignParticipationAsync(
+        Guid campaignId,
+        int monsterId,
+        CancellationToken cancellationToken = default);
+
     Task<int> CountCampaignParticipationsByMonsterIdsAsync(
         Guid campaignId,
         IReadOnlyCollection<int> monsterIds,
@@ -44,6 +49,8 @@ public interface IMonsterRepository
     Task AddCampaignParticipationAsync(
         CampaignNpcParticipation participation,
         CancellationToken cancellationToken = default);
+
+    void RemoveCampaignParticipation(CampaignNpcParticipation participation);
 
     void Remove(Monster monster);
 

@@ -38,6 +38,7 @@ import {
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 
 type ProficiencyLevel = 'half' | 'full' | 'expertise';
+type RemovePlayerStep = 'warning' | 'confirm';
 type SkillIconKey =
   | 'acrobatics'
   | 'animalHandling'
@@ -113,6 +114,14 @@ export class CampaignMembers {
   protected readonly invitingUsername = signal<string | null>(null);
   protected readonly nicknameDrafts = signal<Record<string, string>>({});
   protected readonly savingNicknameUsername = signal<string | null>(null);
+  protected readonly removePlayerMember = signal<CampaignMemberInformationModel | null>(null);
+  protected readonly removePlayerStep = signal<RemovePlayerStep>('warning');
+  protected readonly removePlayerConfirmationDraft = signal('');
+  protected readonly removingPlayerUsername = signal<string | null>(null);
+  protected readonly canConfirmRemovePlayer = computed(() => (
+    this.removePlayerConfirmationDraft() === 'DELETE' &&
+    this.removingPlayerUsername() === null
+  ));
   private readonly unavailableUsernames = signal<ReadonlySet<string>>(new Set<string>());
   protected readonly skillDefinitions: SkillDefinition[] = [
     { skill: Skill.Acrobatics, label: 'Acrobatics', icon: 'acrobatics' },
@@ -290,6 +299,74 @@ export class CampaignMembers {
       member.userId,
       'proficiencies',
     ]);
+  }
+
+  protected openRemovePlayerDialog(member: CampaignMemberInformationModel): void {
+    if (!this.isMaster() || this.removingPlayerUsername()) {
+      return;
+    }
+
+    this.removePlayerMember.set(member);
+    this.removePlayerStep.set('warning');
+    this.removePlayerConfirmationDraft.set('');
+  }
+
+  protected closeRemovePlayerDialog(): void {
+    if (this.removingPlayerUsername()) {
+      return;
+    }
+
+    this.removePlayerMember.set(null);
+    this.removePlayerStep.set('warning');
+    this.removePlayerConfirmationDraft.set('');
+  }
+
+  protected continueRemovePlayerDialog(): void {
+    if (!this.removePlayerMember() || this.removingPlayerUsername()) {
+      return;
+    }
+
+    this.removePlayerStep.set('confirm');
+    this.removePlayerConfirmationDraft.set('');
+  }
+
+  protected setRemovePlayerConfirmationDraft(event: Event): void {
+    this.removePlayerConfirmationDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  protected removePlayerFromCampaign(): void {
+    const campaignId = this.getCampaignId();
+    const member = this.removePlayerMember();
+
+    if (!campaignId || !member || !this.canConfirmRemovePlayer()) {
+      return;
+    }
+
+    this.removingPlayerUsername.set(member.username);
+
+    this.campaignApiService
+      .removeCampaignPlayer(campaignId, member.username)
+      .pipe(finalize(() => this.removingPlayerUsername.set(null)))
+      .subscribe({
+        next: (response) => {
+          this.campaignInformationCache.removeJoinedMember(member.username);
+          this.nicknameDrafts.update((drafts) => {
+            const nextDrafts = { ...drafts };
+            delete nextDrafts[member.username];
+            return nextDrafts;
+          });
+          this.removePlayerMember.set(null);
+          this.removePlayerStep.set('warning');
+          this.removePlayerConfirmationDraft.set('');
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Player could not be removed from the campaign.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
   }
 
   protected handleProficienciesKeydown(

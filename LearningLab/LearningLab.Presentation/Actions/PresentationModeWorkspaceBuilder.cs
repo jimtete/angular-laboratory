@@ -184,6 +184,11 @@ public sealed class PresentationModeWorkspaceBuilder
         IReadOnlyList<CampaignQuestResponse> quests,
         IReadOnlyList<StoryBeatQuestTaskResponse> questTaskLinks)
     {
+        var orderedStoryBeats = storyBeats
+            .OrderBy(beat => beat.OrderIndex)
+            .ThenBy(beat => beat.SecondaryOrderIndex)
+            .ThenBy(beat => beat.StoryBeatId)
+            .ToList();
         var storyBeatIds = storyBeats
             .Select(beat => beat.StoryBeatId)
             .ToHashSet();
@@ -197,11 +202,38 @@ public sealed class PresentationModeWorkspaceBuilder
         return new PresentationModeStoryBlockResponse
         {
             StoryBlock = storyBlock,
-            StoryBeats = storyBeats,
+            StoryBeats = orderedStoryBeats,
+            IndexPathChoiceGroups = BuildIndexPathChoiceGroups(orderedStoryBeats),
             Quests = quests
                 .Where(quest => questIds.Contains(quest.QuestId))
                 .ToList(),
             StoryBeatQuestTaskLinks = blockQuestTaskLinks
         };
+    }
+
+    private static IReadOnlyList<PresentationModeStoryBeatChoiceGroupResponse> BuildIndexPathChoiceGroups(
+        IReadOnlyList<StoryBeatResponse> storyBeats)
+    {
+        return storyBeats
+            .GroupBy(beat => beat.OrderIndex)
+            .Where(group => group.Count() > 1)
+            .OrderBy(group => group.Key)
+            .Select(group =>
+            {
+                var groupedStoryBeats = group
+                    .OrderBy(beat => beat.SecondaryOrderIndex)
+                    .ThenBy(beat => beat.StoryBeatId)
+                    .ToList();
+
+                return new PresentationModeStoryBeatChoiceGroupResponse
+                {
+                    OrderIndex = group.Key,
+                    IndexPathRule = groupedStoryBeats
+                        .Select(beat => beat.IndexPathRule)
+                        .FirstOrDefault(rule => rule is not null),
+                    StoryBeats = groupedStoryBeats
+                };
+            })
+            .ToList();
     }
 }

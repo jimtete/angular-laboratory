@@ -57,6 +57,21 @@ export class CampaignInformationCacheService {
     });
   }
 
+  removeJoinedMember(username: string): void {
+    this.campaignInformation.update((campaignInformation) => {
+      if (!campaignInformation) {
+        return campaignInformation;
+      }
+
+      return {
+        ...campaignInformation,
+        joinedMembers: campaignInformation.joinedMembers.filter((joinedMember) =>
+          this.normalizeUsername(joinedMember.username) !== this.normalizeUsername(username),
+        ),
+      };
+    });
+  }
+
   clear(): void {
     this.campaignInformation.set(null);
     this.loadedCampaignId = null;

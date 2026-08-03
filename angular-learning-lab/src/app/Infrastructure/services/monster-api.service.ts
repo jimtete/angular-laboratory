@@ -45,6 +45,12 @@ export class MonsterApiService {
     );
   }
 
+  removeMonsterFromCampaign(campaignId: string, monsterId: number): Observable<ApiResponse<boolean>> {
+    return this.apiClient.delete<ApiResponse<boolean>>(
+      `/api/campaigns/${campaignId}/monsters/${monsterId}`,
+    );
+  }
+
   createMonster(request: CreateMonsterRequest): Observable<ApiResponse<MonsterModel>> {
     return this.apiClient.post<ApiResponse<MonsterModel>, CreateMonsterRequest>(
       '/api/monsters',

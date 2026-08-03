@@ -1,6 +1,6 @@
 import { CampaignQuestModel, StoryBeatQuestTaskModel } from './campaign-quest.model';
 import { CampaignSessionModel } from './campaign-session.model';
-import { StoryBeatModel, StoryBlockModel } from './campaign-story.model';
+import { StoryBeatIndexPathRuleModel, StoryBeatModel, StoryBlockModel } from './campaign-story.model';
 
 export interface CampaignPresentationEntryModel {
   id: number;
@@ -35,9 +35,16 @@ export interface CampaignPresentationModel {
   storyBeatSelections: CampaignPresentationStoryBeatSelectionModel[];
 }
 
+export interface PresentationModeStoryBeatChoiceGroupModel {
+  orderIndex: number;
+  indexPathRule: StoryBeatIndexPathRuleModel | null;
+  storyBeats: StoryBeatModel[];
+}
+
 export interface PresentationModeStoryBlockModel {
   storyBlock: StoryBlockModel;
   storyBeats: StoryBeatModel[];
+  indexPathChoiceGroups: PresentationModeStoryBeatChoiceGroupModel[];
   quests: CampaignQuestModel[];
   storyBeatQuestTaskLinks: StoryBeatQuestTaskModel[];
 }

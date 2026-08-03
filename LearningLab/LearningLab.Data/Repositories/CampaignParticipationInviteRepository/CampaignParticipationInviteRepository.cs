@@ -25,6 +25,26 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<CampaignResponse>> ListJoinedCampaignsByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.PlayerCampaignParticipations
+            .Where(participation => participation.UserId == userId)
+            .OrderByDescending(participation => participation.DateJoined)
+            .Select(participation => new CampaignResponse
+            {
+                CampaignId = participation.CampaignId,
+                GameMasterId = participation.Campaign.GameMasterId,
+                GameMasterUsername = participation.Campaign.GameMaster.Username,
+                CampaignName = participation.Campaign.CampaignName,
+                Version = participation.Campaign.Version,
+                CampaignPictureUrl = participation.Campaign.CampaignPictureUrl,
+                DateCreated = participation.Campaign.DateCreated
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<string>> ListParticipantUsernamesByCampaignIdAsync(
         Guid campaignId,
         CancellationToken cancellationToken = default)
@@ -182,6 +202,11 @@ public sealed class CampaignParticipationInviteRepository : ICampaignParticipati
     public void RemoveInvite(CampaignParticipationInvite invite)
     {
         _context.CampaignParticipationInvites.Remove(invite);
+    }
+
+    public void RemoveParticipation(PlayerCampaignParticipation participation)
+    {
+        _context.PlayerCampaignParticipations.Remove(participation);
     }
 
     public Task ExecuteInTransactionAsync(

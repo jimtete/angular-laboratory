@@ -14,6 +14,7 @@ import {
   CampaignMilestoneModel,
   CampaignMilestoneRequest,
   CampaignNpcModel,
+  CampaignQuestDeleteBlockerModel,
   CampaignQuestModel,
   CampaignQuestTaskModel,
   CampaignQuestType,
@@ -48,6 +49,9 @@ import {
   StoryBeatOptionalInformationModel,
   StoryBeatOptionalInformationPlacement,
   StoryBeatOptionalInformationRequest,
+  StoryBeatIndexPathRuleModel,
+  StoryBeatIndexPathRuleRelationType,
+  StoryBeatIndexPathRuleRelationTypeValue,
   StoryBeatModel,
   StoryBeatQuestTaskModel,
   StoryBeatRoleplayingCheckType,
@@ -64,6 +68,7 @@ import {
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 import { CombatNpcsPage } from './combat-npcs-page/combat-npcs-page';
 import { CampaignEventsPage } from './campaign-events-page/campaign-events-page';
+import { CampaignStoresPage } from './campaign-stores-page/campaign-stores-page';
 import { RuleBuilder } from '../story-authoring/rule-builder/rule-builder';
 import { OutcomeEffectEditor } from '../story-authoring/outcome-effect-editor/outcome-effect-editor';
 
@@ -73,7 +78,8 @@ type CampaignContentTab =
   'campaign-milestones' |
   'quests' |
   'roleplaying-npcs' |
-  'combat-npcs';
+  'combat-npcs' |
+  'campaign-stores';
 type QuestCarouselItem = CampaignQuestModel | 'add-quest';
 type QuestFormStep = 'details' | 'tasks';
 type StoryBlockDropPosition = 'before' | 'after';
@@ -227,10 +233,16 @@ interface StoryBeatQuestTaskSearchResult {
   tasks: CampaignQuestTaskModel[];
 }
 
+interface StoryBeatIndexPathRuleDialogState {
+  storyBlock: StoryBlockViewModel;
+  storyBeatRow: StoryBeatRowViewModel;
+}
+
 @Component({
   selector: 'app-campaign-content',
   imports: [
     CampaignEventsPage,
+    CampaignStoresPage,
     CombatNpcsPage,
     OutcomeEffectEditor,
     RuleBuilder,
@@ -291,6 +303,7 @@ export class CampaignContent implements OnInit {
   protected readonly isCreateQuestDialogOpen = signal(false);
   protected readonly isCreatingMilestone = signal(false);
   protected readonly isCreatingQuest = signal(false);
+  protected readonly isDeletingQuest = signal(false);
   protected readonly isDeletingMilestone = signal(false);
   protected readonly deletingStoryBlockId = signal<string | null>(null);
   protected readonly deletingStoryBeatId = signal<string | null>(null);
@@ -301,6 +314,7 @@ export class CampaignContent implements OnInit {
   protected readonly storyBeatDialogBlock = signal<StoryBlockViewModel | null>(null);
   protected readonly siblingStoryBeatDraftSource = signal<SiblingStoryBeatDraftSource | null>(null);
   protected readonly storyBeatRulesDialogBeat = signal<StoryBeatViewModel | null>(null);
+  protected readonly storyBeatIndexPathRuleDialog = signal<StoryBeatIndexPathRuleDialogState | null>(null);
   protected readonly storyBeatQuestTaskDialogBeat = signal<StoryBeatViewModel | null>(null);
   protected readonly storyBeatRule = signal<ConditionalRuleModel | null>(null);
   protected readonly storyBeatRuleDraft = signal<CampaignRuleGroupRequest | null>(null);
@@ -316,6 +330,29 @@ export class CampaignContent implements OnInit {
   protected readonly storyBeatRuleEventOptions = signal<CampaignEventModel[]>([]);
   protected readonly storyBeatRuleSummaryEventOptions = signal<CampaignEventModel[]>([]);
   protected readonly storyBeatRuleSummaries = signal<Record<string, ConditionalRuleModel[]>>({});
+  protected readonly storyBeatIndexPathRelationTypeDraft = signal<StoryBeatIndexPathRuleRelationType>(
+    StoryBeatIndexPathRuleRelationType.ExactlyOne,
+  );
+  protected readonly storyBeatIndexPathRequiredDraft = signal(false);
+  protected readonly isSavingStoryBeatIndexPathRule = signal(false);
+  protected readonly isDeletingStoryBeatIndexPathRule = signal(false);
+  protected readonly storyBeatIndexPathRelationTypes = [
+    {
+      value: StoryBeatIndexPathRuleRelationType.ExactlyOne,
+      label: 'Exactly One',
+      description: 'Only one beat in this index path can be selected.',
+    },
+    {
+      value: StoryBeatIndexPathRuleRelationType.Or,
+      label: 'OR',
+      description: 'At least one beat in this index path can satisfy the path.',
+    },
+    {
+      value: StoryBeatIndexPathRuleRelationType.And,
+      label: 'AND',
+      description: 'All beats in this index path are expected to happen.',
+    },
+  ];
   protected readonly storyBeatQuestTasks = signal<StoryBeatQuestTaskModel[]>([]);
   protected readonly campaignStoryBeatQuestTasks = signal<StoryBeatQuestTaskModel[]>([]);
   protected readonly storyBeatQuestTaskSearchDraft = signal('');
@@ -386,6 +423,12 @@ export class CampaignContent implements OnInit {
     this.storyBeatRuleDraft() !== null &&
     !this.isLoadingStoryBeatRules() &&
     !this.isSavingStoryBeatRule()
+  ));
+  protected readonly canSaveStoryBeatIndexPathRule = computed(() => (
+    this.storyBeatIndexPathRuleDialog() !== null &&
+    this.storyBeatIndexPathRuleDialog()!.storyBeatRow.beats.length > 1 &&
+    !this.isSavingStoryBeatIndexPathRule() &&
+    !this.isDeletingStoryBeatIndexPathRule()
   ));
   protected readonly canSaveStoryBeatEventEffects = computed(() => (
     this.storyBeatEventEffectsDialogBeat() !== null &&
@@ -589,6 +632,7 @@ export class CampaignContent implements OnInit {
   protected readonly canCreateQuest = computed(() => (
     this.canContinueQuestDetails() &&
     !this.isCreatingQuest() &&
+    !this.isDeletingQuest() &&
     this.questTaskDrafts()
       .some((task) => (
         this.normalizeText(task.title).length > 0 &&
@@ -814,7 +858,8 @@ export class CampaignContent implements OnInit {
       value === 'campaign-events' ||
       value === 'quests' ||
       value === 'roleplaying-npcs' ||
-      value === 'combat-npcs'
+      value === 'combat-npcs' ||
+      value === 'campaign-stores'
       ? value
       : 'main-story';
   }
@@ -1374,6 +1419,141 @@ export class CampaignContent implements OnInit {
         error: (error: unknown) => {
           this.modalHelper.showError(
             this.getErrorMessage(error, 'Story beat rule could not be deleted.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected openStoryBeatIndexPathRuleDialog(
+    storyBlock: StoryBlockViewModel,
+    storyBeatRow: StoryBeatRowViewModel,
+  ): void {
+    if (storyBeatRow.beats.length < 2) {
+      this.modalHelper.showError('Index path settings require at least two story beats at the same index.');
+      return;
+    }
+
+    const existingRule = this.storyBeatIndexPathRuleFor(storyBeatRow);
+
+    this.storyBeatIndexPathRuleDialog.set({ storyBlock, storyBeatRow });
+    this.storyBeatIndexPathRelationTypeDraft.set(
+      this.toStoryBeatIndexPathRuleRelationType(existingRule?.relationType) ??
+        StoryBeatIndexPathRuleRelationType.ExactlyOne,
+    );
+    this.storyBeatIndexPathRequiredDraft.set(existingRule?.isRequired ?? false);
+  }
+
+  protected closeStoryBeatIndexPathRuleDialog(): void {
+    if (this.isSavingStoryBeatIndexPathRule() || this.isDeletingStoryBeatIndexPathRule()) {
+      return;
+    }
+
+    this.storyBeatIndexPathRuleDialog.set(null);
+    this.storyBeatIndexPathRelationTypeDraft.set(StoryBeatIndexPathRuleRelationType.ExactlyOne);
+    this.storyBeatIndexPathRequiredDraft.set(false);
+  }
+
+  protected setStoryBeatIndexPathRelationType(event: Event): void {
+    const relationType = this.toStoryBeatIndexPathRuleRelationType(
+      (event.target as HTMLInputElement).value,
+    );
+
+    if (relationType !== null) {
+      this.storyBeatIndexPathRelationTypeDraft.set(relationType);
+    }
+  }
+
+  protected setStoryBeatIndexPathRequired(event: Event): void {
+    this.storyBeatIndexPathRequiredDraft.set((event.target as HTMLInputElement).checked);
+  }
+
+  protected saveStoryBeatIndexPathRule(): void {
+    const campaignId = this.getCampaignId();
+    const dialog = this.storyBeatIndexPathRuleDialog();
+
+    if (!campaignId || !dialog || !this.canSaveStoryBeatIndexPathRule()) {
+      return;
+    }
+
+    this.isSavingStoryBeatIndexPathRule.set(true);
+    this.campaignApiService
+      .upsertStoryBeatIndexPathRule(
+        campaignId,
+        dialog.storyBlock.storyBlockId,
+        dialog.storyBeatRow.orderIndex,
+        {
+          relationType: this.storyBeatIndexPathRelationTypeDraft(),
+          isRequired: this.storyBeatIndexPathRequiredDraft(),
+        },
+      )
+      .pipe(finalize(() => this.isSavingStoryBeatIndexPathRule.set(false)))
+      .subscribe({
+        next: (response) => {
+          if (response.data) {
+            this.applyStoryBeatIndexPathRule(response.data);
+            this.storyBeatIndexPathRuleDialog.update((currentDialog) => currentDialog
+              ? {
+                ...currentDialog,
+                storyBeatRow: {
+                  ...currentDialog.storyBeatRow,
+                  beats: currentDialog.storyBeatRow.beats.map((beat) => ({
+                    ...beat,
+                    indexPathRule: response.data!,
+                  })),
+                },
+              }
+              : currentDialog);
+          }
+
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat index path rule could not be saved.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected deleteStoryBeatIndexPathRule(): void {
+    const campaignId = this.getCampaignId();
+    const dialog = this.storyBeatIndexPathRuleDialog();
+
+    if (!campaignId || !dialog || !this.storyBeatIndexPathRuleFor(dialog.storyBeatRow) ||
+      this.isDeletingStoryBeatIndexPathRule()) {
+      return;
+    }
+
+    this.isDeletingStoryBeatIndexPathRule.set(true);
+    this.campaignApiService
+      .deleteStoryBeatIndexPathRule(
+        campaignId,
+        dialog.storyBlock.storyBlockId,
+        dialog.storyBeatRow.orderIndex,
+      )
+      .pipe(finalize(() => this.isDeletingStoryBeatIndexPathRule.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.clearStoryBeatIndexPathRule(dialog.storyBlock.storyBlockId, dialog.storyBeatRow.orderIndex);
+          this.storyBeatIndexPathRuleDialog.update((currentDialog) => currentDialog
+            ? {
+              ...currentDialog,
+              storyBeatRow: {
+                ...currentDialog.storyBeatRow,
+                beats: currentDialog.storyBeatRow.beats.map((beat) => ({
+                  ...beat,
+                  indexPathRule: null,
+                })),
+              },
+            }
+            : currentDialog);
+          this.modalHelper.showSuccess(response.message);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story beat index path rule could not be deleted.'),
             { statusCode: this.getErrorStatus(error) },
           );
         },
@@ -2682,6 +2862,48 @@ export class CampaignContent implements OnInit {
     return `${storyBeatRow.activeIndex + 1}/${storyBeatRow.beats.length}`;
   }
 
+  protected storyBeatIndexPathRuleFor(storyBeatRow: StoryBeatRowViewModel): StoryBeatIndexPathRuleModel | null {
+    return storyBeatRow.beats.find((beat) => beat.indexPathRule)?.indexPathRule ?? null;
+  }
+
+  protected storyBeatIndexPathRuleLabel(storyBeatRow: StoryBeatRowViewModel): string {
+    const rule = this.storyBeatIndexPathRuleFor(storyBeatRow);
+
+    return rule
+      ? this.storyBeatIndexPathRelationLabel(rule.relationType)
+      : 'Path';
+  }
+
+  protected storyBeatIndexPathRelationLabel(
+    relationType: StoryBeatIndexPathRuleRelationTypeValue | null | undefined,
+  ): string {
+    const normalizedRelationType = this.toStoryBeatIndexPathRuleRelationType(relationType);
+
+    switch (normalizedRelationType) {
+      case StoryBeatIndexPathRuleRelationType.And:
+        return 'AND';
+      case StoryBeatIndexPathRuleRelationType.Or:
+        return 'OR';
+      case StoryBeatIndexPathRuleRelationType.ExactlyOne:
+        return 'Exactly One';
+      default:
+        return 'Path';
+    }
+  }
+
+  protected storyBeatIndexPathRuleDescription(storyBeatRow: StoryBeatRowViewModel): string {
+    const rule = this.storyBeatIndexPathRuleFor(storyBeatRow);
+
+    if (!rule) {
+      return 'No index path rule configured.';
+    }
+
+    return [
+      `${this.storyBeatIndexPathRelationLabel(rule.relationType)} relation`,
+      rule.isRequired ? 'Required path' : 'Optional path',
+    ].join(' - ');
+  }
+
   protected storyBeatPreviousAlternative(storyBeatRow: StoryBeatRowViewModel): StoryBeatViewModel | null {
     return storyBeatRow.beats[storyBeatRow.activeIndex - 1] ?? null;
   }
@@ -3280,7 +3502,7 @@ export class CampaignContent implements OnInit {
   }
 
   protected closeCreateQuestDialog(): void {
-    if (this.isCreatingQuest()) {
+    if (this.isCreatingQuest() || this.isDeletingQuest()) {
       return;
     }
 
@@ -3421,6 +3643,70 @@ export class CampaignContent implements OnInit {
           );
         },
       });
+  }
+
+  protected deleteQuest(): void {
+    const campaignId = this.getCampaignId();
+    const quest = this.editingQuest();
+
+    if (!campaignId || !quest || this.isCreatingQuest() || this.isDeletingQuest()) {
+      return;
+    }
+
+    this.isDeletingQuest.set(true);
+
+    this.campaignApiService
+      .deleteCampaignQuest(campaignId, quest.questId)
+      .pipe(finalize(() => this.isDeletingQuest.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.modalHelper.showSuccess(response.message);
+          this.isCreateQuestDialogOpen.set(false);
+          this.editingQuest.set(null);
+          this.loadQuests();
+        },
+        error: (error: unknown) => {
+          const blockers = this.getQuestDeleteBlockers(error);
+
+          this.modalHelper.showError(
+            this.getQuestDeleteErrorMessages(error, blockers),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected questDeleteBlockerMessage(blocker: CampaignQuestDeleteBlockerModel): string {
+    return this.normalizeText(blocker.message) ||
+      `Task "${blocker.questTaskTitle}" is linked to campaign story content.`;
+  }
+
+  protected questDeleteBlockerLocation(blocker: CampaignQuestDeleteBlockerModel): string {
+    const storyBlock = [
+      blocker.storyBlockOrderIndex !== null ? `Block ${blocker.storyBlockOrderIndex}` : '',
+      blocker.storyBlockTitle ?? '',
+    ].map((value) => this.normalizeText(String(value))).filter((value) => value.length > 0).join(' - ');
+    const beatIndex = [
+      blocker.storyBeatOrderIndex,
+      blocker.storyBeatSecondaryOrderIndex,
+    ].filter((value): value is number => value !== null && value !== undefined).join('.');
+    const storyBeat = [
+      beatIndex ? `Beat ${beatIndex}` : '',
+      blocker.storyBeatTitle ?? '',
+    ].map((value) => this.normalizeText(String(value))).filter((value) => value.length > 0).join(' - ');
+
+    return [storyBlock, storyBeat]
+      .filter((value) => value.length > 0)
+      .join(' / ') || 'Linked campaign content';
+  }
+
+  protected questDeleteBlockerStoryBeatIndex(blocker: CampaignQuestDeleteBlockerModel): string {
+    const indexes = [
+      blocker.storyBeatOrderIndex,
+      blocker.storyBeatSecondaryOrderIndex,
+    ].filter((value): value is number => value !== null && value !== undefined);
+
+    return indexes.length > 0 ? indexes.join('.') : 'Unknown';
   }
 
   protected openCreateMilestoneDialog(): void {
@@ -4944,6 +5230,36 @@ export class CampaignContent implements OnInit {
     }));
   }
 
+  private applyStoryBeatIndexPathRule(rule: StoryBeatIndexPathRuleModel): void {
+    this.storyBlocks.update((storyBlocks) => storyBlocks.map((storyBlock) => (
+      storyBlock.storyBlockId === rule.storyBlockId
+        ? {
+          ...storyBlock,
+          beats: storyBlock.beats.map((beat) => (
+            beat.orderIndex === rule.orderIndex
+              ? { ...beat, indexPathRule: rule }
+              : beat
+          )),
+        }
+        : storyBlock
+    )));
+  }
+
+  private clearStoryBeatIndexPathRule(storyBlockId: string, orderIndex: number): void {
+    this.storyBlocks.update((storyBlocks) => storyBlocks.map((storyBlock) => (
+      storyBlock.storyBlockId === storyBlockId
+        ? {
+          ...storyBlock,
+          beats: storyBlock.beats.map((beat) => (
+            beat.orderIndex === orderIndex
+              ? { ...beat, indexPathRule: null }
+              : beat
+          )),
+        }
+        : storyBlock
+    )));
+  }
+
   private clampStoryBeatAlternativeIndex(
     index: number,
     beats: StoryBeatViewModel[],
@@ -4981,6 +5297,32 @@ export class CampaignContent implements OnInit {
     }
 
     return StoryBeatType[type as keyof typeof StoryBeatType] ?? StoryBeatType.Information;
+  }
+
+  private toStoryBeatIndexPathRuleRelationType(
+    relationType: StoryBeatIndexPathRuleRelationTypeValue | null | undefined,
+  ): StoryBeatIndexPathRuleRelationType | null {
+    if (relationType === null || relationType === undefined) {
+      return null;
+    }
+
+    if (typeof relationType === 'number') {
+      return relationType in StoryBeatIndexPathRuleRelationType
+        ? relationType as StoryBeatIndexPathRuleRelationType
+        : null;
+    }
+
+    const parsedRelationType = Number(relationType);
+
+    if (Number.isFinite(parsedRelationType)) {
+      return parsedRelationType in StoryBeatIndexPathRuleRelationType
+        ? parsedRelationType as StoryBeatIndexPathRuleRelationType
+        : null;
+    }
+
+    return StoryBeatIndexPathRuleRelationType[
+      relationType as keyof typeof StoryBeatIndexPathRuleRelationType
+    ] ?? null;
   }
 
   private toOptionalInformationPlacement(
@@ -5065,6 +5407,84 @@ export class CampaignContent implements OnInit {
 
   private getErrorStatus(error: unknown): number | undefined {
     return this.isApiError(error) ? error.status : undefined;
+  }
+
+  private getQuestDeleteBlockers(error: unknown): CampaignQuestDeleteBlockerModel[] {
+    if (!this.isApiError(error) || !this.hasApiResponseData(error.details)) {
+      return [];
+    }
+
+    const data = error.details.data;
+
+    return Array.isArray(data)
+      ? data.filter((blocker): blocker is CampaignQuestDeleteBlockerModel => (
+        this.isQuestDeleteBlocker(blocker)
+      ))
+      : [];
+  }
+
+  private getQuestDeleteErrorMessages(
+    error: unknown,
+    blockers: CampaignQuestDeleteBlockerModel[],
+  ): string[] {
+    const messages = [
+      this.getErrorMessage(error, 'Campaign quest could not be deleted.'),
+    ];
+
+    if (blockers.length === 0) {
+      return messages;
+    }
+
+    messages.push('Quest deletion is blocked by:');
+
+    blockers.forEach((blocker, index) => {
+      messages.push(`${index + 1}. ${this.questDeleteBlockerMessage(blocker)}`);
+      messages.push(`Quest task: ${blocker.questTaskTitle} (${blocker.questTaskId})`);
+      messages.push(`Story block: ${this.formatQuestDeleteBlockerEntity(
+        blocker.storyBlockTitle,
+        blocker.storyBlockId,
+        blocker.storyBlockOrderIndex !== null ? `order ${blocker.storyBlockOrderIndex}` : null,
+      )}`);
+      messages.push(`Story beat: ${this.formatQuestDeleteBlockerEntity(
+        blocker.storyBeatTitle,
+        blocker.storyBeatId,
+        this.questDeleteBlockerStoryBeatIndex(blocker) !== 'Unknown'
+          ? `index ${this.questDeleteBlockerStoryBeatIndex(blocker)}`
+          : null,
+      )}`);
+      messages.push(`Location: ${this.questDeleteBlockerLocation(blocker)}`);
+    });
+
+    return messages;
+  }
+
+  private formatQuestDeleteBlockerEntity(
+    title: string | null,
+    id: string | null,
+    detail: string | null,
+  ): string {
+    const parts = [
+      this.normalizeText(title ?? ''),
+      id ? `(${id})` : '',
+      detail ?? '',
+    ].filter((value) => value.length > 0);
+
+    return parts.length > 0 ? parts.join(' ') : 'Unknown';
+  }
+
+  private hasApiResponseData(value: unknown): value is { data: unknown } {
+    return typeof value === 'object' &&
+      value !== null &&
+      'data' in value;
+  }
+
+  private isQuestDeleteBlocker(value: unknown): value is CampaignQuestDeleteBlockerModel {
+    return typeof value === 'object' &&
+      value !== null &&
+      'questTaskId' in value &&
+      typeof value.questTaskId === 'string' &&
+      'questTaskTitle' in value &&
+      typeof value.questTaskTitle === 'string';
   }
 
   private isApiError(error: unknown): error is ApiError {

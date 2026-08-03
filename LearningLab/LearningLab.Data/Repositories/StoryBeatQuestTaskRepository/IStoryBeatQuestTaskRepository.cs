@@ -8,6 +8,11 @@ public interface IStoryBeatQuestTaskRepository
         Guid campaignId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<StoryBeatQuestTask>> ListByCampaignIdAndQuestIdAsync(
+        Guid campaignId,
+        Guid questId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<StoryBeatQuestTask>> ListByStoryBeatIdAsync(
         Guid storyBeatId,
         CancellationToken cancellationToken = default);

@@ -8,6 +8,13 @@
 - Define custom application status codes in a dedicated shared file so distinct failure cases remain identifiable.
 - Reserve exceptions for unexpected failures; handle them through centralized exception-handling middleware.
 
+## Project Boundaries
+
+- Put asset-specific backend concerns under the `LearningLab.Assets` project, including asset storage, upload handling, file validation, asset metadata, asset repositories, asset services, and asset DTOs.
+- Put gameplay/domain behavior under the `LearningLab.Services` project, including campaign gameplay flows, session behavior, story/combat interactions, visibility rules, placement rules, and gameplay use of maps or other assets.
+- Keep EF persistence models and DbContext mapping in `LearningLab.Data`.
+- Keep API controllers in the `LearningLab` project unless the user explicitly asks to split the API surface differently.
+
 ## Entity Framework Database Changes
 
 - Do not run `dotnet ef database update`.

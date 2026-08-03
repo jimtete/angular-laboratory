@@ -30,6 +30,26 @@ public sealed class StoryBeatQuestTaskRepository : IStoryBeatQuestTaskRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<StoryBeatQuestTask>> ListByCampaignIdAndQuestIdAsync(
+        Guid campaignId,
+        Guid questId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.StoryBeatQuestTasks
+            .AsNoTracking()
+            .Include(link => link.QuestTask)
+            .ThenInclude(task => task.CampaignQuest)
+            .Include(link => link.StoryBeat)
+            .ThenInclude(beat => beat.StoryBlock)
+            .Where(link => link.QuestTask.CampaignQuest.CampaignId == campaignId
+                && link.QuestTask.QuestId == questId)
+            .OrderBy(link => link.StoryBeat.StoryBlock.OrderIndex)
+            .ThenBy(link => link.StoryBeat.OrderIndex)
+            .ThenBy(link => link.StoryBeat.SecondaryOrderIndex)
+            .ThenBy(link => link.QuestTask.Title)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<StoryBeatQuestTask>> ListByStoryBeatIdAsync(
         Guid storyBeatId,
         CancellationToken cancellationToken = default)

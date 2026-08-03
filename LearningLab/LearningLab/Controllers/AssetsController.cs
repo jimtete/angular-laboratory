@@ -1,8 +1,8 @@
+using LearningLab.Assets.Models.DTOs;
+using LearningLab.Assets.Services;
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.DTOs;
-using LearningLab.Data.Models.DTOs.Assets;
-using LearningLab.Services.AssetService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,0 +1,809 @@
+
+> angular-learning-lab@0.0.0 start
+> ng serve --host 127.0.0.1 --port 4201
+
+> Building...
+√ Building...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+styles.css          | styles              | 130.30 kB | 
+chunk-SLOY75YM.js   | -                   | 109.51 kB | 
+chunk-FYVHHI6L.js   | -                   | 986 bytes | 
+
+                    | Initial total       |   1.28 MB
+
+Lazy chunk files    | Names               |  Raw size
+chunk-KWTXTM3M.js   | campaign-content    | 666.02 kB | 
+chunk-2KR57TGL.js   | campaign-map-viewer |  83.23 kB | 
+chunk-5X3ME5RI.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [5.456 seconds] - 2026-07-31T07:48:53.606Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4201[22m/[39m
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-LFZWI7SV.js   | campaign-map-viewer | 83.56 kB | 
+
+Application bundle generation complete. [3.919 seconds] - 2026-07-31T07:51:02.211Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-BIBQLCNB.js   | campaign-map-viewer | 83.60 kB | 
+
+Application bundle generation complete. [0.509 seconds] - 2026-07-31T07:51:24.584Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-X76M3VEM.js   | campaign-map-viewer | 83.89 kB | 
+
+Application bundle generation complete. [0.651 seconds] - 2026-07-31T07:59:01.958Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-2ESEGDVX.js   | campaign-map-viewer | 83.60 kB | 
+
+Application bundle generation complete. [0.635 seconds] - 2026-07-31T07:59:57.067Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-USYLVPU3.js   | campaign-map-viewer | 83.89 kB | 
+
+Application bundle generation complete. [0.821 seconds] - 2026-07-31T07:59:59.199Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+chunk-K5ZQIBIJ.js   | -                   | 109.59 kB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-AAZVKQZS.js   | campaign-content    | 666.02 kB | 
+chunk-FAZS5KXO.js   | campaign-map-viewer |  83.89 kB | 
+chunk-NYSUTNCY.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [2.067 seconds] - 2026-07-31T08:17:25.928Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-32D6N34B.js   | campaign-map-viewer | 85.68 kB | 
+
+Application bundle generation complete. [0.990 seconds] - 2026-07-31T08:18:10.932Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-AMEEXALW.js   | campaign-map-viewer | 91.54 kB | 
+
+Application bundle generation complete. [0.803 seconds] - 2026-07-31T08:18:46.848Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               | Raw size
+main.js             | main                |  1.04 MB | 
+
+Lazy chunk files    | Names               | Raw size
+chunk-P6EI3QIZ.js   | campaign-map-viewer | 97.98 kB | 
+
+Application bundle generation complete. [0.956 seconds] - 2026-07-31T08:19:47.959Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+chunk-GASMUXGV.js   | -                   | 110.00 kB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-EWBPWKFH.js   | campaign-content    | 666.02 kB | 
+chunk-TTJDTTKL.js   | campaign-map-viewer |  97.98 kB | 
+chunk-DOCIXYF3.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [1.610 seconds] - 2026-07-31T09:08:59.822Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+chunk-I7GDS37O.js   | -                   | 110.71 kB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-WFRE3V25.js   | campaign-content    | 666.02 kB | 
+chunk-BMGX2Q5C.js   | campaign-map-viewer |  97.98 kB | 
+chunk-HI525TTH.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [1.470 seconds] - 2026-07-31T09:09:33.011Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+chunk-6OQHFYVN.js   | -                   | 110.33 kB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-M3KIK4CF.js   | campaign-content    | 666.02 kB | 
+chunk-55CYWDTT.js   | campaign-map-viewer |  97.98 kB | 
+chunk-NAW643HB.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [1.372 seconds] - 2026-07-31T09:10:08.293Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+chunk-AKMDGK3I.js   | -                   | 110.36 kB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-K5JCQAXO.js   | campaign-content    | 666.02 kB | 
+chunk-PLRWU23X.js   | campaign-map-viewer |  99.38 kB | 
+chunk-446K5M7U.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [0.775 seconds] - 2026-07-31T09:10:42.949Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.468 seconds] - 2026-07-31T09:11:25.934Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.542 seconds] - 2026-07-31T09:12:03.213Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+styles.css          | styles              | 130.30 kB | 
+chunk-AKMDGK3I.js   | -                   | 110.36 kB | 
+chunk-FYVHHI6L.js   | -                   | 986 bytes | 
+
+                    | Initial total       |   1.28 MB
+
+Lazy chunk files    | Names               |  Raw size
+chunk-K5JCQAXO.js   | campaign-content    | 666.02 kB | 
+chunk-2ZDZVI33.js   | campaign-map-viewer | 105.58 kB | 
+chunk-446K5M7U.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [0.635 seconds] - 2026-07-31T09:12:39.176Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-75LMZHMX.js   | campaign-map-viewer | 106.00 kB | 
+
+Application bundle generation complete. [0.561 seconds] - 2026-07-31T09:13:07.702Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-46YWORAP.js   | campaign-map-viewer | 117.50 kB | 
+
+Application bundle generation complete. [0.589 seconds] - 2026-07-31T09:13:58.934Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-PJ44JL4E.js   | campaign-map-viewer | 117.56 kB | 
+
+Application bundle generation complete. [0.730 seconds] - 2026-07-31T09:14:26.606Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-EJJ736IG.js   | campaign-map-viewer | 121.20 kB | 
+
+Application bundle generation complete. [0.627 seconds] - 2026-07-31T09:15:08.512Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-OMIOQUPM.js   | campaign-map-viewer | 121.99 kB | 
+
+Application bundle generation complete. [0.796 seconds] - 2026-07-31T09:39:30.080Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-GQNY3ALH.js   | campaign-map-viewer | 121.97 kB | 
+
+Application bundle generation complete. [0.744 seconds] - 2026-07-31T09:40:18.378Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-VRMFUWLT.js   | campaign-map-viewer | 121.60 kB | 
+
+Application bundle generation complete. [0.684 seconds] - 2026-07-31T09:40:44.547Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+chunk-S2FJ26BY.js   | -                   | 110.44 kB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-M3X52EVL.js   | campaign-content    | 666.02 kB | 
+chunk-BPXY4D6S.js   | campaign-map-viewer | 121.60 kB | 
+chunk-E4S2EAIV.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [1.774 seconds] - 2026-07-31T10:12:09.447Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-EELZAXKN.js   | campaign-map-viewer | 121.73 kB | 
+
+Application bundle generation complete. [0.742 seconds] - 2026-07-31T10:12:39.774Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+chunk-6V47GA5S.js   | -                   | 110.64 kB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-CVPANROX.js   | campaign-content    | 666.02 kB | 
+chunk-EIKPVWC2.js   | campaign-map-viewer | 121.73 kB | 
+chunk-AYC73S26.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [1.855 seconds] - 2026-07-31T10:18:28.496Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.653 seconds] - 2026-07-31T10:19:13.677Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.562 seconds] - 2026-07-31T10:19:50.740Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.609 seconds] - 2026-07-31T10:20:23.854Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+styles.css          | styles              | 130.30 kB | 
+chunk-6V47GA5S.js   | -                   | 110.64 kB | 
+chunk-FYVHHI6L.js   | -                   | 986 bytes | 
+
+                    | Initial total       |   1.28 MB
+
+Lazy chunk files    | Names               |  Raw size
+chunk-CVPANROX.js   | campaign-content    | 666.02 kB | 
+chunk-5H7ELK44.js   | campaign-map-viewer | 125.20 kB | 
+chunk-AYC73S26.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [0.633 seconds] - 2026-07-31T10:20:50.284Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.743 seconds] - 2026-07-31T11:09:53.634Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.628 seconds] - 2026-07-31T11:10:19.300Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.560 seconds] - 2026-07-31T11:10:56.686Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.629 seconds] - 2026-07-31T11:11:21.229Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+styles.css          | styles              | 130.30 kB | 
+chunk-6V47GA5S.js   | -                   | 110.64 kB | 
+chunk-FYVHHI6L.js   | -                   | 986 bytes | 
+
+                    | Initial total       |   1.28 MB
+
+Lazy chunk files    | Names               |  Raw size
+chunk-CVPANROX.js   | campaign-content    | 666.02 kB | 
+chunk-MB5MESRF.js   | campaign-map-viewer | 128.72 kB | 
+chunk-AYC73S26.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [0.653 seconds] - 2026-07-31T11:11:51.072Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-DST2F2ZJ.js   | campaign-map-viewer | 128.72 kB | 
+
+Application bundle generation complete. [0.721 seconds] - 2026-07-31T11:12:35.734Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-EOFKIR6B.js   | campaign-map-viewer | 131.21 kB | 
+
+Application bundle generation complete. [0.870 seconds] - 2026-07-31T11:13:09.204Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-HY526LDT.js   | campaign-map-viewer | 131.38 kB | 
+
+Application bundle generation complete. [0.924 seconds] - 2026-07-31T11:13:35.947Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-BPQKRJCL.js   | campaign-map-viewer | 131.44 kB | 
+
+Application bundle generation complete. [0.859 seconds] - 2026-07-31T11:14:59.935Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-6OOPWOMF.js   | campaign-map-viewer | 131.49 kB | 
+
+Application bundle generation complete. [0.723 seconds] - 2026-07-31T11:15:36.603Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-EGCXD4MW.js   | campaign-map-viewer | 132.23 kB | 
+
+Application bundle generation complete. [0.665 seconds] - 2026-07-31T11:22:47.883Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-7UPJXIKD.js   | campaign-map-viewer | 135.36 kB | 
+
+Application bundle generation complete. [0.787 seconds] - 2026-07-31T11:23:22.663Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-NXJE5RBO.js   | campaign-map-viewer | 136.97 kB | 
+
+Application bundle generation complete. [0.902 seconds] - 2026-07-31T11:23:56.388Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-6JC6PLT2.js   | campaign-map-viewer | 137.07 kB | 
+
+Application bundle generation complete. [0.845 seconds] - 2026-07-31T11:24:55.500Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-PKZQ4UOV.js   | campaign-map-viewer | 136.30 kB | 
+
+Application bundle generation complete. [0.789 seconds] - 2026-07-31T11:25:24.766Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-MM2B6PWW.js   | campaign-map-viewer | 136.84 kB | 
+
+Application bundle generation complete. [0.670 seconds] - 2026-07-31T11:26:28.389Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-CHXUVPZ4.js   | campaign-map-viewer | 135.73 kB | 
+
+Application bundle generation complete. [0.923 seconds] - 2026-07-31T11:26:55.979Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-6DWGUKLQ.js   | campaign-map-viewer | 135.80 kB | 
+
+Application bundle generation complete. [0.718 seconds] - 2026-07-31T11:27:20.570Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.845 seconds] - 2026-07-31T11:58:24.319Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.705 seconds] - 2026-07-31T11:58:57.506Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+styles.css          | styles              | 130.30 kB | 
+chunk-6V47GA5S.js   | -                   | 110.64 kB | 
+chunk-FYVHHI6L.js   | -                   | 986 bytes | 
+
+                    | Initial total       |   1.28 MB
+
+Lazy chunk files    | Names               |  Raw size
+chunk-CVPANROX.js   | campaign-content    | 666.02 kB | 
+chunk-VWNYI4ZT.js   | campaign-map-viewer | 137.90 kB | 
+chunk-AYC73S26.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [0.729 seconds] - 2026-07-31T11:59:37.029Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-PW4VMNDJ.js   | campaign-map-viewer | 138.91 kB | 
+
+Application bundle generation complete. [0.634 seconds] - 2026-07-31T12:00:11.024Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-U46ZL2YV.js   | campaign-map-viewer | 139.39 kB | 
+
+Application bundle generation complete. [0.849 seconds] - 2026-07-31T12:19:03.545Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-2ABP2NXS.js   | campaign-map-viewer | 140.18 kB | 
+
+Application bundle generation complete. [0.856 seconds] - 2026-07-31T12:19:30.572Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-NWWQFUJR.js   | campaign-map-viewer | 142.01 kB | 
+
+Application bundle generation complete. [1.056 seconds] - 2026-07-31T12:20:02.632Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-GUXRO2L5.js   | campaign-map-viewer | 142.47 kB | 
+
+Application bundle generation complete. [0.665 seconds] - 2026-07-31T12:21:00.594Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-3JX3V7ZQ.js   | campaign-map-viewer | 142.47 kB | 
+
+Application bundle generation complete. [0.726 seconds] - 2026-07-31T12:21:36.867Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-OXGPBXU5.js   | campaign-map-viewer | 141.99 kB | 
+
+Application bundle generation complete. [0.856 seconds] - 2026-07-31T12:22:12.303Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-ZXWSAWSG.js   | campaign-map-viewer | 140.77 kB | 
+
+Application bundle generation complete. [0.667 seconds] - 2026-07-31T12:22:47.547Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-522FFV64.js   | campaign-map-viewer | 141.27 kB | 
+
+Application bundle generation complete. [0.669 seconds] - 2026-07-31T12:23:43.523Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-ZQTPDL7N.js   | campaign-map-viewer | 140.66 kB | 
+
+Application bundle generation complete. [0.819 seconds] - 2026-07-31T12:24:12.635Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.878 seconds] - 2026-07-31T12:36:21.648Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.595 seconds] - 2026-07-31T12:36:50.626Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.587 seconds] - 2026-07-31T12:37:20.739Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.583 seconds] - 2026-07-31T12:38:06.534Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.555 seconds] - 2026-07-31T12:38:31.075Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.625 seconds] - 2026-07-31T12:39:03.831Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.565 seconds] - 2026-07-31T12:39:38.832Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.556 seconds] - 2026-07-31T12:40:12.663Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.588 seconds] - 2026-07-31T12:40:44.498Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+styles.css          | styles              | 130.30 kB | 
+chunk-6V47GA5S.js   | -                   | 110.64 kB | 
+chunk-FYVHHI6L.js   | -                   | 986 bytes | 
+
+                    | Initial total       |   1.28 MB
+
+Lazy chunk files    | Names               |  Raw size
+chunk-CVPANROX.js   | campaign-content    | 666.02 kB | 
+chunk-DCLYWIKM.js   | campaign-map-viewer | 149.54 kB | 
+chunk-AYC73S26.js   | campaign-maps       |  44.90 kB | 
+
+Application bundle generation complete. [0.625 seconds] - 2026-07-31T12:41:36.169Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-OJQOAUC3.js   | campaign-map-viewer | 149.71 kB | 
+
+Application bundle generation complete. [0.672 seconds] - 2026-07-31T12:42:07.635Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-PSNDNXJO.js   | campaign-map-viewer | 152.74 kB | 
+
+Application bundle generation complete. [0.682 seconds] - 2026-07-31T12:42:40.919Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-Y6V7A4DC.js   | campaign-map-viewer | 153.03 kB | 
+
+Application bundle generation complete. [0.701 seconds] - 2026-07-31T12:43:06.838Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-E43TDDM2.js   | campaign-map-viewer | 153.41 kB | 
+
+Application bundle generation complete. [0.834 seconds] - 2026-07-31T12:43:36.468Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-ABRXFFXY.js   | campaign-map-viewer | 153.69 kB | 
+
+Application bundle generation complete. [0.628 seconds] - 2026-07-31T12:44:18.995Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-7VNAMEMM.js   | campaign-map-viewer | 153.64 kB | 
+
+Application bundle generation complete. [0.850 seconds] - 2026-07-31T12:45:01.546Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-NM5KGYYR.js   | campaign-map-viewer | 153.60 kB | 
+
+Application bundle generation complete. [0.639 seconds] - 2026-07-31T12:45:43.296Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names               |  Raw size
+main.js             | main                |   1.04 MB | 
+
+Lazy chunk files    | Names               |  Raw size
+chunk-Q3JRSC23.js   | campaign-map-viewer | 153.68 kB | 
+
+Application bundle generation complete. [0.267 seconds] - 2026-07-31T12:48:14.808Z
+
+Page reload sent to client(s).

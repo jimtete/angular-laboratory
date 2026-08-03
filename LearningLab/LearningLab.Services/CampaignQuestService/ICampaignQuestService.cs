@@ -23,6 +23,12 @@ public interface ICampaignQuestService
         UpdateCampaignQuestRequest request,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<CampaignQuestDeleteBlockerResponse>>> DeleteCampaignQuestAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid questId,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<IReadOnlyList<StoryBeatQuestTaskResponse>>> GetStoryBeatQuestTasksAsync(
         Guid userId,
         Guid campaignId,

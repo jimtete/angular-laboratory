@@ -461,7 +461,7 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
 
         if (indexPathRule is not null)
         {
-            return indexPathRule.RelationType == StoryBeatIndexPathRuleRelationType.ExactlyOne;
+            return false;
         }
 
         var siblingStoryBeatIds = _context.StoryBeats

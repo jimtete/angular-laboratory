@@ -3,13 +3,15 @@
   top: 10%;
   left: 50%;
   z-index: 1100;
-  width: clamp(18rem, 24vw, 26rem);
+  width: clamp(20rem, 42vw, 42rem);
+  max-height: min(70vh, 42rem);
   padding: 1.25rem 1.5rem;
   border-radius: 8px;
   color: #ffffff;
   box-shadow: 0 1rem 2rem rgba(17, 24, 39, 0.22);
   box-sizing: border-box;
   cursor: pointer;
+  overflow-y: auto;
   transform: translateX(-50%);
   animation: notification-modal-in 200ms ease-out;
 }
@@ -81,6 +83,6 @@
 
 @media (max-width: 800px) {
   .notification-modal {
-    width: min(88vw, 24rem);
+    width: min(88vw, 32rem);
   }
 }

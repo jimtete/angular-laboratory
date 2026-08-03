@@ -1,6 +1,7 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Character;
 using LearningLab.Data.Models.DTOs.Campaign;
 using LearningLab.Data.Models.Notifications;
 using LearningLab.Data.Repositories.CampaignParticipationInviteRepository;
@@ -16,6 +17,8 @@ namespace LearningLab.Services.CampaignParticipationInviteService;
 
 public sealed class CampaignParticipationInviteService : ICampaignParticipationInviteService
 {
+    private const int DefaultParticipationStatValue = 10;
+
     private readonly ICampaignParticipationInviteRepository _campaignParticipationInviteRepository;
     private readonly IApplicationEventHub _applicationEventHub;
     private readonly ICampaignRepository _campaignRepository;
@@ -298,6 +301,94 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
             cancellationToken);
     }
 
+    public async Task<ServiceResult<bool>> RemovePlayerFromCampaignAsync(
+        Guid userId,
+        Guid campaignId,
+        string username,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return new ServiceResult<bool>(
+                ApplicationStatusCode.CampaignParticipantNotFound,
+                false);
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is null)
+        {
+            return new ServiceResult<bool>(
+                ApplicationStatusCode.UserNotFound,
+                false);
+        }
+
+        if (!HasRole(user, AccessRoleNames.Master))
+        {
+            return new ServiceResult<bool>(
+                ApplicationStatusCode.CampaignMasterRoleRequired,
+                false);
+        }
+
+        var campaign = await _campaignRepository.GetByIdForGameMasterAsync(
+            campaignId,
+            userId,
+            cancellationToken);
+
+        if (campaign is null)
+        {
+            return new ServiceResult<bool>(
+                ApplicationStatusCode.CampaignNotFound,
+                false);
+        }
+
+        var participation = await _campaignParticipationInviteRepository.GetParticipationByUsernameAsync(
+            campaignId,
+            username.Trim(),
+            cancellationToken);
+
+        if (participation is null)
+        {
+            return new ServiceResult<bool>(
+                ApplicationStatusCode.CampaignParticipantNotFound,
+                false);
+        }
+
+        var removedNotification = new NotificationResponse
+        {
+            NotificationId = Guid.NewGuid(),
+            UserId = participation.UserId,
+            NotificationType = NotificationType.Information,
+            Description = BuildCampaignPlayerRemovedNotificationDescription(campaign.CampaignName),
+            DateCreated = DateTimeOffset.UtcNow,
+            DateRead = null
+        };
+
+        await _campaignParticipationInviteRepository.ExecuteInTransactionAsync(
+            async () =>
+            {
+                _campaignParticipationInviteRepository.RemoveParticipation(participation);
+                await _campaignParticipationInviteRepository.SaveChangesAsync(cancellationToken);
+
+                await _notificationCommandRepository.CreateNotificationAsync(
+                    removedNotification.NotificationId,
+                    removedNotification.UserId,
+                    removedNotification.NotificationType,
+                    removedNotification.Description,
+                    removedNotification.DateCreated,
+                    cancellationToken);
+            },
+            cancellationToken);
+
+        await _applicationEventHub.PublishAsync(
+            new NotificationCreatedEvent(removedNotification),
+            cancellationToken);
+
+        return new ServiceResult<bool>(
+            ApplicationStatusCode.Success,
+            true);
+    }
+
     private async Task<ServiceResult<CampaignInviteResolutionResponse>> ResolveInviteAsync(
         Guid userId,
         Guid campaignId,
@@ -377,6 +468,8 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
                         {
                             CampaignId = campaignId,
                             UserId = userId,
+                            AbilityValues = BuildDefaultAbilityValues(),
+                            SkillValues = BuildDefaultSkillValues(),
                             DateJoined = dateResolved
                         },
                         cancellationToken);
@@ -468,6 +561,28 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
                 StringComparison.OrdinalIgnoreCase));
     }
 
+    private static List<PlayerCampaignParticipationAbilityValue> BuildDefaultAbilityValues()
+    {
+        return Enum.GetValues<Ability>()
+            .Select(ability => new PlayerCampaignParticipationAbilityValue
+            {
+                Ability = ability,
+                Value = DefaultParticipationStatValue
+            })
+            .ToList();
+    }
+
+    private static List<PlayerCampaignParticipationSkillValue> BuildDefaultSkillValues()
+    {
+        return Enum.GetValues<Skill>()
+            .Select(skill => new PlayerCampaignParticipationSkillValue
+            {
+                Skill = skill,
+                Value = DefaultParticipationStatValue
+            })
+            .ToList();
+    }
+
     private static string BuildCampaignInviteNotificationDescription(
         string gameMasterUsername,
         string campaignName)
@@ -480,6 +595,12 @@ public sealed class CampaignParticipationInviteService : ICampaignParticipationI
         string campaignName)
     {
         return $"{playerUsername} has accepted the invite to join campaign \"{campaignName}\".";
+    }
+
+    private static string BuildCampaignPlayerRemovedNotificationDescription(
+        string campaignName)
+    {
+        return $"You have been removed from the campaign party for \"{campaignName}\".";
     }
 
     private static CampaignPendingInviteResponse ToPendingInviteResponse(

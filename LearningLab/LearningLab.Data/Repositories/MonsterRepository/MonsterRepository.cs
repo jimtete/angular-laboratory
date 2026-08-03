@@ -93,6 +93,18 @@ public sealed class MonsterRepository : IMonsterRepository
                 cancellationToken);
     }
 
+    public Task<CampaignNpcParticipation?> GetCampaignParticipationAsync(
+        Guid campaignId,
+        int monsterId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.CampaignNpcParticipations
+            .SingleOrDefaultAsync(
+                participation => participation.CampaignId == campaignId
+                    && participation.MonsterId == monsterId,
+                cancellationToken);
+    }
+
     public Task<int> CountCampaignParticipationsByMonsterIdsAsync(
         Guid campaignId,
         IReadOnlyCollection<int> monsterIds,
@@ -118,6 +130,11 @@ public sealed class MonsterRepository : IMonsterRepository
         CancellationToken cancellationToken = default)
     {
         await _context.CampaignNpcParticipations.AddAsync(participation, cancellationToken);
+    }
+
+    public void RemoveCampaignParticipation(CampaignNpcParticipation participation)
+    {
+        _context.CampaignNpcParticipations.Remove(participation);
     }
 
     public void Remove(Monster monster)

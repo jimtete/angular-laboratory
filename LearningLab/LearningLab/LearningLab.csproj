@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LearningLab.Assets\LearningLab.Assets.csproj" />
     <ProjectReference Include="..\LearningLab.Data\LearningLab.Data.csproj" />
     <ProjectReference Include="..\LearningLab.Presentation\LearningLab.Presentation.csproj" />
     <ProjectReference Include="..\LearningLab.Services\LearningLab.Services.csproj" />

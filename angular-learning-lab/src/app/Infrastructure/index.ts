@@ -11,6 +11,7 @@ export * from './models';
 export * from './services/api-client.service';
 export * from './services/api-loading.service';
 export * from './services/auth-api.service';
+export * from './services/browser-cache.service';
 export * from './services/campaign-cache.service';
 export * from './services/campaign-information-cache.service';
 export * from './services/campaign-api.service';

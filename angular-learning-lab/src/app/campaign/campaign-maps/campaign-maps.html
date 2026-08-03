@@ -1,0 +1,176 @@
+<section class="campaign-maps-page" aria-label="Campaign maps">
+  <header class="campaign-maps-header">
+    <div>
+      <p>Campaign Atlas</p>
+      <h1>Maps</h1>
+    </div>
+
+    <button
+      type="button"
+      class="campaign-maps-add-button"
+      [disabled]="isUploadingMap()"
+      (click)="openCreateMapDialog()"
+    >
+      <svg lucidePlus aria-hidden="true"></svg>
+      <span>Add Map</span>
+    </button>
+  </header>
+
+  <div class="campaign-maps-board" aria-live="polite">
+    @for (row of categoryRows; track row.category) {
+      <section class="campaign-map-row" [attr.aria-label]="row.label">
+        <header class="campaign-map-row-header">
+          <div>
+            <p>{{ row.description }}</p>
+            <h2>{{ row.label }}</h2>
+          </div>
+
+          <button
+            type="button"
+            class="campaign-map-row-add"
+            [disabled]="isUploadingMap()"
+            [attr.aria-label]="'Add ' + row.label"
+            [attr.title]="'Add ' + row.label"
+            (click)="openCreateMapDialog(row.category)"
+          >
+            <svg lucidePlus aria-hidden="true"></svg>
+          </button>
+        </header>
+
+        <div class="campaign-map-row-scroll" tabindex="0">
+          @if (isLoadingMaps()) {
+            <p class="campaign-map-empty">Loading maps...</p>
+          } @else {
+            @for (map of parentlessMapsFor(row.category); track map.id) {
+              <button
+                type="button"
+                class="campaign-map-card"
+                [attr.aria-label]="'Open map ' + map.name"
+                (click)="openMap(map)"
+              >
+                <div class="campaign-map-preview">
+                  @if (resolveMapAssetUrl(map); as mapAssetUrl) {
+                    <img [src]="mapAssetUrl" [alt]="map.name" loading="lazy" />
+                  } @else {
+                    <svg lucideMap aria-hidden="true"></svg>
+                  }
+                </div>
+
+                <div class="campaign-map-card-body">
+                  <h3>{{ map.name }}</h3>
+                  @if (map.description) {
+                    <p>{{ map.description }}</p>
+                  }
+                  <span>{{ formatFileSize(map) }}</span>
+                </div>
+              </button>
+            } @empty {
+              <p class="campaign-map-empty">No maps in this category.</p>
+            }
+          }
+        </div>
+      </section>
+    }
+  </div>
+
+  @if (isCreateMapOpen()) {
+    <section
+      class="campaign-map-dialog-backdrop"
+      role="presentation"
+      (click)="closeCreateMapDialog()"
+    >
+      <form
+        #createMapForm
+        class="campaign-map-dialog"
+        aria-label="Add campaign map"
+        (submit)="createMap($event)"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="campaign-map-dialog-header">
+          <div>
+            <p>New Atlas Entry</p>
+            <h2>Add Map</h2>
+          </div>
+
+          <button
+            type="button"
+            class="campaign-map-dialog-close"
+            [disabled]="isUploadingMap()"
+            aria-label="Close"
+            title="Close"
+            (click)="closeCreateMapDialog()"
+          >
+            <svg lucideX aria-hidden="true"></svg>
+          </button>
+        </header>
+
+        <div class="campaign-map-dialog-grid">
+          <label class="campaign-map-field">
+            <span>Name</span>
+            <input
+              type="text"
+              name="name"
+              autocomplete="off"
+              [class.campaign-map-field-invalid]="validationErrors().name"
+            />
+          </label>
+
+          <label class="campaign-map-field">
+            <span>Category</span>
+            <select
+              name="category"
+              [class.campaign-map-field-invalid]="validationErrors().category"
+            >
+              @for (row of categoryRows; track row.category) {
+                <option [value]="row.category">{{ row.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="campaign-map-field campaign-map-description-field">
+            <span>Description</span>
+            <textarea name="description" rows="4"></textarea>
+          </label>
+
+          <label class="campaign-map-upload-field">
+            <input
+              #mapFileInput
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              (change)="selectMapFile($event)"
+            />
+
+            @if (selectedMapPreviewUrl(); as selectedMapPreviewUrl) {
+              <img [src]="selectedMapPreviewUrl" alt="Selected map preview" />
+            } @else {
+              <span class="campaign-map-upload-placeholder">
+                <svg lucideUpload aria-hidden="true"></svg>
+                <strong>Choose Map Image</strong>
+                <small>JPEG, PNG, or WebP. 20 MB max.</small>
+              </span>
+            }
+          </label>
+        </div>
+
+        <footer class="campaign-map-dialog-actions">
+          <button
+            type="button"
+            class="campaign-map-secondary-button"
+            [disabled]="isUploadingMap()"
+            (click)="closeCreateMapDialog()"
+          >
+            Close
+          </button>
+
+          <button
+            type="submit"
+            class="campaign-map-primary-button"
+            [disabled]="isUploadingMap()"
+          >
+            {{ isUploadingMap() ? 'Adding...' : 'Add Map' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  }
+</section>

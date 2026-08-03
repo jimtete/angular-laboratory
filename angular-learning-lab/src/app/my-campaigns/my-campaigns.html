@@ -7,6 +7,8 @@
         <button
           type="button"
           class="campaign-card campaign-card-button"
+          [class.campaign-card-created]="campaign.accessKind === 'created'"
+          [class.campaign-card-joined]="campaign.accessKind === 'joined'"
           (click)="selectCampaign(campaign.campaignId)"
         >
           @if (getCampaignPictureSource(campaign); as pictureSource) {
@@ -15,16 +17,26 @@
 
           <div class="campaign-card-frame">
             @if (getCampaignPictureSource(campaign); as pictureSource) {
-              <img class="campaign-card-image" [src]="pictureSource" [alt]="campaign.campaignName" />
+              <img
+                class="campaign-card-image"
+                [src]="pictureSource"
+                [alt]="campaign.campaignName"
+              />
             } @else {
               <span class="campaign-card-initial">{{ campaign.campaignName.charAt(0) }}</span>
             }
 
             <h2 class="campaign-card-title">{{ campaign.campaignName }}</h2>
 
+            <span class="campaign-card-access" [attr.title]="campaignAccessTitle(campaign)">
+              {{ campaignAccessLabel(campaign) }}
+            </span>
+
             <div class="campaign-card-badges" aria-label="Campaign details">
               <span class="campaign-card-badge">{{ campaign.version }}</span>
-              <span class="campaign-card-badge" aria-hidden="true"></span>
+              <span class="campaign-card-badge campaign-card-owner">{{
+                campaign.gameMasterUsername
+              }}</span>
             </div>
           </div>
         </button>

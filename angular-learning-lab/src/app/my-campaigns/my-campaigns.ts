@@ -5,7 +5,7 @@ import {
   API_BASE_URL,
   ApiError,
   CampaignCacheService,
-  CampaignModel,
+  CampaignCardModel,
   TokenStorageService,
 } from '../Infrastructure';
 import { ModalHelper } from '../shared/helpers/modal.helper';
@@ -53,7 +53,17 @@ export class MyCampaigns implements OnInit {
     void this.router.navigate(['/campaigns', campaignId]);
   }
 
-  protected getCampaignPictureSource(campaign: CampaignModel): string | null {
+  protected campaignAccessLabel(campaign: CampaignCardModel): string {
+    return campaign.accessKind === 'joined' ? 'Joined' : 'Owner';
+  }
+
+  protected campaignAccessTitle(campaign: CampaignCardModel): string {
+    return campaign.accessKind === 'joined'
+      ? `Joined campaign by ${campaign.gameMasterUsername}`
+      : 'Campaign you created';
+  }
+
+  protected getCampaignPictureSource(campaign: CampaignCardModel): string | null {
     const imageSource = campaign.campaignPictureBase64 ?? campaign.campaignPictureUrl;
 
     if (!imageSource) {

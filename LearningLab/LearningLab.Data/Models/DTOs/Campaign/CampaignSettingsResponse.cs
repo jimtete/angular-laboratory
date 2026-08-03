@@ -9,4 +9,6 @@ public sealed class CampaignSettingsResponse
     public int MaxNumberOfPlayers { get; init; }
 
     public PassiveSkillsCheck PassiveSkillsCheck { get; init; }
+
+    public StoreMechanics StoreMechanics { get; init; }
 }
