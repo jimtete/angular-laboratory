@@ -5,6 +5,7 @@
 }
 
 .campaign-stores-add-button,
+.campaign-stores-category-button,
 .campaign-stores-secondary-button,
 .campaign-stores-primary-button {
   min-height: 2.65rem;
@@ -66,6 +67,13 @@
   color: #2f1808;
   box-sizing: border-box;
   text-align: center;
+  cursor: pointer;
+}
+
+.campaign-stores-card:hover,
+.campaign-stores-card:focus-visible {
+  border-color: #6d28d9;
+  background: #ffffff;
 }
 
 .campaign-stores-card svg {
@@ -83,6 +91,7 @@
 .campaign-stores-add-button svg,
 .campaign-stores-icon-button svg,
 .campaign-stores-type-option svg,
+.campaign-stores-category-button svg,
 .campaign-stores-secondary-button svg,
 .campaign-stores-primary-button svg {
   width: 1.1rem;
@@ -143,6 +152,46 @@
 
 .campaign-stores-icon-button:hover,
 .campaign-stores-icon-button:focus-visible {
+  border-color: #9a4f16;
+  background: #fff8e7;
+}
+
+.campaign-stores-type-category {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.campaign-stores-type-category div {
+  display: grid;
+  gap: 0.15rem;
+  text-align: center;
+}
+
+.campaign-stores-type-category strong,
+.campaign-stores-type-category span {
+  margin: 0;
+  color: #2f1808;
+  font: 900 0.78rem/1.15 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+.campaign-stores-type-category span {
+  color: #6f3511;
+  font-size: 0.68rem;
+}
+
+.campaign-stores-category-button {
+  min-height: 2.25rem;
+  padding: 0 0.65rem;
+  border: 2px solid rgba(154, 79, 22, 0.34);
+  background: #ffffff;
+  color: #6f3511;
+}
+
+.campaign-stores-category-button:hover,
+.campaign-stores-category-button:focus-visible {
   border-color: #9a4f16;
   background: #fff8e7;
 }
@@ -234,6 +283,76 @@
 .campaign-stores-type-option[data-store-type="clothes-store"],
 .campaign-stores-card[data-store-type="clothes-store"] {
   color: #be185d;
+}
+
+.campaign-stores-type-option[data-store-type="pawn-shop"],
+.campaign-stores-card[data-store-type="pawn-shop"] {
+  color: #a16207;
+}
+
+.campaign-stores-type-option[data-store-type="enchanter"],
+.campaign-stores-card[data-store-type="enchanter"] {
+  color: #7c3aed;
+}
+
+.campaign-stores-type-option[data-store-type="herbalist"],
+.campaign-stores-card[data-store-type="herbalist"] {
+  color: #15803d;
+}
+
+.campaign-stores-type-option[data-store-type="cartographer"],
+.campaign-stores-card[data-store-type="cartographer"] {
+  color: #0f766e;
+}
+
+.campaign-stores-type-option[data-store-type="stable"],
+.campaign-stores-card[data-store-type="stable"] {
+  color: #92400e;
+}
+
+.campaign-stores-type-option[data-store-type="smuggler"],
+.campaign-stores-card[data-store-type="smuggler"] {
+  color: #4338ca;
+}
+
+.campaign-stores-type-option[data-store-type="tavern"],
+.campaign-stores-card[data-store-type="tavern"] {
+  color: #b45309;
+}
+
+.campaign-stores-type-option[data-store-type="inn"],
+.campaign-stores-card[data-store-type="inn"] {
+  color: #0e7490;
+}
+
+.campaign-stores-type-option[data-store-type="brothel"],
+.campaign-stores-card[data-store-type="brothel"] {
+  color: #db2777;
+}
+
+.campaign-stores-type-option[data-store-type="theatre"],
+.campaign-stores-card[data-store-type="theatre"] {
+  color: #7f1d1d;
+}
+
+.campaign-stores-type-option[data-store-type="cafe"],
+.campaign-stores-card[data-store-type="cafe"] {
+  color: #854d0e;
+}
+
+.campaign-stores-type-option[data-store-type="bank"],
+.campaign-stores-card[data-store-type="bank"] {
+  color: #047857;
+}
+
+.campaign-stores-type-option[data-store-type="office"],
+.campaign-stores-card[data-store-type="office"] {
+  color: #475569;
+}
+
+.campaign-stores-type-option[data-store-type="post-office"],
+.campaign-stores-card[data-store-type="post-office"] {
+  color: #2563eb;
 }
 
 .campaign-stores-details-form {

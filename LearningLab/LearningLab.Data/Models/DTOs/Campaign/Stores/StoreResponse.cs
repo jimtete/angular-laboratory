@@ -10,11 +10,17 @@ public sealed class StoreResponse
 
     public StoreType StoreType { get; init; }
 
+    public StoreLockState LockState { get; init; }
+
     public string StoreLocation { get; init; } = string.Empty;
 
     public string? StoreName { get; init; }
 
     public string? StoreDescription { get; init; }
 
+    public int StoreDiscountPercentage { get; init; }
+
     public IReadOnlyList<StoreItemResponse> Items { get; init; } = [];
+
+    public IReadOnlyList<StoreResponse> UnlockedStores { get; init; } = [];
 }

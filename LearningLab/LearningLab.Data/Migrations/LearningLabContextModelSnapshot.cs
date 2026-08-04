@@ -1698,10 +1698,24 @@ namespace LearningLab.Data.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("campaign_id");
 
+                    b.Property<string>("LockState")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValue("Locked")
+                        .HasColumnName("store_lock_state");
+
                     b.Property<string>("StoreDescription")
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("store_description");
+
+                    b.Property<int>("StoreDiscountPercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("store_discount_percentage");
 
                     b.Property<string>("StoreLocation")
                         .IsRequired()

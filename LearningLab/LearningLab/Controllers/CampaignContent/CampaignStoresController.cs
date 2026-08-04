@@ -230,6 +230,12 @@ public sealed class CampaignStoresController : ControllerBase
                 Message = "Campaign store request is invalid.",
                 Data = default
             }),
+            ApplicationStatusCode.InvalidCampaignSettings => BadRequest(new ApiResponse<T>
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Campaign store mechanics setting is invalid.",
+                Data = default
+            }),
             ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<T>
             {
                 StatusCode = StatusCodes.Status404NotFound,

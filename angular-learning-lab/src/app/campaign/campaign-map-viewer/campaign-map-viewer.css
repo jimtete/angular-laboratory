@@ -321,6 +321,10 @@
   background: #38bdf8;
 }
 
+.campaign-map-rendered-pin-store::before {
+  background: #facc15;
+}
+
 .campaign-map-rendered-pin-selected::before {
   background: #bbf7d0;
   border-color: #166534;

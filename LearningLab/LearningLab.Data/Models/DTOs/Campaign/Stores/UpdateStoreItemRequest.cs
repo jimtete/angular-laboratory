@@ -4,6 +4,8 @@ namespace LearningLab.Data.Models.DTOs.Campaign.Stores;
 
 public sealed class UpdateStoreItemRequest
 {
+    public long? StoreItemId { get; init; }
+
     public int? Quantity { get; init; }
 
     [MaxLength(256)]

@@ -51,6 +51,24 @@ public sealed class CampaignStoreRepository : ICampaignStoreRepository
                 cancellationToken);
     }
 
+    public async Task<IReadOnlyList<StoreEntry>> ListUnlockedByCampaignIdAndStoreTypeAsync(
+        Guid campaignId,
+        StoreType storeType,
+        int excludedStoreId,
+        CancellationToken cancellationToken = default)
+    {
+        return await QueryStoresWithItems()
+            .AsNoTracking()
+            .Where(store => store.CampaignId == campaignId
+                && store.StoreType == storeType
+                && store.StoreId != excludedStoreId
+                && store.LockState == StoreLockState.Unlocked)
+            .OrderBy(store => store.StoreName)
+            .ThenBy(store => store.StoreLocation)
+            .ThenBy(store => store.StoreId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(
         StoreEntry store,
         CancellationToken cancellationToken = default)

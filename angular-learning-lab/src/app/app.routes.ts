@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 
 import { authGuard, masterRoleGuard, pendingChangesGuard } from './Infrastructure';
 import { Campaign } from './campaign/campaign';
-import { CampaignAssets } from './campaign/campaign-assets/campaign-assets';
 import { MonsterEditor } from './campaign/campaign-assets/monster-editor/monster-editor';
 import { MonsterPresentationSheet } from './campaign/campaign-assets/monster-presentation-sheet/monster-presentation-sheet';
 import { CampaignHome } from './campaign/campaign-home/campaign-home';
@@ -74,7 +73,8 @@ export const routes: Routes = [
   },
   {
     path: 'assets',
-    component: CampaignAssets,
+    loadComponent: () => import('./campaign/campaign-assets/campaign-assets')
+      .then((module) => module.CampaignAssets),
     canActivate: [authGuard, masterRoleGuard]
   },
   {
@@ -93,6 +93,12 @@ export const routes: Routes = [
       {
         path: 'campaign-members/:userId/proficiencies',
         component: CampaignMemberProficiencies,
+        canActivate: [masterRoleGuard]
+      },
+      {
+        path: 'campaign-content/campaign-stores/:storeId',
+        loadComponent: () => import('./campaign/campaign-content/campaign-store-page/campaign-store-page')
+          .then((module) => module.CampaignStorePage),
         canActivate: [masterRoleGuard]
       },
       {

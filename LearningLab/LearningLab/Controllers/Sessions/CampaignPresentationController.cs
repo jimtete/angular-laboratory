@@ -198,6 +198,13 @@ public sealed class CampaignPresentationController : ControllerBase
                     Message = "Another story beat has already been selected for this story beat index.",
                     Data = null
                 }),
+            ApplicationStatusCode.CampaignPresentationStoryBeatBlocked => Conflict(
+                new ApiResponse<CampaignPresentationResponse>
+                {
+                    StatusCode = StatusCodes.Status409Conflict,
+                    Message = "Story beat is blocked by unmet availability requirements.",
+                    Data = null
+                }),
             ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
                 StatusCodes.Status403Forbidden,
                 new ApiResponse<CampaignPresentationResponse>

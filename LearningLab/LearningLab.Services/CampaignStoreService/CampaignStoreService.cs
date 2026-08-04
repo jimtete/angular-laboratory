@@ -1,8 +1,10 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
+using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.Campaign.Stores;
 using LearningLab.Data.Models.DTOs.Campaign.Stores;
 using LearningLab.Data.Repositories.CampaignRepository;
+using LearningLab.Data.Repositories.CampaignSettingsRepository;
 using LearningLab.Data.Repositories.CampaignStoreRepository;
 using LearningLab.Data.Repositories.UserRepository;
 
@@ -17,15 +19,18 @@ public sealed class CampaignStoreService : ICampaignStoreService
     private const int MaximumStoreItemDescriptionLength = 4096;
 
     private readonly ICampaignRepository _campaignRepository;
+    private readonly ICampaignSettingsRepository _campaignSettingsRepository;
     private readonly ICampaignStoreRepository _campaignStoreRepository;
     private readonly IUserRepository _userRepository;
 
     public CampaignStoreService(
         ICampaignRepository campaignRepository,
+        ICampaignSettingsRepository campaignSettingsRepository,
         ICampaignStoreRepository campaignStoreRepository,
         IUserRepository userRepository)
     {
         _campaignRepository = campaignRepository;
+        _campaignSettingsRepository = campaignSettingsRepository;
         _campaignStoreRepository = campaignStoreRepository;
         _userRepository = userRepository;
     }
@@ -52,7 +57,7 @@ public sealed class CampaignStoreService : ICampaignStoreService
 
         return new ServiceResult<IReadOnlyList<StoreResponse>>(
             ApplicationStatusCode.Success,
-            stores.Select(ToResponse).ToList());
+            stores.Select(store => ToResponse(store)).ToList());
     }
 
     public async Task<ServiceResult<StoreResponse>> GetCampaignStoreAsync(
@@ -83,11 +88,30 @@ public sealed class CampaignStoreService : ICampaignStoreService
             storeId,
             cancellationToken);
 
-        return store is null
-            ? new ServiceResult<StoreResponse>(ApplicationStatusCode.StoreNotFound)
-            : new ServiceResult<StoreResponse>(
-                ApplicationStatusCode.Success,
-                ToResponse(store));
+        if (store is null)
+        {
+            return new ServiceResult<StoreResponse>(ApplicationStatusCode.StoreNotFound);
+        }
+
+        var storeMechanicsResult = await GetStoreMechanicsAsync(
+            campaignId,
+            cancellationToken);
+
+        if (storeMechanicsResult.StatusCode is not null)
+        {
+            return new ServiceResult<StoreResponse>(
+                storeMechanicsResult.StatusCode.Value);
+        }
+
+        var response = await BuildStoreResponseAsync(
+            campaignId,
+            store,
+            storeMechanicsResult.StoreMechanics,
+            cancellationToken);
+
+        return new ServiceResult<StoreResponse>(
+            ApplicationStatusCode.Success,
+            response);
     }
 
     public async Task<ServiceResult<StoreResponse>> CreateCampaignStoreAsync(
@@ -163,14 +187,28 @@ public sealed class CampaignStoreService : ICampaignStoreService
                 ApplicationStatusCode.StoreNotFound);
         }
 
+        var existingItemsById = store.Items.ToDictionary(item => item.StoreItemId);
+        if (updatedStore.Items.Any(item => item.StoreItemId > 0 && !existingItemsById.ContainsKey(item.StoreItemId)))
+        {
+            return new ServiceResult<StoreResponse>(
+                ApplicationStatusCode.InvalidStore);
+        }
+
         store.StoreType = updatedStore.StoreType;
         store.StoreLocation = updatedStore.StoreLocation;
         store.StoreName = updatedStore.StoreName;
         store.StoreDescription = updatedStore.StoreDescription;
+        store.StoreDiscountPercentage = updatedStore.StoreDiscountPercentage;
 
         store.Items.Clear();
         foreach (var item in updatedStore.Items)
         {
+            if (item.StoreItemId > 0
+                && existingItemsById.TryGetValue(item.StoreItemId, out var existingItem))
+            {
+                item.TimesSold = existingItem.TimesSold;
+            }
+
             store.Items.Add(item);
         }
 
@@ -237,6 +275,68 @@ public sealed class CampaignStoreService : ICampaignStoreService
         return new ServiceResult<StoreResponse>(
             ApplicationStatusCode.Success,
             ToResponse(store));
+    }
+
+    public async Task<ServiceResult<StoreResponse>> UpdateCampaignStoreLockStateAsync(
+        Guid userId,
+        Guid campaignId,
+        int storeId,
+        UpdateStoreLockStateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (storeId < 1
+            || request is null
+            || !Enum.IsDefined(request.LockState))
+        {
+            return new ServiceResult<StoreResponse>(
+                ApplicationStatusCode.InvalidStore);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<StoreResponse>(
+                validationStatusCode.Value);
+        }
+
+        var store = await _campaignStoreRepository.GetMutableByCampaignIdAndStoreIdAsync(
+            campaignId,
+            storeId,
+            cancellationToken);
+
+        if (store is null)
+        {
+            return new ServiceResult<StoreResponse>(
+                ApplicationStatusCode.StoreNotFound);
+        }
+
+        store.LockState = request.LockState;
+
+        await _campaignStoreRepository.SaveChangesAsync(cancellationToken);
+
+        var storeMechanicsResult = await GetStoreMechanicsAsync(
+            campaignId,
+            cancellationToken);
+
+        if (storeMechanicsResult.StatusCode is not null)
+        {
+            return new ServiceResult<StoreResponse>(
+                storeMechanicsResult.StatusCode.Value);
+        }
+
+        var response = await BuildStoreResponseAsync(
+            campaignId,
+            store,
+            storeMechanicsResult.StoreMechanics,
+            cancellationToken);
+
+        return new ServiceResult<StoreResponse>(
+            ApplicationStatusCode.Success,
+            response);
     }
 
     public async Task<ServiceResult<object>> DeleteCampaignStoreAsync(
@@ -319,11 +419,13 @@ public sealed class CampaignStoreService : ICampaignStoreService
                 request.StoreLocation,
                 request.StoreName,
                 request.StoreDescription,
+                request.StoreDiscountPercentage,
                 request.Items,
                 out var storeType,
                 out var storeLocation,
                 out var storeName,
                 out var storeDescription,
+                out var storeDiscountPercentage,
                 out var items))
         {
             return false;
@@ -336,6 +438,7 @@ public sealed class CampaignStoreService : ICampaignStoreService
             StoreLocation = storeLocation,
             StoreName = storeName,
             StoreDescription = storeDescription,
+            StoreDiscountPercentage = storeDiscountPercentage,
             Items = items
         };
 
@@ -355,11 +458,13 @@ public sealed class CampaignStoreService : ICampaignStoreService
                 request.StoreLocation,
                 request.StoreName,
                 request.StoreDescription,
+                request.StoreDiscountPercentage,
                 request.Items,
                 out var storeType,
                 out var storeLocation,
                 out var storeName,
                 out var storeDescription,
+                out var storeDiscountPercentage,
                 out var items))
         {
             return false;
@@ -372,6 +477,7 @@ public sealed class CampaignStoreService : ICampaignStoreService
             StoreLocation = storeLocation,
             StoreName = storeName,
             StoreDescription = storeDescription,
+            StoreDiscountPercentage = storeDiscountPercentage,
             Items = items
         };
 
@@ -383,17 +489,20 @@ public sealed class CampaignStoreService : ICampaignStoreService
         string? storeLocationValue,
         string? storeNameValue,
         string? storeDescriptionValue,
+        int storeDiscountPercentageValue,
         IReadOnlyList<TItemRequest>? itemRequests,
         out StoreType normalizedStoreType,
         out string storeLocation,
         out string? storeName,
         out string? storeDescription,
+        out int storeDiscountPercentage,
         out List<StoreItem> items)
     {
         normalizedStoreType = storeType;
         storeLocation = storeLocationValue?.Trim() ?? string.Empty;
         storeName = NormalizeOptionalString(storeNameValue);
         storeDescription = NormalizeOptionalString(storeDescriptionValue);
+        storeDiscountPercentage = storeDiscountPercentageValue;
         items = [];
 
         if (!Enum.IsDefined(storeType)
@@ -401,6 +510,7 @@ public sealed class CampaignStoreService : ICampaignStoreService
             || storeLocation.Length > MaximumStoreLocationLength
             || storeName?.Length > MaximumStoreNameLength
             || storeDescription?.Length > MaximumStoreDescriptionLength
+            || storeDiscountPercentage is < 0 or > 100
             || itemRequests is null
             || itemRequests.Count == 0
             || itemRequests.Any(item => item is null))
@@ -432,6 +542,7 @@ public sealed class CampaignStoreService : ICampaignStoreService
         var values = itemRequest switch
         {
             CreateStoreItemRequest createRequest => (
+                (long?)null,
                 createRequest.Quantity,
                 createRequest.ItemName,
                 createRequest.ItemDescription,
@@ -439,40 +550,42 @@ public sealed class CampaignStoreService : ICampaignStoreService
                 createRequest.ItemPriceDiscount,
                 createRequest.ItemPricePercentageDiscount),
             UpdateStoreItemRequest updateRequest => (
+                updateRequest.StoreItemId,
                 updateRequest.Quantity,
                 updateRequest.ItemName,
                 updateRequest.ItemDescription,
                 updateRequest.ItemPrice,
                 updateRequest.ItemPriceDiscount,
                 updateRequest.ItemPricePercentageDiscount),
-            _ => ((int?)null, null, null, 0, 0, 0)
+            _ => (null, (int?)null, null, null, 0, 0, 0)
         };
 
-        var itemName = values.Item2?.Trim();
-        var itemDescription = NormalizeOptionalString(values.Item3);
+        var itemName = values.Item3?.Trim();
+        var itemDescription = NormalizeOptionalString(values.Item4);
 
         if (string.IsNullOrWhiteSpace(itemName)
             || itemName.Length > MaximumStoreItemNameLength
             || itemDescription?.Length > MaximumStoreItemDescriptionLength
-            || values.Item1 < 0
-            || values.Item4 < 0
+            || values.Item2 < 0
             || values.Item5 < 0
-            || values.Item5 > values.Item4
             || values.Item6 < 0
-            || values.Item6 > 100)
+            || values.Item6 > values.Item5
+            || values.Item7 < 0
+            || values.Item7 > 100)
         {
             return false;
         }
 
         item = new StoreItem
         {
-            Quantity = values.Item1,
+            StoreItemId = values.Item1 ?? 0,
+            Quantity = values.Item2,
             TimesSold = 0,
             ItemName = itemName,
             ItemDescription = itemDescription,
-            ItemPrice = values.Item4,
-            ItemPriceDiscount = values.Item5,
-            ItemPricePercentageDiscount = values.Item6
+            ItemPrice = values.Item5,
+            ItemPriceDiscount = values.Item6,
+            ItemPricePercentageDiscount = values.Item7
         };
 
         return true;
@@ -494,21 +607,62 @@ public sealed class CampaignStoreService : ICampaignStoreService
                 StringComparison.OrdinalIgnoreCase));
     }
 
-    private static StoreResponse ToResponse(StoreEntry store)
+    private async Task<(ApplicationStatusCode? StatusCode, StoreMechanics StoreMechanics)> GetStoreMechanicsAsync(
+        Guid campaignId,
+        CancellationToken cancellationToken)
+    {
+        var settings = await _campaignSettingsRepository.GetByCampaignIdAsync(
+            campaignId,
+            cancellationToken);
+        var storeMechanics = settings?.StoreMechanics ?? StoreMechanics.GlobalStores;
+
+        return Enum.IsDefined(storeMechanics)
+            ? (null, storeMechanics)
+            : (ApplicationStatusCode.InvalidCampaignSettings, storeMechanics);
+    }
+
+    private async Task<StoreResponse> BuildStoreResponseAsync(
+        Guid campaignId,
+        StoreEntry store,
+        StoreMechanics storeMechanics,
+        CancellationToken cancellationToken)
+    {
+        if (storeMechanics != StoreMechanics.UnlockingStores)
+        {
+            return ToResponse(store);
+        }
+
+        var unlockedStores = await _campaignStoreRepository.ListUnlockedByCampaignIdAndStoreTypeAsync(
+            campaignId,
+            store.StoreType,
+            store.StoreId,
+            cancellationToken);
+
+        return ToResponse(
+            store,
+            unlockedStores.Select(unlockedStore => ToResponse(unlockedStore)).ToList());
+    }
+
+    private static StoreResponse ToResponse(
+        StoreEntry store,
+        IReadOnlyList<StoreResponse>? unlockedStores = null)
     {
         return new StoreResponse
         {
             StoreId = store.StoreId,
             CampaignId = store.CampaignId,
             StoreType = store.StoreType,
+            LockState = store.LockState,
             StoreLocation = store.StoreLocation,
             StoreName = store.StoreName,
             StoreDescription = store.StoreDescription,
+            StoreDiscountPercentage = store.StoreDiscountPercentage,
             Items = store.Items
                 .OrderBy(item => item.ItemName)
                 .ThenBy(item => item.StoreItemId)
                 .Select(ToResponse)
-                .ToList()
+                .ToList(),
+            UnlockedStores = unlockedStores ?? []
         };
     }
 

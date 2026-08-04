@@ -606,12 +606,6 @@ public sealed class CampaignMapPinService : ICampaignMapPinService
             return ApplicationStatusCode.InvalidMapPin;
         }
 
-        if (targetType == MapPinTargetType.Store
-            && map.Category == MapCategory.World)
-        {
-            return ApplicationStatusCode.InvalidMapPinTarget;
-        }
-
         if (TargetTypeRequiresNoTargetId(targetType))
         {
             return string.IsNullOrWhiteSpace(targetId)
@@ -622,6 +616,28 @@ public sealed class CampaignMapPinService : ICampaignMapPinService
         if (string.IsNullOrWhiteSpace(targetId))
         {
             return ApplicationStatusCode.InvalidMapPinTarget;
+        }
+
+        if (targetType == MapPinTargetType.Map)
+        {
+            if (!int.TryParse(targetId, out var targetMapId) || targetMapId == map.Id)
+            {
+                return ApplicationStatusCode.InvalidMapPinTarget;
+            }
+
+            var targetMap = await _campaignMapPinRepository.GetMapByCampaignIdAsync(
+                campaignId,
+                targetMapId,
+                cancellationToken);
+
+            if (targetMap is null)
+            {
+                return ApplicationStatusCode.MapPinTargetNotFound;
+            }
+
+            return targetMap.Category >= map.Category
+                ? null
+                : ApplicationStatusCode.InvalidMapPinTarget;
         }
 
         var targetExists = await _campaignMapPinRepository.TargetExistsAsync(
@@ -929,6 +945,7 @@ public sealed class CampaignMapPinService : ICampaignMapPinService
                         Description = store.StoreDescription,
                         StoreId = store.StoreId,
                         StoreType = store.StoreType,
+                        StoreLockState = store.LockState,
                         StoreLocation = store.StoreLocation
                     }
                     : null,

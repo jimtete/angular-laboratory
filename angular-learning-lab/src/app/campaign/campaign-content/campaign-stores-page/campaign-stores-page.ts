@@ -1,17 +1,31 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
+  LucideBadgeDollarSign,
+  LucideBed,
   LucideBookOpen,
+  LucideBriefcase,
+  LucideCoffee,
+  LucideDrama,
+  LucideFence,
   LucideFish,
   LucideFlaskConical,
   LucideHammer,
   LucideHandCoins,
+  LucideHeartHandshake,
   LucideHeartPulse,
+  LucideLandmark,
+  LucideLeaf,
+  LucideMail,
+  LucideMapPinned,
   LucidePackage,
+  LucidePackageSearch,
   LucidePlus,
   LucideShield,
   LucideShirt,
   LucideSparkles,
+  LucideWandSparkles,
+  LucideBeer,
   LucideX,
 } from '@lucide/angular';
 import { finalize } from 'rxjs';
@@ -30,6 +44,11 @@ interface StoreTypeOption {
   value: StoreType;
   label: string;
   className: string;
+}
+
+interface StoreTypeCategory {
+  label: string;
+  options: StoreTypeOption[];
 }
 
 interface StoreTypeGroup {
@@ -51,17 +70,31 @@ interface StoreItemDraft {
 @Component({
   selector: 'app-campaign-stores-page',
   imports: [
+    LucideBadgeDollarSign,
+    LucideBed,
     LucideBookOpen,
+    LucideBriefcase,
+    LucideCoffee,
+    LucideDrama,
+    LucideFence,
     LucideFish,
     LucideFlaskConical,
     LucideHammer,
     LucideHandCoins,
+    LucideHeartHandshake,
     LucideHeartPulse,
+    LucideLandmark,
+    LucideLeaf,
+    LucideMail,
+    LucideMapPinned,
     LucidePackage,
+    LucidePackageSearch,
     LucidePlus,
     LucideShield,
     LucideShirt,
     LucideSparkles,
+    LucideWandSparkles,
+    LucideBeer,
     LucideX,
   ],
   templateUrl: './campaign-stores-page.html',
@@ -69,6 +102,7 @@ interface StoreItemDraft {
 })
 export class CampaignStoresPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly campaignApiService = inject(CampaignApiService);
   private readonly modalHelper = inject(ModalHelper);
 
@@ -79,6 +113,7 @@ export class CampaignStoresPage implements OnInit {
   protected readonly isLoadingAvailableItems = signal(false);
   protected readonly isCreatingStore = signal(false);
   protected readonly storeFormStep = signal<StoreFormStep>('type');
+  protected readonly storeTypeCategoryIndex = signal(0);
   protected readonly selectedStoreTypeDraft = signal<StoreType | null>(null);
   protected readonly storeLocationDraft = signal('');
   protected readonly storeNameDraft = signal('');
@@ -106,7 +141,80 @@ export class CampaignStoresPage implements OnInit {
     { value: StoreType.Armorsmith, label: 'Armorsmith', className: 'armorsmith' },
     { value: StoreType.ClothesStore, label: 'Clothes Store', className: 'clothes-store' },
     { value: StoreType.MagicStore, label: 'Magic Store', className: 'magic-store' },
+    { value: StoreType.PawnShop, label: 'Pawn Shop', className: 'pawn-shop' },
+    { value: StoreType.Enchanter, label: 'Enchanter', className: 'enchanter' },
+    { value: StoreType.Herbalist, label: 'Herbalist', className: 'herbalist' },
+    { value: StoreType.Cartographer, label: 'Cartographer', className: 'cartographer' },
+    { value: StoreType.Stable, label: 'Stable', className: 'stable' },
+    { value: StoreType.Smuggler, label: 'Smuggler', className: 'smuggler' },
+    { value: StoreType.Tavern, label: 'Tavern', className: 'tavern' },
+    { value: StoreType.Inn, label: 'Inn', className: 'inn' },
+    { value: StoreType.Brothel, label: 'Brothel', className: 'brothel' },
+    { value: StoreType.Theatre, label: 'Theatre', className: 'theatre' },
+    { value: StoreType.Cafe, label: 'Cafe', className: 'cafe' },
+    { value: StoreType.Bank, label: 'Bank', className: 'bank' },
+    { value: StoreType.Office, label: 'Office', className: 'office' },
+    { value: StoreType.PostOffice, label: 'Post Office', className: 'post-office' },
   ];
+  protected readonly storeTypeCategories: StoreTypeCategory[] = [
+    {
+      label: 'Trade & Services',
+      options: this.storeTypeOptions.filter((option) => [
+        StoreType.General,
+        StoreType.PawnShop,
+        StoreType.Bank,
+        StoreType.Office,
+        StoreType.PostOffice,
+      ].includes(option.value)),
+    },
+    {
+      label: 'Gear & Craft',
+      options: this.storeTypeOptions.filter((option) => [
+        StoreType.Blacksmith,
+        StoreType.Armorsmith,
+        StoreType.ClothesStore,
+        StoreType.Stable,
+      ].includes(option.value)),
+    },
+    {
+      label: 'Arcane & Lore',
+      options: this.storeTypeOptions.filter((option) => [
+        StoreType.MagicStore,
+        StoreType.Enchanter,
+        StoreType.Bookstore,
+        StoreType.Cartographer,
+        StoreType.Alchemic,
+      ].includes(option.value)),
+    },
+    {
+      label: 'Food & Care',
+      options: this.storeTypeOptions.filter((option) => [
+        StoreType.Medic,
+        StoreType.Herbalist,
+        StoreType.FishMarket,
+        StoreType.Cafe,
+      ].includes(option.value)),
+    },
+    {
+      label: 'Leisure & Lodging',
+      options: this.storeTypeOptions.filter((option) => [
+        StoreType.Tavern,
+        StoreType.Inn,
+        StoreType.Brothel,
+        StoreType.Theatre,
+      ].includes(option.value)),
+    },
+    {
+      label: 'Underworld',
+      options: this.storeTypeOptions.filter((option) => [
+        StoreType.BlackMarket,
+        StoreType.Smuggler,
+      ].includes(option.value)),
+    },
+  ];
+  protected readonly currentStoreTypeCategory = computed<StoreTypeCategory>(() => (
+    this.storeTypeCategories[this.storeTypeCategoryIndex()] ?? this.storeTypeCategories[0]
+  ));
 
   ngOnInit(): void {
     this.loadCampaignStores();
@@ -114,6 +222,7 @@ export class CampaignStoresPage implements OnInit {
 
   protected openCreateStoreDialog(): void {
     this.storeFormStep.set('type');
+    this.storeTypeCategoryIndex.set(0);
     this.selectedStoreTypeDraft.set(null);
     this.storeLocationDraft.set('');
     this.storeNameDraft.set('');
@@ -130,6 +239,7 @@ export class CampaignStoresPage implements OnInit {
     this.isCreateStoreDialogOpen.set(false);
     this.isAssetBrowserOpen.set(false);
     this.storeFormStep.set('type');
+    this.storeTypeCategoryIndex.set(0);
     this.selectedStoreTypeDraft.set(null);
     this.storeLocationDraft.set('');
     this.storeNameDraft.set('');
@@ -139,6 +249,22 @@ export class CampaignStoresPage implements OnInit {
 
   protected selectStoreType(storeType: StoreType): void {
     this.selectedStoreTypeDraft.set(storeType);
+  }
+
+  protected showPreviousStoreTypeCategory(): void {
+    this.storeTypeCategoryIndex.update((index) => (
+      index === 0 ? this.storeTypeCategories.length - 1 : index - 1
+    ));
+  }
+
+  protected showNextStoreTypeCategory(): void {
+    this.storeTypeCategoryIndex.update((index) => (
+      index + 1 >= this.storeTypeCategories.length ? 0 : index + 1
+    ));
+  }
+
+  protected storeTypeCategoryPageLabel(): string {
+    return `${this.storeTypeCategoryIndex() + 1} / ${this.storeTypeCategories.length}`;
   }
 
   protected continueCreateStore(): void {
@@ -245,6 +371,7 @@ export class CampaignStoresPage implements OnInit {
         storeLocation: this.normalizeText(this.storeLocationDraft()),
         storeName: this.toNullableText(this.storeNameDraft()),
         storeDescription: this.toNullableText(this.storeDescriptionDraft()),
+        storeDiscountPercentage: 0,
         items: this.storeItemDrafts().map((item) => this.toStoreItemRequest(item)),
       })
       .pipe(finalize(() => this.isCreatingStore.set(false)))
@@ -282,6 +409,22 @@ export class CampaignStoresPage implements OnInit {
 
   protected storeTypeClassName(store: CampaignStoreModel): string {
     return this.storeTypeOptions.find((option) => option.value === this.storeTypeFor(store))?.className ?? 'general';
+  }
+
+  protected openStore(store: CampaignStoreModel): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId) {
+      return;
+    }
+
+    void this.router.navigate([
+      '/campaigns',
+      campaignId,
+      'campaign-content',
+      'campaign-stores',
+      store.storeId,
+    ]);
   }
 
   protected storeFormTitle(): string {

@@ -18,7 +18,12 @@
           <h3>{{ group.option.label }}:</h3>
           <div class="campaign-stores-grid">
             @for (store of group.stores; track store.storeId) {
-              <article class="campaign-stores-card" [attr.data-store-type]="storeTypeClassName(store)">
+              <button
+                type="button"
+                class="campaign-stores-card"
+                [attr.data-store-type]="storeTypeClassName(store)"
+                (click)="openStore(store)"
+              >
                 @switch (storeTypeFor(store)) {
                   @case (StoreType.General) {
                     <svg lucidePackage aria-hidden="true"></svg>
@@ -50,9 +55,51 @@
                   @case (StoreType.MagicStore) {
                     <svg lucideSparkles aria-hidden="true"></svg>
                   }
+                  @case (StoreType.PawnShop) {
+                    <svg lucideBadgeDollarSign aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Enchanter) {
+                    <svg lucideWandSparkles aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Herbalist) {
+                    <svg lucideLeaf aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Cartographer) {
+                    <svg lucideMapPinned aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Stable) {
+                    <svg lucideFence aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Smuggler) {
+                    <svg lucidePackageSearch aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Tavern) {
+                    <svg lucideBeer aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Inn) {
+                    <svg lucideBed aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Brothel) {
+                    <svg lucideHeartHandshake aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Theatre) {
+                    <svg lucideDrama aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Cafe) {
+                    <svg lucideCoffee aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Bank) {
+                    <svg lucideLandmark aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Office) {
+                    <svg lucideBriefcase aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.PostOffice) {
+                    <svg lucideMail aria-hidden="true"></svg>
+                  }
                 }
                 <strong>{{ storeDisplayName(store) }}</strong>
-              </article>
+              </button>
             }
           </div>
         </section>
@@ -80,8 +127,32 @@
         </header>
 
         @if (storeFormStep() === 'type') {
+          <div class="campaign-stores-type-category">
+            <button
+              type="button"
+              class="campaign-stores-category-button"
+              aria-label="Previous store category"
+              title="Previous category"
+              (click)="showPreviousStoreTypeCategory()"
+            >
+              Previous
+            </button>
+            <div>
+              <strong>{{ currentStoreTypeCategory().label }}</strong>
+              <span>{{ storeTypeCategoryPageLabel() }}</span>
+            </div>
+            <button
+              type="button"
+              class="campaign-stores-category-button"
+              aria-label="Next store category"
+              title="Next category"
+              (click)="showNextStoreTypeCategory()"
+            >
+              Next Category
+            </button>
+          </div>
           <div class="campaign-stores-type-grid" aria-label="Store types">
-            @for (option of storeTypeOptions; track option.value) {
+            @for (option of currentStoreTypeCategory().options; track option.value) {
               <button
                 type="button"
                 class="campaign-stores-type-option"
@@ -122,6 +193,48 @@
                   }
                   @case (StoreType.MagicStore) {
                     <svg lucideSparkles aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.PawnShop) {
+                    <svg lucideBadgeDollarSign aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Enchanter) {
+                    <svg lucideWandSparkles aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Herbalist) {
+                    <svg lucideLeaf aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Cartographer) {
+                    <svg lucideMapPinned aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Stable) {
+                    <svg lucideFence aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Smuggler) {
+                    <svg lucidePackageSearch aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Tavern) {
+                    <svg lucideBeer aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Inn) {
+                    <svg lucideBed aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Brothel) {
+                    <svg lucideHeartHandshake aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Theatre) {
+                    <svg lucideDrama aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Cafe) {
+                    <svg lucideCoffee aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Bank) {
+                    <svg lucideLandmark aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.Office) {
+                    <svg lucideBriefcase aria-hidden="true"></svg>
+                  }
+                  @case (StoreType.PostOffice) {
+                    <svg lucideMail aria-hidden="true"></svg>
                   }
                 }
                 <span>{{ option.label }}</span>

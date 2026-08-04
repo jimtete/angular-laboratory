@@ -79,6 +79,7 @@ public enum ApplicationStatusCode
     InvalidStore = 4068,
     StoreNotFound = 4069,
     CampaignQuestDeleteBlocked = 4070,
+    CampaignPresentationStoryBeatBlocked = 4071,
     InvalidAsset = 5001,
     AssetNotFound = 5002,
     AssetParentNotFound = 5003,

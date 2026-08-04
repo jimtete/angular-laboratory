@@ -1,9 +1,12 @@
 using LearningLab.Data.Models;
+using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.DTOs.Campaign.Presentation;
 using LearningLab.Data.Models.DTOs.Campaign.Quests;
+using LearningLab.Data.Models.DTOs.Campaign.Rules;
 using LearningLab.Data.Models.DTOs.Campaign.Story;
 using LearningLab.Presentation.Models;
 using LearningLab.Services.CampaignQuestService;
+using LearningLab.Services.CampaignRulesService;
 using LearningLab.Services.CampaignStoryService;
 
 namespace LearningLab.Presentation.Actions;
@@ -11,13 +14,16 @@ namespace LearningLab.Presentation.Actions;
 public sealed class PresentationModeWorkspaceBuilder
 {
     private readonly ICampaignQuestService _campaignQuestService;
+    private readonly ICampaignRulesService _campaignRulesService;
     private readonly ICampaignStoryService _campaignStoryService;
 
     public PresentationModeWorkspaceBuilder(
         ICampaignQuestService campaignQuestService,
+        ICampaignRulesService campaignRulesService,
         ICampaignStoryService campaignStoryService)
     {
         _campaignQuestService = campaignQuestService;
+        _campaignRulesService = campaignRulesService;
         _campaignStoryService = campaignStoryService;
     }
 
@@ -85,9 +91,22 @@ public sealed class PresentationModeWorkspaceBuilder
                     storyBeatsResult.StatusCode);
             }
 
+            var availabilityResult = await EvaluateStoryBeatAvailabilityAsync(
+                userId,
+                presentationResult.Data.CampaignSessionId,
+                storyBeatsResult.Data ?? [],
+                cancellationToken);
+
+            if (availabilityResult.StatusCode != ApplicationStatusCode.Success)
+            {
+                return new ServiceResult<PresentationModeWorkspaceResponse>(
+                    availabilityResult.StatusCode);
+            }
+
             storyBlocks.Add(BuildStoryBlockResponse(
                 storyBlock,
                 storyBeatsResult.Data ?? [],
+                availabilityResult.Data ?? [],
                 quests,
                 questTaskLinks));
         }
@@ -106,6 +125,7 @@ public sealed class PresentationModeWorkspaceBuilder
     public async Task<ServiceResult<PresentationModeStoryBlockResponse>> BuildStoryBlockResponseAsync(
         Guid userId,
         Guid campaignId,
+        int sessionId,
         Guid storyBlockId,
         CancellationToken cancellationToken = default)
     {
@@ -169,18 +189,63 @@ public sealed class PresentationModeWorkspaceBuilder
                 questTaskLinksResult.StatusCode);
         }
 
+        var availabilityResult = await EvaluateStoryBeatAvailabilityAsync(
+            userId,
+            sessionId,
+            storyBeatsResult.Data ?? [],
+            cancellationToken);
+
+        if (availabilityResult.StatusCode != ApplicationStatusCode.Success)
+        {
+            return new ServiceResult<PresentationModeStoryBlockResponse>(
+                availabilityResult.StatusCode);
+        }
+
         return new ServiceResult<PresentationModeStoryBlockResponse>(
             ApplicationStatusCode.Success,
             BuildStoryBlockResponse(
                 storyBlock,
                 storyBeatsResult.Data ?? [],
+                availabilityResult.Data ?? [],
                 questsResult.Data ?? [],
                 questTaskLinksResult.Data ?? []));
+    }
+
+    private async Task<ServiceResult<IReadOnlyList<PresentationModeStoryBeatAvailabilityResponse>>>
+        EvaluateStoryBeatAvailabilityAsync(
+            Guid userId,
+            int sessionId,
+            IReadOnlyList<StoryBeatResponse> storyBeats,
+            CancellationToken cancellationToken)
+    {
+        if (storyBeats.Count == 0)
+        {
+            return new ServiceResult<IReadOnlyList<PresentationModeStoryBeatAvailabilityResponse>>(
+                ApplicationStatusCode.Success,
+                []);
+        }
+
+        var availabilityResult = await _campaignRulesService.EvaluateTargetsAsync(
+            userId,
+            ConditionalTargetType.StoryBeat,
+            storyBeats.Select(beat => beat.StoryBeatId).ToList(),
+            sessionId,
+            cancellationToken);
+
+        return availabilityResult.StatusCode != ApplicationStatusCode.Success
+            ? new ServiceResult<IReadOnlyList<PresentationModeStoryBeatAvailabilityResponse>>(
+                availabilityResult.StatusCode)
+            : new ServiceResult<IReadOnlyList<PresentationModeStoryBeatAvailabilityResponse>>(
+                ApplicationStatusCode.Success,
+                (availabilityResult.Data ?? [])
+                    .Select(ToAvailabilityResponse)
+                    .ToList());
     }
 
     private static PresentationModeStoryBlockResponse BuildStoryBlockResponse(
         StoryBlockResponse storyBlock,
         IReadOnlyList<StoryBeatResponse> storyBeats,
+        IReadOnlyList<PresentationModeStoryBeatAvailabilityResponse> availability,
         IReadOnlyList<CampaignQuestResponse> quests,
         IReadOnlyList<StoryBeatQuestTaskResponse> questTaskLinks)
     {
@@ -203,6 +268,7 @@ public sealed class PresentationModeWorkspaceBuilder
         {
             StoryBlock = storyBlock,
             StoryBeats = orderedStoryBeats,
+            StoryBeatAvailability = availability,
             IndexPathChoiceGroups = BuildIndexPathChoiceGroups(orderedStoryBeats),
             Quests = quests
                 .Where(quest => questIds.Contains(quest.QuestId))
@@ -234,6 +300,56 @@ public sealed class PresentationModeWorkspaceBuilder
                     StoryBeats = groupedStoryBeats
                 };
             })
+            .ToList();
+    }
+
+    private static PresentationModeStoryBeatAvailabilityResponse ToAvailabilityResponse(
+        TargetAvailabilityResult availability)
+    {
+        return new PresentationModeStoryBeatAvailabilityResponse
+        {
+            StoryBeatId = availability.TargetId,
+            IsAvailable = availability.IsAvailable,
+            BlockingEvents = availability.IsAvailable
+                ? []
+                : BuildBlockingEvents(availability),
+            Availability = availability
+        };
+    }
+
+    private static IReadOnlyList<PresentationModeBlockingEventResponse> BuildBlockingEvents(
+        TargetAvailabilityResult availability)
+    {
+        return availability.RuleResults
+            .Where(rule => !rule.IsSatisfied)
+            .SelectMany(rule =>
+                rule.MissingEvents
+                    .Select(missingEvent => new PresentationModeBlockingEventResponse
+                    {
+                        RuleId = rule.RuleId,
+                        EventDefinitionId = missingEvent.EventDefinitionId,
+                        EventKey = missingEvent.EventKey,
+                        ClauseId = null,
+                        IsMissing = true,
+                        Explanation = $"Event '{missingEvent.EventKey}' has not been set."
+                    })
+                    .Concat(rule.FailedClauses.Select(clause => new PresentationModeBlockingEventResponse
+                    {
+                        RuleId = rule.RuleId,
+                        EventDefinitionId = clause.EventDefinitionId,
+                        EventKey = clause.EventKey,
+                        ClauseId = clause.ClauseId,
+                        IsMissing = false,
+                        Explanation = clause.Explanation
+                    })))
+            .GroupBy(blocker => new
+            {
+                blocker.RuleId,
+                blocker.EventDefinitionId,
+                blocker.ClauseId,
+                blocker.IsMissing
+            })
+            .Select(group => group.First())
             .ToList();
     }
 }

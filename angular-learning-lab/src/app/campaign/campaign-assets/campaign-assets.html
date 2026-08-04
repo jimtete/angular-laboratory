@@ -12,6 +12,10 @@
       </div>
 
       <div class="campaign-assets-actions">
+        <label class="campaign-assets-compact-control" title="Compact mode">
+          <input type="checkbox" aria-label="Compact mode" />
+          <span>Compact</span>
+        </label>
         <button
           type="button"
           class="campaign-assets-icon-action"
@@ -68,7 +72,13 @@
           }
 
           @for (monster of visibleMonsters(); track monster.id) {
-            <article class="campaign-assets-entry campaign-assets-monster">
+            <article
+              class="campaign-assets-entry campaign-assets-monster"
+              role="button"
+              tabindex="0"
+              (click)="openMonster(monster)"
+              (keydown.enter)="openMonster(monster)"
+            >
               <svg lucideSkull aria-hidden="true"></svg>
               <strong>{{ monster.name }}</strong>
               @if (getMonsterSummary(monster)) {
@@ -83,7 +93,7 @@
               }
 
               <div class="campaign-assets-card-actions">
-                <button type="button" (click)="openMonster(monster)">Edit</button>
+                <button type="button" (click)="openMonster(monster); $event.stopPropagation()">Edit</button>
                 <button
                   type="button"
                   class="campaign-assets-danger-action"

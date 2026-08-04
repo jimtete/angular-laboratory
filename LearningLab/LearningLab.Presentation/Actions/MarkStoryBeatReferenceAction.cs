@@ -1,7 +1,9 @@
 using LearningLab.Data.Models;
+using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.Campaign.Sessions;
 using LearningLab.Data.Models.DTOs.Campaign.Presentation;
 using LearningLab.Presentation.Models;
+using LearningLab.Services.CampaignRulesService;
 using LearningLab.Services.CampaignSessionService;
 
 namespace LearningLab.Presentation.Actions;
@@ -10,13 +12,16 @@ public class MarkStoryBeatReferenceAction
     : PresentAction<MarkPresentationStoryBeatReferenceRequest, PresentationModeStoryBeatReferenceMarkedResponse>
 {
     private readonly ICampaignSessionService _campaignSessionService;
+    private readonly ICampaignRulesService _campaignRulesService;
     private readonly GetPresentationModeWorkspaceAction _getPresentationModeWorkspaceAction;
 
     public MarkStoryBeatReferenceAction(
         GetPresentationModeWorkspaceAction getPresentationModeWorkspaceAction,
+        ICampaignRulesService campaignRulesService,
         ICampaignSessionService campaignSessionService)
     {
         _getPresentationModeWorkspaceAction = getPresentationModeWorkspaceAction;
+        _campaignRulesService = campaignRulesService;
         _campaignSessionService = campaignSessionService;
     }
 
@@ -35,19 +40,6 @@ public class MarkStoryBeatReferenceAction
                 ApplicationStatusCode.InvalidCampaignPresentation);
         }
 
-        var workspaceResult = await _getPresentationModeWorkspaceAction.ExecuteAsync(
-            userId,
-            campaignId,
-            sessionId,
-            cancellationToken);
-
-        if (workspaceResult.StatusCode != ApplicationStatusCode.Success
-            || workspaceResult.Data is null)
-        {
-            return new ServiceResult<PresentationModeStoryBeatReferenceMarkedResponse>(
-                workspaceResult.StatusCode);
-        }
-
         var sessionResult = await _campaignSessionService.CreateStoryBeatReferenceSessionNoteAsync(
             userId,
             campaignId,
@@ -63,6 +55,44 @@ public class MarkStoryBeatReferenceAction
         {
             return new ServiceResult<PresentationModeStoryBeatReferenceMarkedResponse>(
                 sessionResult.StatusCode);
+        }
+
+        var sourceType = request.ReferenceType switch
+        {
+            SessionNoteStoryBeatReferenceType.RoleplayingNpcInteraction => OutcomeSourceType.RoleplayingNpcInteraction,
+            SessionNoteStoryBeatReferenceType.RoleplayingInformation => OutcomeSourceType.RoleplayingInformation,
+            SessionNoteStoryBeatReferenceType.DecisionOption => OutcomeSourceType.DecisionChoice,
+            _ => (OutcomeSourceType?)null
+        };
+
+        if (sourceType is not null
+            && request.ReferenceId is not null)
+        {
+            var applyResult = await _campaignRulesService.ApplyOutcomeEffectsAsync(
+                userId,
+                sessionId,
+                sourceType.Value,
+                request.ReferenceId.Value,
+                cancellationToken);
+
+            if (applyResult.StatusCode != ApplicationStatusCode.Success)
+            {
+                return new ServiceResult<PresentationModeStoryBeatReferenceMarkedResponse>(
+                    applyResult.StatusCode);
+            }
+        }
+
+        var workspaceResult = await _getPresentationModeWorkspaceAction.ExecuteAsync(
+            userId,
+            campaignId,
+            sessionId,
+            cancellationToken);
+
+        if (workspaceResult.StatusCode != ApplicationStatusCode.Success
+            || workspaceResult.Data is null)
+        {
+            return new ServiceResult<PresentationModeStoryBeatReferenceMarkedResponse>(
+                workspaceResult.StatusCode);
         }
 
         return new ServiceResult<PresentationModeStoryBeatReferenceMarkedResponse>(

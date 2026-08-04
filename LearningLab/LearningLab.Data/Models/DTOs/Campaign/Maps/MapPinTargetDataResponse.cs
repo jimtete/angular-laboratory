@@ -37,5 +37,7 @@ public sealed class MapPinTargetDataResponse
 
     public StoreType? StoreType { get; init; }
 
+    public StoreLockState? StoreLockState { get; init; }
+
     public string? StoreLocation { get; init; }
 }

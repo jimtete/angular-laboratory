@@ -1245,6 +1245,13 @@ public class LearningLabContext : DbContext
                 .HasConversion<string>()
                 .IsRequired();
 
+            entity.Property(store => store.LockState)
+                .HasColumnName("store_lock_state")
+                .HasMaxLength(64)
+                .HasConversion<string>()
+                .HasDefaultValue(StoreLockState.Locked)
+                .IsRequired();
+
             entity.Property(store => store.StoreLocation)
                 .HasColumnName("store_location")
                 .HasMaxLength(256)
@@ -1257,6 +1264,11 @@ public class LearningLabContext : DbContext
             entity.Property(store => store.StoreDescription)
                 .HasColumnName("store_description")
                 .HasMaxLength(4096);
+
+            entity.Property(store => store.StoreDiscountPercentage)
+                .HasColumnName("store_discount_percentage")
+                .HasDefaultValue(0)
+                .IsRequired();
 
             entity.HasIndex(store => store.CampaignId);
 

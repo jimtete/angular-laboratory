@@ -12,6 +12,7 @@ using LearningLab.Data.Repositories.StoryBeatIndexPathRuleRepository;
 using LearningLab.Data.Repositories.StoryBeatRepository;
 using LearningLab.Data.Repositories.StoryBlockRepository;
 using LearningLab.Data.Repositories.UserRepository;
+using LearningLab.Services.CampaignRulesService;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearningLab.Presentation.Services;
@@ -25,6 +26,7 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
     private readonly IStoryBeatRepository _storyBeatRepository;
     private readonly IStoryBlockRepository _storyBlockRepository;
     private readonly LearningLabContext _context;
+    private readonly ICampaignRulesService _campaignRulesService;
     private readonly IUserRepository _userRepository;
 
     public CampaignPresentationService(
@@ -35,6 +37,7 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
         IStoryBeatRepository storyBeatRepository,
         IStoryBlockRepository storyBlockRepository,
         LearningLabContext context,
+        ICampaignRulesService campaignRulesService,
         IUserRepository userRepository)
     {
         _campaignPresentationRepository = campaignPresentationRepository;
@@ -44,6 +47,7 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
         _storyBeatRepository = storyBeatRepository;
         _storyBlockRepository = storyBlockRepository;
         _context = context;
+        _campaignRulesService = campaignRulesService;
         _userRepository = userRepository;
     }
 
@@ -294,6 +298,25 @@ public sealed class CampaignPresentationService : ICampaignPresentationService
         {
             return new ServiceResult<CampaignPresentationResponse>(
                 ApplicationStatusCode.StoryBeatNotFound);
+        }
+
+        var availabilityResult = await _campaignRulesService.IsTargetAvailableAsync(
+            userId,
+            ConditionalTargetType.StoryBeat,
+            storyBeat.Id,
+            sessionId,
+            cancellationToken);
+
+        if (availabilityResult.StatusCode != ApplicationStatusCode.Success)
+        {
+            return new ServiceResult<CampaignPresentationResponse>(
+                availabilityResult.StatusCode);
+        }
+
+        if (availabilityResult.Data?.IsAvailable == false)
+        {
+            return new ServiceResult<CampaignPresentationResponse>(
+                ApplicationStatusCode.CampaignPresentationStoryBeatBlocked);
         }
 
         var updatedAt = DateTimeOffset.UtcNow;

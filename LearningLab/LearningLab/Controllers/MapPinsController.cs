@@ -176,7 +176,11 @@ public sealed class MapPinsController : ControllerBase
             ContentType = targetData.ContentType,
             MapCategory = targetData.MapCategory,
             ImageWidthPixels = targetData.ImageWidthPixels,
-            ImageHeightPixels = targetData.ImageHeightPixels
+            ImageHeightPixels = targetData.ImageHeightPixels,
+            StoreId = targetData.StoreId,
+            StoreType = targetData.StoreType,
+            StoreLockState = targetData.StoreLockState,
+            StoreLocation = targetData.StoreLocation
         };
     }
 

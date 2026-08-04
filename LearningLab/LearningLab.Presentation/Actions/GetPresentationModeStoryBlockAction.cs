@@ -45,6 +45,7 @@ public sealed class GetPresentationModeStoryBlockAction
         return await _workspaceBuilder.BuildStoryBlockResponseAsync(
             userId,
             campaignId,
+            sessionId,
             storyBlockId,
             cancellationToken);
     }

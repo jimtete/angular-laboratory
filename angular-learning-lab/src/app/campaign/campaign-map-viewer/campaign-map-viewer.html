@@ -102,6 +102,7 @@
                     class="campaign-map-rendered-pin"
                     [class.campaign-map-rendered-pin-placeholder]="isPlaceholderPin(pin)"
                     [class.campaign-map-rendered-pin-map-link]="isMapLinkPin(pin)"
+                    [class.campaign-map-rendered-pin-store]="isStorePin(pin)"
                     [class.campaign-map-rendered-pin-selected]="isSelectedPin(pin) || isMovingPin(pin)"
                     [class.campaign-map-rendered-pin-connection-start]="isConnectionStartPin(pin)"
                     [style.left]="getPinLeft(pin)"
@@ -284,6 +285,9 @@
       >
         @if (canOpenContextPinTargetMap()) {
           <button type="button" (click)="openContextPinTargetMap()">Go to Map</button>
+        }
+        @if (canOpenContextPinTargetStore()) {
+          <button type="button" (click)="openContextPinTargetStore()">Go to Store</button>
         }
         <button type="button" (click)="startMoveContextPin()">Move Point</button>
         <button type="button" (click)="editContextPin()">Edit</button>
@@ -504,6 +508,26 @@
                   [selected]="isMapLinkTargetSelected(targetMap.id)"
                 >
                   {{ targetMap.name }}
+                </option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (shouldShowStoreTargetField()) {
+          <label class="campaign-map-pin-field">
+            <span>Target Store</span>
+            <select
+              name="targetStoreId"
+              [class.campaign-map-pin-field-invalid]="placeholderPinValidationErrors().targetStoreId"
+            >
+              <option value="">Select a store</option>
+              @for (store of stores(); track store.storeId) {
+                <option
+                  [value]="store.storeId"
+                  [selected]="isStoreTargetSelected(store.storeId)"
+                >
+                  {{ storeDisplayName(store) }}
                 </option>
               }
             </select>

@@ -16,5 +16,7 @@ public sealed class UpdateStoreRequest
     [MaxLength(4096)]
     public string? StoreDescription { get; init; }
 
+    public int StoreDiscountPercentage { get; init; }
+
     public IReadOnlyList<UpdateStoreItemRequest> Items { get; init; } = [];
 }

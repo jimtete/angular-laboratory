@@ -10,6 +10,7 @@ import {
   CampaignApiService,
   CampaignMapCategory,
   CampaignMapModel,
+  CampaignStoreModel,
   CreateMapPinConnectionRequest,
   CreateMapPinRequest,
   MapPinConnectionDistanceUnit,
@@ -48,11 +49,13 @@ interface PlaceholderPinFormValues {
   title: string;
   description: string;
   targetMapId: number | null;
+  targetStoreId: number | null;
 }
 
 interface PlaceholderPinFormErrors {
   title?: string;
   targetMapId?: string;
+  targetStoreId?: string;
 }
 
 interface ConnectionFormValues {
@@ -133,7 +136,7 @@ type PlaceholderPinFormMode = 'create' | 'edit';
 
 const MAP_PIN_TOOLS: MapPinTool[] = [
   { label: 'Placeholder', className: 'placeholder', targetType: MapPinTargetType.Placeholder },
-  { label: 'Store', className: 'store', targetType: null },
+  { label: 'Store', className: 'store', targetType: MapPinTargetType.Store },
   { label: 'Another Map', className: 'map-link', targetType: MapPinTargetType.Map },
   { label: 'Story Block', className: 'story-block', targetType: null },
 ];
@@ -174,6 +177,7 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
   private readonly mapPinch = signal<MapPinchState | null>(null);
 
   protected readonly maps = signal<CampaignMapModel[]>([]);
+  protected readonly stores = signal<CampaignStoreModel[]>([]);
   protected readonly mapPins = signal<MapPinDetailsModel[]>([]);
   protected readonly mapPinConnections = signal<MapPinConnectionModel[]>([]);
   protected readonly pinTools = MAP_PIN_TOOLS;
@@ -228,9 +232,18 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
       : this.maps().find((map) => map.id === mapId) ?? null;
   });
   protected readonly mapLinkTargetMaps = computed(() => {
-    const mapId = this.mapId();
+    const selectedMap = this.selectedMap();
 
-    return this.maps().filter((map) => map.id !== mapId);
+    if (!selectedMap) {
+      return [];
+    }
+
+    const selectedMapCategory = this.getCategoryValue(selectedMap.category);
+
+    return this.maps().filter((map) => (
+      map.id !== selectedMap.id &&
+      this.getCategoryValue(map.category) >= selectedMapCategory
+    ));
   });
 
   ngOnInit(): void {
@@ -248,6 +261,7 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
       this.loadMap(true);
     });
     this.loadMap();
+    this.loadStores();
   }
 
   ngAfterViewInit(): void {
@@ -598,6 +612,10 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     return this.getContextPinTargetMapId() !== null;
   }
 
+  protected canOpenContextPinTargetStore(): boolean {
+    return this.getContextPinTargetStoreId() !== null;
+  }
+
   protected openContextPinTargetMap(): void {
     const campaignId = this.campaignId();
     const targetMapId = this.getContextPinTargetMapId();
@@ -611,6 +629,23 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     void this.router.navigate(['/campaigns', campaignId, 'maps', targetMapId]);
   }
 
+  protected openContextPinTargetStore(): void {
+    const campaignId = this.campaignId();
+    const mapId = this.mapId();
+    const targetStoreId = this.getContextPinTargetStoreId();
+
+    this.pinContextMenu.set(null);
+
+    if (!campaignId || mapId === null || targetStoreId === null) {
+      return;
+    }
+
+    void this.router.navigate(
+      ['/campaigns', campaignId, 'campaign-content', 'campaign-stores', targetStoreId],
+      { queryParams: { fromMapId: mapId } },
+    );
+  }
+
   protected handlePinClick(pin: MapPinDetailsModel, event: Event): void {
     if (this.isConnectionModeActive()) {
       this.selectPinForConnection(pin, event);
@@ -619,6 +654,13 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
 
     event.preventDefault();
     event.stopPropagation();
+
+    const targetStoreId = this.getPinTargetStoreId(pin);
+
+    if (targetStoreId !== null) {
+      this.openPinTargetStore(targetStoreId);
+      return;
+    }
 
     const targetMapId = this.getPinTargetMapId(pin);
 
@@ -748,7 +790,11 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     this.pinContextMenu.set(null);
     const targetType = this.getPinTargetTypeValue(pin.targetType);
 
-    if (targetType !== MapPinTargetType.Placeholder && targetType !== MapPinTargetType.Map) {
+    if (
+      targetType !== MapPinTargetType.Placeholder &&
+      targetType !== MapPinTargetType.Map &&
+      targetType !== MapPinTargetType.Store
+    ) {
       this.modalHelper.showWarning('This pin type is not editable yet.');
       return;
     }
@@ -770,6 +816,7 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
       const titleInput = form.elements.namedItem('title') as HTMLInputElement | null;
       const descriptionInput = form.elements.namedItem('description') as HTMLTextAreaElement | null;
       const targetMapInput = form.elements.namedItem('targetMapId') as HTMLSelectElement | null;
+      const targetStoreInput = form.elements.namedItem('targetStoreId') as HTMLSelectElement | null;
 
       if (titleInput) {
         titleInput.value = pin.label;
@@ -781,6 +828,10 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
 
       if (targetMapInput) {
         targetMapInput.value = pin.targetId ?? '';
+      }
+
+      if (targetStoreInput) {
+        targetStoreInput.value = pin.targetId ?? '';
       }
     });
   }
@@ -823,13 +874,22 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
       return isEdit ? 'Edit Map Link' : 'Add Map Link';
     }
 
+    if (this.placeholderPinFormTargetType() === MapPinTargetType.Store) {
+      return isEdit ? 'Edit Store Pin' : 'Add Store Pin';
+    }
+
     return isEdit ? 'Edit Map Note' : 'Add Map Note';
   }
 
   protected getPlaceholderPinDialogEyebrow(): string {
-    return this.placeholderPinFormTargetType() === MapPinTargetType.Map
-      ? 'Map Link Pin'
-      : 'Placeholder Pin';
+    switch (this.placeholderPinFormTargetType()) {
+      case MapPinTargetType.Map:
+        return 'Map Link Pin';
+      case MapPinTargetType.Store:
+        return 'Store Pin';
+      default:
+        return 'Placeholder Pin';
+    }
   }
 
   protected getPlaceholderPinSubmitLabel(): string {
@@ -842,8 +902,20 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     return this.placeholderPinFormTargetType() === MapPinTargetType.Map;
   }
 
+  protected shouldShowStoreTargetField(): boolean {
+    return this.placeholderPinFormTargetType() === MapPinTargetType.Store;
+  }
+
   protected isMapLinkTargetSelected(mapId: number): boolean {
     return this.getEditingMapLinkTargetMapId() === mapId;
+  }
+
+  protected isStoreTargetSelected(storeId: number): boolean {
+    return this.getEditingStoreTargetStoreId() === storeId;
+  }
+
+  protected storeDisplayName(store: CampaignStoreModel): string {
+    return this.normalizeText(store.storeName) || store.storeLocation || 'Unnamed Store';
   }
 
   protected setImageNaturalSize(event: Event): void {
@@ -897,6 +969,10 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
 
   protected isMapLinkPin(pin: MapPinDetailsModel): boolean {
     return this.getPinTargetTypeValue(pin.targetType) === MapPinTargetType.Map;
+  }
+
+  protected isStorePin(pin: MapPinDetailsModel): boolean {
+    return this.getPinTargetTypeValue(pin.targetType) === MapPinTargetType.Store;
   }
 
   protected isSelectedPin(pin: MapPinDetailsModel): boolean {
@@ -1363,6 +1439,25 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private loadStores(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId) {
+      return;
+    }
+
+    this.campaignApiService.fetchCampaignStores(campaignId).subscribe({
+      next: (response) => {
+        this.stores.set(response.data ?? []);
+      },
+      error: (error: unknown) => {
+        this.modalHelper.showError(this.getErrorMessage(error, 'Campaign stores could not be loaded.'), {
+          statusCode: this.getErrorStatusCode(error),
+        });
+      },
+    });
+  }
+
   private resetMapViewerForRouteChange(): void {
     this.mapPins.set([]);
     this.mapPinConnections.set([]);
@@ -1634,7 +1729,8 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
 
   private isSupportedPinTool(pinTool: MapPinTool): boolean {
     return pinTool.targetType === MapPinTargetType.Placeholder
-      || pinTool.targetType === MapPinTargetType.Map;
+      || pinTool.targetType === MapPinTargetType.Map
+      || pinTool.targetType === MapPinTargetType.Store;
   }
 
   private getEditingMapLinkTargetMapId(): number | null {
@@ -1653,33 +1749,64 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     return this.mapLinkTargetMaps().find((map) => map.id === mapId) ?? null;
   }
 
+  private getEditingStoreTargetStoreId(): number | null {
+    const editingPinId = this.editingPinId();
+    const pin = editingPinId === null
+      ? null
+      : this.mapPins().find((item) => item.id === editingPinId) ?? null;
+    const targetStoreId = pin?.targetId ? Number(pin.targetId) : null;
+
+    return targetStoreId !== null && Number.isInteger(targetStoreId)
+      ? targetStoreId
+      : null;
+  }
+
+  private getStoreTargetStore(storeId: number): CampaignStoreModel | null {
+    return this.stores().find((store) => store.storeId === storeId) ?? null;
+  }
+
   private getPlaceholderPinTargetId(
     targetType: MapPinTargetType,
     formValues: PlaceholderPinFormValues,
   ): string | null {
-    return targetType === MapPinTargetType.Map && formValues.targetMapId !== null
-      ? String(formValues.targetMapId)
-      : null;
+    switch (targetType) {
+      case MapPinTargetType.Map:
+        return formValues.targetMapId !== null ? String(formValues.targetMapId) : null;
+      case MapPinTargetType.Store:
+        return formValues.targetStoreId !== null ? String(formValues.targetStoreId) : null;
+      default:
+        return null;
+    }
   }
 
   private getPlaceholderPinFormValues(form: HTMLFormElement): PlaceholderPinFormValues {
     const formData = new FormData(form);
     const rawTargetMapId = this.getStringValue(formData, 'targetMapId');
+    const rawTargetStoreId = this.getStringValue(formData, 'targetStoreId');
     const targetMapId = rawTargetMapId.length > 0
       ? Number(rawTargetMapId)
+      : null;
+    const targetStoreId = rawTargetStoreId.length > 0
+      ? Number(rawTargetStoreId)
       : null;
     const targetMap = targetMapId === null
       ? null
       : this.getMapLinkTargetMap(targetMapId);
+    const targetStore = targetStoreId === null
+      ? null
+      : this.getStoreTargetStore(targetStoreId);
     const title = this.getStringValue(formData, 'title');
 
     return {
       title: title.length > 0
         ? title
-        : targetMap?.name ?? '',
+        : targetMap?.name ?? (targetStore ? this.storeDisplayName(targetStore) : ''),
       description: this.getStringValue(formData, 'description'),
       targetMapId: targetMapId !== null && Number.isInteger(targetMapId)
         ? targetMapId
+        : null,
+      targetStoreId: targetStoreId !== null && Number.isInteger(targetStoreId)
+        ? targetStoreId
         : null,
     };
   }
@@ -1698,6 +1825,11 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     if (this.placeholderPinFormTargetType() === MapPinTargetType.Map
       && (formValues.targetMapId === null || !this.getMapLinkTargetMap(formValues.targetMapId))) {
       errors.targetMapId = 'Choose the map this pin should link to.';
+    }
+
+    if (this.placeholderPinFormTargetType() === MapPinTargetType.Store
+      && (formValues.targetStoreId === null || !this.getStoreTargetStore(formValues.targetStoreId))) {
+      errors.targetStoreId = 'Choose the store this pin should link to.';
     }
 
     return errors;
@@ -1768,6 +1900,10 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     targetType: MapPinTargetType,
     coordinates: { x: number; y: number } | null,
   ): void {
+    if (targetType === MapPinTargetType.Store && this.stores().length === 0) {
+      this.loadStores();
+    }
+
     this.placeholderPinValidationErrors.set({});
     this.placeholderPinFormMode.set('create');
     this.placeholderPinFormTargetType.set(targetType);
@@ -1869,6 +2005,32 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     return Number.isInteger(targetMapId)
       ? targetMapId
       : null;
+  }
+
+  private getPinTargetStoreId(pin: MapPinDetailsModel): number | null {
+    if (this.getPinTargetTypeValue(pin.targetType) !== MapPinTargetType.Store || !pin.targetId) {
+      return null;
+    }
+
+    const targetStoreId = Number(pin.targetId);
+
+    return Number.isInteger(targetStoreId)
+      ? targetStoreId
+      : null;
+  }
+
+  private openPinTargetStore(targetStoreId: number): void {
+    const campaignId = this.campaignId();
+    const mapId = this.mapId();
+
+    if (!campaignId || mapId === null) {
+      return;
+    }
+
+    void this.router.navigate(
+      ['/campaigns', campaignId, 'campaign-content', 'campaign-stores', targetStoreId],
+      { queryParams: { fromMapId: mapId } },
+    );
   }
 
   private movePinToPointer(pinId: number, event: PointerEvent): void {
@@ -2089,6 +2251,10 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     return typeof value === 'string' ? value.trim() : '';
   }
 
+  private normalizeText(value: string | null | undefined): string {
+    return value?.trim() ?? '';
+  }
+
   private getRouteMapId(): number | null {
     return this.normalizeRouteMapId(this.route.snapshot.paramMap.get('mapId'));
   }
@@ -2111,6 +2277,12 @@ export class CampaignMapViewer implements OnInit, AfterViewInit, OnDestroy {
     const pin = this.getContextPin();
 
     return pin ? this.getPinTargetMapId(pin) : null;
+  }
+
+  private getContextPinTargetStoreId(): number | null {
+    const pin = this.getContextPin();
+
+    return pin ? this.getPinTargetStoreId(pin) : null;
   }
 
   private getPinTargetTypeValue(

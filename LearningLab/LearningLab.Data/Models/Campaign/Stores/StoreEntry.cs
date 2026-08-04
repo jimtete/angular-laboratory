@@ -8,6 +8,8 @@ public class StoreEntry
 
     public StoreType StoreType { get; set; }
 
+    public StoreLockState LockState { get; set; } = StoreLockState.Locked;
+
     public Campaign Campaign { get; set; } = null!;
 
     public Guid CampaignId { get; set; }
@@ -17,6 +19,8 @@ public class StoreEntry
     public string? StoreName { get; set; }
 
     public string? StoreDescription { get; set; }
+
+    public int StoreDiscountPercentage { get; set; } = 0;
 
     public List<StoreItem> Items { get; set; } = [];
 }

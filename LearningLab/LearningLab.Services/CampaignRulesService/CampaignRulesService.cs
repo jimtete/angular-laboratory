@@ -772,8 +772,7 @@ public sealed class CampaignRulesService : ICampaignRulesService
             return new ServiceResult<ConditionalRuleResponse>(validationResult);
         }
 
-        await RemoveGroupTreeAsync(rule.RootConditionGroupId, cancellationToken);
-
+        var previousRootConditionGroupId = rule.RootConditionGroupId;
         var root = BuildGroup(request!.Root!, null, 1);
         rule.TargetType = request.TargetType;
         rule.TargetId = request.TargetId;
@@ -782,7 +781,10 @@ public sealed class CampaignRulesService : ICampaignRulesService
         rule.RootConditionGroupId = root.Id;
         rule.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+        await RemoveGroupTreeAsync(previousRootConditionGroupId, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return new ServiceResult<ConditionalRuleResponse>(
             ApplicationStatusCode.Success,
@@ -1637,8 +1639,20 @@ public sealed class CampaignRulesService : ICampaignRulesService
     private async Task RemoveGroupTreeAsync(Guid rootGroupId, CancellationToken cancellationToken)
     {
         var tree = await LoadGroupTreeAsync(rootGroupId, cancellationToken);
-        _context.ConditionClauses.RemoveRange(tree.Groups.SelectMany(group => group.Clauses));
-        _context.ConditionGroups.RemoveRange(tree.Groups.OrderByDescending(group => group.ParentConditionGroupId.HasValue));
+        var groupIds = tree.Groups
+            .Select(group => group.Id)
+            .ToList();
+
+        await _context.ConditionClauses
+            .Where(clause => groupIds.Contains(clause.ConditionGroupId))
+            .ExecuteDeleteAsync(cancellationToken);
+
+        foreach (var groupId in groupIds.AsEnumerable().Reverse())
+        {
+            await _context.ConditionGroups
+                .Where(group => group.Id == groupId)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
     }
 
     private static ConditionGroup BuildGroup(

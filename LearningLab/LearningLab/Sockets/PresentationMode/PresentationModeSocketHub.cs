@@ -588,6 +588,7 @@ public sealed class PresentationModeSocketHub : Hub
             ApplicationStatusCode.StoryBlockNotFound => "Story block was not found.",
             ApplicationStatusCode.StoryBeatNotFound => "Story beat was not found.",
             ApplicationStatusCode.CampaignPresentationStoryBeatConflict => "Another story beat has already been selected for this story beat index.",
+            ApplicationStatusCode.CampaignPresentationStoryBeatBlocked => "Story beat is blocked by unmet availability requirements.",
             ApplicationStatusCode.CampaignMasterRoleRequired => "Only users with the Master role can manage presentation mode.",
             _ => "An unexpected error occurred."
         };

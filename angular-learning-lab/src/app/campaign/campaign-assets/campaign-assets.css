@@ -76,6 +76,29 @@
   color: #1f1235;
 }
 
+.campaign-assets-actions .campaign-assets-compact-control {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.85rem;
+  border: 1px solid #6d28d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1235;
+  font: 700 0.95rem/1.2 'Inter Tight', 'Segoe UI', Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.campaign-assets-compact-control input {
+  accent-color: #6d28d9;
+}
+
+.campaign-assets-actions .campaign-assets-compact-control:has(input:checked) {
+  background: #6d28d9;
+  color: #ffffff;
+}
+
 .campaign-assets-icon-action svg {
   width: 1.45rem;
   height: 1.45rem;
@@ -210,6 +233,50 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+}
+
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-toolbar {
+  padding: 0.6rem;
+}
+
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-scroll {
+  padding: 0.6rem;
+}
+
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-grid {
+  grid-template-columns: repeat(auto-fill, minmax(11.2rem, 1fr));
+  gap: 0.6rem;
+}
+
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-entry {
+  min-height: 1.8rem;
+  grid-template-rows: 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.45rem;
+  border-radius: 6px;
+}
+
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-entry svg {
+  width: 1.19rem;
+  height: 1.19rem;
+}
+
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-entry strong {
+  font-size: 0.77rem;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-entry span,
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-entry p,
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-tags,
+.campaign-assets-page:has(.campaign-assets-compact-control input:checked) .campaign-assets-card-actions {
+  display: none;
 }
 
 .campaign-assets-folder:hover,

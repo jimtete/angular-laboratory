@@ -36,6 +36,13 @@ public interface ICampaignStoreService
         UpdateStoreItemPurchaseStateRequest request,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<StoreResponse>> UpdateCampaignStoreLockStateAsync(
+        Guid userId,
+        Guid campaignId,
+        int storeId,
+        UpdateStoreLockStateRequest request,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<object>> DeleteCampaignStoreAsync(
         Guid userId,
         Guid campaignId,

@@ -1,0 +1,407 @@
+<section class="campaign-store-page" aria-label="Campaign store">
+  <header class="campaign-store-actions">
+    <button type="button" class="campaign-store-back" aria-label="Go back" title="Go back" (click)="goBack()">
+      <svg lucideArrowLeft aria-hidden="true"></svg>
+    </button>
+    @if (store(); as store) {
+      <button
+        type="button"
+        class="campaign-store-lock-toggle"
+        [class.campaign-store-lock-toggle-unlocked]="isStoreUnlocked(store)"
+        role="switch"
+        [attr.aria-checked]="isStoreUnlocked(store)"
+        [attr.aria-label]="'Store is ' + getStoreLockStateLabel(store)"
+        [title]="getStoreLockStateLabel(store)"
+        [disabled]="isSavingLockState()"
+        (click)="toggleStoreLockState(store)"
+      >
+        <span class="campaign-store-lock-track" aria-hidden="true">
+          <span class="campaign-store-lock-thumb"></span>
+        </span>
+        <strong>{{ isSavingLockState() ? 'Saving...' : getStoreLockStateLabel(store) }}</strong>
+      </button>
+    }
+    @if (isEditingStore()) {
+      <span class="campaign-store-edit-actions">
+        <button
+          type="button"
+          class="campaign-store-edit-cancel"
+          aria-label="Discard store changes"
+          title="Discard changes"
+          [disabled]="isSavingStore()"
+          (click)="cancelStoreEdit()"
+        >
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+        <button
+          type="button"
+          class="campaign-store-edit-save"
+          aria-label="Save store changes"
+          title="Save changes"
+          [disabled]="!canSaveStoreEdit() || isSavingStore()"
+          (click)="saveStoreEdit()"
+        >
+          <svg lucideCheck aria-hidden="true"></svg>
+        </button>
+      </span>
+    } @else {
+      <button
+        type="button"
+        class="campaign-store-edit"
+        aria-label="Edit store"
+        title="Edit store"
+        (click)="beginStoreEdit()"
+      >
+        <svg lucidePencil aria-hidden="true"></svg>
+      </button>
+    }
+  </header>
+
+  @if (isLoadingStore()) {
+    <p class="campaign-store-status">Loading store...</p>
+  } @else if (store(); as store) {
+    <article class="campaign-store-sheet">
+      <header class="campaign-store-header">
+        <span class="campaign-store-type-icon" [attr.data-store-type]="storeTypeClassNameFor(store)">
+          @switch (storeTypeFor(store)) {
+            @case (StoreType.General) {
+              <svg lucidePackage aria-hidden="true"></svg>
+            }
+            @case (StoreType.Blacksmith) {
+              <svg lucideHammer aria-hidden="true"></svg>
+            }
+            @case (StoreType.Medic) {
+              <svg lucideHeartPulse aria-hidden="true"></svg>
+            }
+            @case (StoreType.Bookstore) {
+              <svg lucideBookOpen aria-hidden="true"></svg>
+            }
+            @case (StoreType.Alchemic) {
+              <svg lucideFlaskConical aria-hidden="true"></svg>
+            }
+            @case (StoreType.BlackMarket) {
+              <svg lucideHandCoins aria-hidden="true"></svg>
+            }
+            @case (StoreType.FishMarket) {
+              <svg lucideFish aria-hidden="true"></svg>
+            }
+            @case (StoreType.Armorsmith) {
+              <svg lucideShield aria-hidden="true"></svg>
+            }
+            @case (StoreType.ClothesStore) {
+              <svg lucideShirt aria-hidden="true"></svg>
+            }
+            @case (StoreType.MagicStore) {
+              <svg lucideSparkles aria-hidden="true"></svg>
+            }
+            @case (StoreType.PawnShop) {
+              <svg lucideBadgeDollarSign aria-hidden="true"></svg>
+            }
+            @case (StoreType.Enchanter) {
+              <svg lucideWandSparkles aria-hidden="true"></svg>
+            }
+            @case (StoreType.Herbalist) {
+              <svg lucideLeaf aria-hidden="true"></svg>
+            }
+            @case (StoreType.Cartographer) {
+              <svg lucideMapPinned aria-hidden="true"></svg>
+            }
+            @case (StoreType.Stable) {
+              <svg lucideFence aria-hidden="true"></svg>
+            }
+            @case (StoreType.Smuggler) {
+              <svg lucidePackageSearch aria-hidden="true"></svg>
+            }
+            @case (StoreType.Tavern) {
+              <svg lucideBeer aria-hidden="true"></svg>
+            }
+            @case (StoreType.Inn) {
+              <svg lucideBed aria-hidden="true"></svg>
+            }
+            @case (StoreType.Brothel) {
+              <svg lucideHeartHandshake aria-hidden="true"></svg>
+            }
+            @case (StoreType.Theatre) {
+              <svg lucideDrama aria-hidden="true"></svg>
+            }
+            @case (StoreType.Cafe) {
+              <svg lucideCoffee aria-hidden="true"></svg>
+            }
+            @case (StoreType.Bank) {
+              <svg lucideLandmark aria-hidden="true"></svg>
+            }
+            @case (StoreType.Office) {
+              <svg lucideBriefcase aria-hidden="true"></svg>
+            }
+            @case (StoreType.PostOffice) {
+              <svg lucideMail aria-hidden="true"></svg>
+            }
+          }
+        </span>
+        <div>
+          <span>Store</span>
+          @if (isEditingStore()) {
+            <input
+              class="campaign-store-title-input"
+              type="text"
+              placeholder="Store name"
+              [value]="storeNameDraft()"
+              [disabled]="isSavingStore()"
+              (input)="setStoreNameDraft($event)"
+            />
+          } @else {
+            <h1>{{ storeDisplayName(store) }}</h1>
+          }
+          <p>{{ store.storeLocation }}</p>
+        </div>
+      </header>
+
+      @if (isEditingStore()) {
+        <section class="campaign-store-edit-panel" aria-label="Store edit fields">
+          <label>
+            <span>Store Description</span>
+            <textarea
+              rows="4"
+              [value]="storeDescriptionDraft()"
+              [disabled]="isSavingStore()"
+              (input)="setStoreDescriptionDraft($event)"
+            ></textarea>
+          </label>
+          <label>
+            <span>Universal Discount %</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              [value]="storeDiscountPercentageDraft()"
+              [disabled]="isSavingStore()"
+              (input)="setStoreDiscountPercentageDraft($event)"
+            />
+          </label>
+        </section>
+      } @else if (store.storeDescription || store.storeDiscountPercentage > 0) {
+        <section class="campaign-store-summary">
+          @if (store.storeDescription) {
+            <p>{{ store.storeDescription }}</p>
+          }
+          @if (store.storeDiscountPercentage > 0) {
+            <strong>{{ store.storeDiscountPercentage }}% store discount</strong>
+          }
+        </section>
+      }
+
+      <div class="campaign-store-items" aria-label="Store items">
+        @if (isEditingStore()) {
+          @for (item of storeItemDrafts(); track item.draftId) {
+            <article class="campaign-store-item campaign-store-edit-item" [class.campaign-store-item-removed]="item.isRemoved">
+              <button
+                type="button"
+                class="campaign-store-remove-item"
+                aria-label="Remove item from store"
+                title="Remove item from store"
+                [disabled]="isSavingStore()"
+                (click)="toggleStoreItemRemoved(item.draftId)"
+              >
+                <svg lucideX aria-hidden="true"></svg>
+              </button>
+              <div class="campaign-store-item-main">
+                <strong>{{ item.itemName }}</strong>
+                @if (item.itemDescription) {
+                  <button type="button" class="campaign-store-description-trigger">
+                    Description
+                    <span class="campaign-store-description-popover" role="tooltip">
+                      {{ item.itemDescription }}
+                    </span>
+                  </button>
+                }
+              </div>
+              <div class="campaign-store-edit-fields">
+                <label>
+                  <span>Quantity</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Unlimited"
+                    [value]="item.quantity"
+                    [disabled]="isSavingStore() || item.isRemoved"
+                    (input)="setStoreItemQuantityDraft(item.draftId, $event)"
+                  />
+                </label>
+                <label>
+                  <span>Price</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [value]="item.itemPrice"
+                    [disabled]="isSavingStore() || item.isRemoved"
+                    (input)="setStoreItemPriceDraft(item.draftId, $event)"
+                  />
+                </label>
+                <label>
+                  <span>Discount</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [value]="item.itemPriceDiscount"
+                    [disabled]="isSavingStore() || item.isRemoved"
+                    (input)="setStoreItemDiscountDraft(item.draftId, $event)"
+                  />
+                </label>
+                <label>
+                  <span>Discount %</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    [value]="item.itemPricePercentageDiscount"
+                    [disabled]="isSavingStore() || item.isRemoved"
+                    (input)="setStoreItemPercentageDiscountDraft(item.draftId, $event)"
+                  />
+                </label>
+              </div>
+            </article>
+          }
+
+          <button
+            type="button"
+            class="campaign-store-add-item"
+            aria-label="Add item from assets"
+            title="Add item from assets"
+            [disabled]="isSavingStore()"
+            (click)="openAssetBrowser()"
+          >
+            <svg lucidePlus aria-hidden="true"></svg>
+          </button>
+
+          @if (isAssetBrowserOpen()) {
+            <section class="campaign-store-asset-browser" aria-label="Item asset browser">
+              <header>
+                <strong>Choose Item Asset</strong>
+                <button
+                  type="button"
+                  class="campaign-store-edit-cancel"
+                  aria-label="Close asset browser"
+                  title="Close asset browser"
+                  [disabled]="isLoadingAvailableItems()"
+                  (click)="closeAssetBrowser()"
+                >
+                  <svg lucideX aria-hidden="true"></svg>
+                </button>
+              </header>
+              <div class="campaign-store-asset-list">
+                @if (isLoadingAvailableItems()) {
+                  <p class="campaign-store-status">Loading item assets...</p>
+                } @else {
+                  @for (asset of availableItemAssets(); track asset.id) {
+                    <button type="button" class="campaign-store-asset-option" (click)="addAssetAsStoreItem(asset)">
+                      <svg lucidePackage aria-hidden="true"></svg>
+                      <span>
+                        <strong>{{ asset.name }}</strong>
+                        @if (asset.description) {
+                          <small>{{ asset.description }}</small>
+                        }
+                      </span>
+                    </button>
+                  } @empty {
+                    <p class="campaign-store-status">No item assets available.</p>
+                  }
+                }
+              </div>
+            </section>
+          }
+        } @else {
+          @if (isLoadingCampaignStores()) {
+            <p class="campaign-store-status">Loading related stores...</p>
+          }
+          @for (inventoryStore of storeInventoryResponses(store); track inventoryStore.storeId) {
+            <section
+              class="campaign-store-inventory-group"
+              [class.campaign-store-inventory-group-linked]="!isSelectedStoreResponse(store, inventoryStore)"
+            >
+              <header>
+                <div>
+                  @if (isSelectedStoreResponse(store, inventoryStore)) {
+                    <span>Selected {{ storeTypeLabelFor(inventoryStore) }}</span>
+                  } @else {
+                    <span>Unlocked {{ storeTypeLabelFor(inventoryStore) }}</span>
+                  }
+                  <h2>{{ storeDisplayName(inventoryStore) }}</h2>
+                </div>
+                <small>{{ inventoryStore.storeLocation }}</small>
+              </header>
+
+              @for (item of inventoryStore.items; track item.storeItemId) {
+                <article class="campaign-store-item">
+                  <div class="campaign-store-item-main">
+                    <strong>{{ item.itemName }}</strong>
+                    <span class="campaign-store-price">
+                      <strong>{{ finalItemPrice(inventoryStore, item) }} gold</strong>
+                      @if (hasItemDiscount(inventoryStore, item)) {
+                        <small>{{ itemPriceBreakdown(inventoryStore, item) }}</small>
+                      }
+                    </span>
+                    @if (item.itemDescription) {
+                      <button type="button" class="campaign-store-description-trigger">
+                        Description
+                        <span class="campaign-store-description-popover" role="tooltip">
+                          {{ item.itemDescription }}
+                        </span>
+                      </button>
+                    }
+                  </div>
+
+                  <div class="campaign-store-purchase-control" aria-label="Purchased count">
+                    <button
+                      type="button"
+                      aria-label="Decrease purchased count"
+                      [disabled]="isSavingPurchases() || purchasedCount(item) === 0"
+                      (click)="decreasePurchased(item)"
+                    >
+                      <svg lucideChevronDown aria-hidden="true"></svg>
+                    </button>
+                    <span>
+                      <strong>{{ purchasedCount(item) }}</strong>
+                      <small>Purchased</small>
+                      <small class="campaign-store-quantity">
+                        {{ item.quantity === null ? 'Unlimited' : 'Stock ' + item.quantity }}
+                      </small>
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Increase purchased count"
+                      [disabled]="isSavingPurchases() || (item.quantity !== null && purchasedCount(item) >= item.quantity)"
+                      (click)="increasePurchased(item)"
+                    >
+                      <svg lucideChevronUp aria-hidden="true"></svg>
+                    </button>
+                  </div>
+                </article>
+              } @empty {
+                <p class="campaign-store-status">No items in this store.</p>
+              }
+            </section>
+          }
+        }
+      </div>
+
+      @if (!isEditingStore()) {
+        <footer class="campaign-store-footer">
+          <button
+            type="button"
+            class="campaign-store-save"
+            [disabled]="isSavingPurchases()"
+            (click)="savePurchasedItems()"
+          >
+            <svg lucideSave aria-hidden="true"></svg>
+            <span>{{ isSavingPurchases() ? 'Saving...' : 'Save Purchased Items' }}</span>
+          </button>
+        </footer>
+      }
+    </article>
+  }
+</section>

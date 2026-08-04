@@ -18,6 +18,12 @@ public interface ICampaignStoreRepository
         int storeId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<StoreEntry>> ListUnlockedByCampaignIdAndStoreTypeAsync(
+        Guid campaignId,
+        StoreType storeType,
+        int excludedStoreId,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(
         StoreEntry store,
         CancellationToken cancellationToken = default);

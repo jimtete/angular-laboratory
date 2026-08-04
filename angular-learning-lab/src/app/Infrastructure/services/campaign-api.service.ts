@@ -64,6 +64,8 @@ import {
   UpdateCampaignMemberSkillsRequest,
   UpdateCampaignSettingsRequest,
   UpdateItemAssetRequest,
+  UpdateStoreLockStateRequest,
+  UpdateStoreRequest,
   UpdateStoreItemPurchaseStateRequest,
 } from '../models';
 import { ApiClient } from './api-client.service';
@@ -763,6 +765,17 @@ export class CampaignApiService {
     );
   }
 
+  updateCampaignStore(
+    campaignId: string,
+    storeId: number,
+    request: UpdateStoreRequest,
+  ): Observable<ApiResponse<CampaignStoreModel>> {
+    return this.apiClient.put<ApiResponse<CampaignStoreModel>, UpdateStoreRequest>(
+      `/api/campaigns/${campaignId}/stores/${storeId}`,
+      request,
+    );
+  }
+
   updateCampaignStoreItemPurchases(
     campaignId: string,
     storeId: number,
@@ -770,6 +783,17 @@ export class CampaignApiService {
   ): Observable<ApiResponse<CampaignStoreModel>> {
     return this.apiClient.put<ApiResponse<CampaignStoreModel>, UpdateStoreItemPurchaseStateRequest>(
       `/api/campaigns/${campaignId}/stores/${storeId}/item-purchases`,
+      request,
+    );
+  }
+
+  updateCampaignStoreLockState(
+    campaignId: string,
+    storeId: number,
+    request: UpdateStoreLockStateRequest,
+  ): Observable<ApiResponse<CampaignStoreModel>> {
+    return this.apiClient.put<ApiResponse<CampaignStoreModel>, UpdateStoreLockStateRequest>(
+      `/api/campaigns/${campaignId}/stores/${storeId}/lock-state`,
       request,
     );
   }
