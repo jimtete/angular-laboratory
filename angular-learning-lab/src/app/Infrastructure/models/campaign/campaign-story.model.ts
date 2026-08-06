@@ -1,4 +1,5 @@
 import { Skill, SkillValue } from './campaign-member-information.model';
+import type { MapPinModel } from './campaign-map.model';
 import { CampaignMilestoneModel } from './campaign-milestone.model';
 
 export enum Ability {
@@ -41,6 +42,8 @@ export interface StoryBlockModel {
   campaignId: string;
   title: string;
   orderIndex: number;
+  mapPins?: MapPinModel[];
+  musicFiles?: StoryBlockMusicFileModel[];
 }
 
 export interface CreateStoryBlockRequest {
@@ -203,6 +206,40 @@ export interface StoryBeatModel {
   transition: StoryBeatTransitionModel | null;
   milestone: CampaignMilestoneModel | null;
   indexPathRule: StoryBeatIndexPathRuleModel | null;
+  musicFiles?: StoryBlockMusicFileModel[];
+}
+
+export interface StoryBlockMusicFileModel {
+  id: string;
+  storyBlockId: string;
+  storyBeatId: string | null;
+  musicFileId: number;
+  orderIndex: number;
+  loop: boolean;
+  continueAcrossStoryBlocks: boolean;
+  uploadedByUserId: string;
+  parentFolderId: number | null;
+  displayName: string;
+  originalFileName: string;
+  storedFileName: string;
+  storagePath: string;
+  contentType: string;
+  fileSizeBytes: number;
+  durationMilliseconds: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StoryBlockMusicFileRequest {
+  musicFileId: number;
+  storyBeatId: string | null;
+  orderIndex: number | null;
+  loop: boolean | null;
+  continueAcrossStoryBlocks: boolean | null;
+}
+
+export interface UpdateStoryBlockMusicFilesRequest {
+  musicFiles: StoryBlockMusicFileRequest[];
 }
 
 export interface StoryBeatOptionalInformationRequest {

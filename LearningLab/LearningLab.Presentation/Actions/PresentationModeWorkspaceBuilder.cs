@@ -73,9 +73,21 @@ public sealed class PresentationModeWorkspaceBuilder
                 questTaskLinksResult.StatusCode);
         }
 
+        var outcomeEffectsResult = await _campaignRulesService.GetCampaignOutcomeEffectsAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (outcomeEffectsResult.StatusCode != ApplicationStatusCode.Success)
+        {
+            return new ServiceResult<PresentationModeWorkspaceResponse>(
+                outcomeEffectsResult.StatusCode);
+        }
+
         var storyBlocks = new List<PresentationModeStoryBlockResponse>();
         var quests = questsResult.Data ?? [];
         var questTaskLinks = questTaskLinksResult.Data ?? [];
+        var outcomeEffects = outcomeEffectsResult.Data ?? [];
 
         foreach (var storyBlock in storyBlocksResult.Data ?? [])
         {
@@ -108,7 +120,8 @@ public sealed class PresentationModeWorkspaceBuilder
                 storyBeatsResult.Data ?? [],
                 availabilityResult.Data ?? [],
                 quests,
-                questTaskLinks));
+                questTaskLinks,
+                outcomeEffects));
         }
 
         return new ServiceResult<PresentationModeWorkspaceResponse>(
@@ -201,6 +214,17 @@ public sealed class PresentationModeWorkspaceBuilder
                 availabilityResult.StatusCode);
         }
 
+        var outcomeEffectsResult = await _campaignRulesService.GetCampaignOutcomeEffectsAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (outcomeEffectsResult.StatusCode != ApplicationStatusCode.Success)
+        {
+            return new ServiceResult<PresentationModeStoryBlockResponse>(
+                outcomeEffectsResult.StatusCode);
+        }
+
         return new ServiceResult<PresentationModeStoryBlockResponse>(
             ApplicationStatusCode.Success,
             BuildStoryBlockResponse(
@@ -208,7 +232,8 @@ public sealed class PresentationModeWorkspaceBuilder
                 storyBeatsResult.Data ?? [],
                 availabilityResult.Data ?? [],
                 questsResult.Data ?? [],
-                questTaskLinksResult.Data ?? []));
+                questTaskLinksResult.Data ?? [],
+                outcomeEffectsResult.Data ?? []));
     }
 
     private async Task<ServiceResult<IReadOnlyList<PresentationModeStoryBeatAvailabilityResponse>>>
@@ -247,13 +272,18 @@ public sealed class PresentationModeWorkspaceBuilder
         IReadOnlyList<StoryBeatResponse> storyBeats,
         IReadOnlyList<PresentationModeStoryBeatAvailabilityResponse> availability,
         IReadOnlyList<CampaignQuestResponse> quests,
-        IReadOnlyList<StoryBeatQuestTaskResponse> questTaskLinks)
+        IReadOnlyList<StoryBeatQuestTaskResponse> questTaskLinks,
+        IReadOnlyList<StoryOutcomeEffectResponse> outcomeEffects)
     {
         var orderedStoryBeats = storyBeats
             .OrderBy(beat => beat.OrderIndex)
             .ThenBy(beat => beat.SecondaryOrderIndex)
             .ThenBy(beat => beat.StoryBeatId)
             .ToList();
+        var pendingOutcomeEffectsByStoryBeatId = BuildPendingOutcomeEffects(
+                orderedStoryBeats,
+                outcomeEffects)
+            .ToLookup(effect => effect.StoryBeatId);
         var storyBeatIds = storyBeats
             .Select(beat => beat.StoryBeatId)
             .ToHashSet();
@@ -268,7 +298,11 @@ public sealed class PresentationModeWorkspaceBuilder
         {
             StoryBlock = storyBlock,
             StoryBeats = orderedStoryBeats,
-            StoryBeatAvailability = availability,
+            StoryBeatAvailability = availability
+                .Select(item => WithPendingOutcomeEffects(
+                    item,
+                    pendingOutcomeEffectsByStoryBeatId[item.StoryBeatId].ToList()))
+                .ToList(),
             IndexPathChoiceGroups = BuildIndexPathChoiceGroups(orderedStoryBeats),
             Quests = quests
                 .Where(quest => questIds.Contains(quest.QuestId))
@@ -303,6 +337,65 @@ public sealed class PresentationModeWorkspaceBuilder
             .ToList();
     }
 
+    private static IReadOnlyList<PresentationModePendingOutcomeEffectResponse> BuildPendingOutcomeEffects(
+        IReadOnlyList<StoryBeatResponse> storyBeats,
+        IReadOnlyList<StoryOutcomeEffectResponse> outcomeEffects)
+    {
+        var effectsBySource = outcomeEffects
+            .ToLookup(effect => (effect.SourceType, effect.SourceId));
+
+        return storyBeats
+            .SelectMany(beat => BuildPendingOutcomeEffectSources(beat)
+                .Select(source => new PresentationModePendingOutcomeEffectResponse
+                {
+                    StoryBeatId = beat.StoryBeatId,
+                    SourceType = source.SourceType,
+                    SourceId = source.SourceId,
+                    Effects = effectsBySource[(source.SourceType, source.SourceId)]
+                        .OrderBy(effect => effect.SortOrder)
+                        .ToList()
+                }))
+            .Where(source => source.Effects.Count > 0)
+            .ToList();
+    }
+
+    private static IEnumerable<(OutcomeSourceType SourceType, Guid SourceId)> BuildPendingOutcomeEffectSources(
+        StoryBeatResponse storyBeat)
+    {
+        yield return (OutcomeSourceType.StoryBeat, storyBeat.StoryBeatId);
+
+        foreach (var decision in storyBeat.Decision?.Decisions ?? [])
+        {
+            yield return (OutcomeSourceType.DecisionChoice, decision.Id);
+        }
+
+        foreach (var npcReference in storyBeat.Roleplaying?.NpcReferences ?? [])
+        {
+            yield return (OutcomeSourceType.RoleplayingNpcInteraction, npcReference.Id);
+        }
+
+        foreach (var information in storyBeat.Roleplaying?.DiscoverableInformation ?? [])
+        {
+            yield return (OutcomeSourceType.RoleplayingInformation, information.Id);
+        }
+    }
+
+    private static PresentationModeStoryBeatAvailabilityResponse WithPendingOutcomeEffects(
+        PresentationModeStoryBeatAvailabilityResponse availability,
+        IReadOnlyList<PresentationModePendingOutcomeEffectResponse> pendingOutcomeEffects)
+    {
+        return new PresentationModeStoryBeatAvailabilityResponse
+        {
+            StoryBeatId = availability.StoryBeatId,
+            IsAvailable = availability.IsAvailable,
+            IsAvailableByRule = availability.IsAvailableByRule,
+            SatisfiedRules = availability.SatisfiedRules,
+            BlockingEvents = availability.BlockingEvents,
+            PendingOutcomeEffects = pendingOutcomeEffects,
+            Availability = availability.Availability
+        };
+    }
+
     private static PresentationModeStoryBeatAvailabilityResponse ToAvailabilityResponse(
         TargetAvailabilityResult availability)
     {
@@ -310,11 +403,25 @@ public sealed class PresentationModeWorkspaceBuilder
         {
             StoryBeatId = availability.TargetId,
             IsAvailable = availability.IsAvailable,
+            IsAvailableByRule = availability.IsAvailableByRule,
+            SatisfiedRules = BuildSatisfiedRules(availability),
             BlockingEvents = availability.IsAvailable
                 ? []
                 : BuildBlockingEvents(availability),
             Availability = availability
         };
+    }
+
+    private static IReadOnlyList<PresentationModeSatisfiedRuleResponse> BuildSatisfiedRules(
+        TargetAvailabilityResult availability)
+    {
+        return availability.SatisfiedRuleResults
+            .Select(rule => new PresentationModeSatisfiedRuleResponse
+            {
+                RuleId = rule.RuleId,
+                Explanation = rule.HumanReadableExplanation
+            })
+            .ToList();
     }
 
     private static IReadOnlyList<PresentationModeBlockingEventResponse> BuildBlockingEvents(

@@ -25,6 +25,7 @@ public sealed class CampaignRulesController : ControllerBase
     [HttpGet("event-definitions")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<CampaignEventDefinitionResponse>>>> GetEventDefinitions(
         Guid campaignId,
+        [FromQuery] int? campaignSessionId,
         CancellationToken cancellationToken)
     {
         var userId = SessionHelper.GetUserId(User);
@@ -37,6 +38,7 @@ public sealed class CampaignRulesController : ControllerBase
         var result = await _campaignRulesService.GetEventDefinitionsAsync(
             userId.Value,
             campaignId,
+            campaignSessionId,
             cancellationToken);
 
         return MapListResponse(result, "Campaign event definitions fetched successfully.");
@@ -46,6 +48,7 @@ public sealed class CampaignRulesController : ControllerBase
     public async Task<ActionResult<ApiResponse<CampaignEventDefinitionResponse>>> GetEventDefinition(
         Guid campaignId,
         Guid id,
+        [FromQuery] int? campaignSessionId,
         CancellationToken cancellationToken)
     {
         var userId = SessionHelper.GetUserId(User);
@@ -59,6 +62,7 @@ public sealed class CampaignRulesController : ControllerBase
             userId.Value,
             campaignId,
             id,
+            campaignSessionId,
             cancellationToken);
 
         return MapResponse(result, "Campaign event definition fetched successfully.");
@@ -522,7 +526,8 @@ public sealed class CampaignRulesController : ControllerBase
                 or ApplicationStatusCode.InvalidCampaignEventOption
                 or ApplicationStatusCode.InvalidConditionalRule
                 or ApplicationStatusCode.InvalidStoryOutcomeEffect
-                or ApplicationStatusCode.InvalidCampaignChoice => BadRequest(new ApiResponse<T>
+                or ApplicationStatusCode.InvalidCampaignChoice
+                or ApplicationStatusCode.InvalidCampaignSession => BadRequest(new ApiResponse<T>
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
                     Message = "Campaign rule request is invalid.",
@@ -540,7 +545,8 @@ public sealed class CampaignRulesController : ControllerBase
                 or ApplicationStatusCode.ConditionalRuleNotFound
                 or ApplicationStatusCode.StoryOutcomeEffectNotFound
                 or ApplicationStatusCode.CampaignChoiceNotFound
-                or ApplicationStatusCode.CampaignChoiceOptionNotFound => NotFound(new ApiResponse<T>
+                or ApplicationStatusCode.CampaignChoiceOptionNotFound
+                or ApplicationStatusCode.CampaignSessionNotFound => NotFound(new ApiResponse<T>
                 {
                     StatusCode = StatusCodes.Status404NotFound,
                     Message = "Requested campaign rule resource was not found.",

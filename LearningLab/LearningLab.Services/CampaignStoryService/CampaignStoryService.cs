@@ -1,15 +1,19 @@
 using LearningLab.Data.Models;
 using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.Campaign;
+using LearningLab.Data.Models.Campaign.Maps;
 using LearningLab.Data.Models.Campaign.Story;
+using LearningLab.Data.Models.DTOs.Campaign.Maps;
 using LearningLab.Data.Models.DTOs.Campaign.Sessions;
 using LearningLab.Data.Models.DTOs.Campaign.Story;
+using LearningLab.Data.Repositories.CampaignMapPinRepository;
 using LearningLab.Data.Repositories.CampaignMilestoneRepository;
 using LearningLab.Data.Repositories.CampaignNpcRepository;
 using LearningLab.Data.Repositories.CampaignRepository;
 using LearningLab.Data.Repositories.MonsterRepository;
 using LearningLab.Data.Repositories.StoryBeatIndexPathRuleRepository;
 using LearningLab.Data.Repositories.StoryBeatRepository;
+using LearningLab.Data.Repositories.StoryBlockMusicFileRepository;
 using LearningLab.Data.Repositories.StoryBlockMilestoneRepository;
 using LearningLab.Data.Repositories.StoryBlockRepository;
 using LearningLab.Data.Repositories.UserRepository;
@@ -37,8 +41,10 @@ public sealed class CampaignStoryService : ICampaignStoryService
     private const int MaximumTransitionDescriptionLength = 2048;
 
     private readonly IStoryBlockRepository _storyBlockRepository;
+    private readonly ICampaignMapPinRepository _campaignMapPinRepository;
     private readonly IStoryBeatIndexPathRuleRepository _storyBeatIndexPathRuleRepository;
     private readonly IStoryBeatRepository _storyBeatRepository;
+    private readonly IStoryBlockMusicFileRepository _storyBlockMusicFileRepository;
     private readonly IStoryBlockMilestoneRepository _storyBlockMilestoneRepository;
     private readonly ICampaignMilestoneRepository _campaignMilestoneRepository;
     private readonly ICampaignNpcRepository _campaignNpcRepository;
@@ -48,8 +54,10 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
     public CampaignStoryService(
         IStoryBlockRepository storyBlockRepository,
+        ICampaignMapPinRepository campaignMapPinRepository,
         IStoryBeatIndexPathRuleRepository storyBeatIndexPathRuleRepository,
         IStoryBeatRepository storyBeatRepository,
+        IStoryBlockMusicFileRepository storyBlockMusicFileRepository,
         IStoryBlockMilestoneRepository storyBlockMilestoneRepository,
         ICampaignMilestoneRepository campaignMilestoneRepository,
         ICampaignNpcRepository campaignNpcRepository,
@@ -58,8 +66,10 @@ public sealed class CampaignStoryService : ICampaignStoryService
         IUserRepository userRepository)
     {
         _storyBlockRepository = storyBlockRepository;
+        _campaignMapPinRepository = campaignMapPinRepository;
         _storyBeatIndexPathRuleRepository = storyBeatIndexPathRuleRepository;
         _storyBeatRepository = storyBeatRepository;
+        _storyBlockMusicFileRepository = storyBlockMusicFileRepository;
         _storyBlockMilestoneRepository = storyBlockMilestoneRepository;
         _campaignMilestoneRepository = campaignMilestoneRepository;
         _campaignNpcRepository = campaignNpcRepository;
@@ -108,7 +118,7 @@ public sealed class CampaignStoryService : ICampaignStoryService
 
         return new ServiceResult<StoryBlockResponse>(
             ApplicationStatusCode.Success,
-            ToResponse(storyBlock));
+            ToResponse(storyBlock, []));
     }
 
     public async Task<ServiceResult<IReadOnlyList<StoryBlockResponse>>> GetStoryBlocksAsync(
@@ -129,10 +139,22 @@ public sealed class CampaignStoryService : ICampaignStoryService
         var storyBlocks = await _storyBlockRepository.ListByCampaignIdAsync(
             campaignId,
             cancellationToken);
+        var mapPinsByStoryBlockId = await GetStoryBlockMapPinsByStoryBlockIdAsync(
+            campaignId,
+            storyBlocks.Select(storyBlock => storyBlock.StoryBlockId).ToList(),
+            cancellationToken);
+        var musicFilesByStoryBlockId = await GetStoryBlockMusicFilesByStoryBlockIdAsync(
+            storyBlocks.Select(storyBlock => storyBlock.StoryBlockId).ToList(),
+            cancellationToken);
 
         return new ServiceResult<IReadOnlyList<StoryBlockResponse>>(
             ApplicationStatusCode.Success,
-            storyBlocks.Select(ToResponse).ToList());
+            storyBlocks
+                .Select(storyBlock => ToResponse(
+                    storyBlock,
+                    mapPinsByStoryBlockId.GetValueOrDefault(storyBlock.StoryBlockId) ?? [],
+                    musicFilesByStoryBlockId.GetValueOrDefault(storyBlock.StoryBlockId) ?? []))
+                .ToList());
     }
 
     public async Task<ServiceResult<StoryBlockResponse>> UpdateStoryBlockTitleAsync(
@@ -172,10 +194,20 @@ public sealed class CampaignStoryService : ICampaignStoryService
         storyBlock.Title = title!;
 
         await _storyBlockRepository.SaveChangesAsync(cancellationToken);
+        var mapPinsByStoryBlockId = await GetStoryBlockMapPinsByStoryBlockIdAsync(
+            campaignId,
+            [storyBlockId],
+            cancellationToken);
+        var musicFiles = await _storyBlockMusicFileRepository.ListByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
 
         return new ServiceResult<StoryBlockResponse>(
             ApplicationStatusCode.Success,
-            ToResponse(storyBlock));
+            ToResponse(
+                storyBlock,
+                mapPinsByStoryBlockId.GetValueOrDefault(storyBlock.StoryBlockId) ?? [],
+                musicFiles));
     }
 
     public async Task<ServiceResult<IReadOnlyList<StoryBlockResponse>>> ReorderStoryBlocksAsync(
@@ -215,12 +247,22 @@ public sealed class CampaignStoryService : ICampaignStoryService
             storyBlocks,
             request.StoryBlockIds,
             cancellationToken);
+        var mapPinsByStoryBlockId = await GetStoryBlockMapPinsByStoryBlockIdAsync(
+            campaignId,
+            storyBlocks.Select(storyBlock => storyBlock.StoryBlockId).ToList(),
+            cancellationToken);
+        var musicFilesByStoryBlockId = await GetStoryBlockMusicFilesByStoryBlockIdAsync(
+            storyBlocks.Select(storyBlock => storyBlock.StoryBlockId).ToList(),
+            cancellationToken);
 
         return new ServiceResult<IReadOnlyList<StoryBlockResponse>>(
             ApplicationStatusCode.Success,
             storyBlocks
                 .OrderBy(block => block.OrderIndex)
-                .Select(ToResponse)
+                .Select(storyBlock => ToResponse(
+                    storyBlock,
+                    mapPinsByStoryBlockId.GetValueOrDefault(storyBlock.StoryBlockId) ?? [],
+                    musicFilesByStoryBlockId.GetValueOrDefault(storyBlock.StoryBlockId) ?? []))
                 .ToList());
     }
 
@@ -255,6 +297,122 @@ public sealed class CampaignStoryService : ICampaignStoryService
         await CompactStoryBlockOrderAsync(campaignId, cancellationToken);
 
         return new ServiceResult<object>(ApplicationStatusCode.Success);
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>> GetStoryBlockMusicFilesAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default)
+    {
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(validationStatusCode.Value);
+        }
+
+        var storyBlock = await _storyBlockRepository.GetByCampaignIdAndStoryBlockIdAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        if (storyBlock is null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(
+                ApplicationStatusCode.StoryBlockNotFound);
+        }
+
+        var musicFiles = await _storyBlockMusicFileRepository.ListByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(
+            ApplicationStatusCode.Success,
+            musicFiles.Select(ToResponse).ToList());
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>> UpdateStoryBlockMusicFilesAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        UpdateStoryBlockMusicFilesRequest? request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request?.MusicFiles is null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(
+                ApplicationStatusCode.InvalidStoryBlockMusic);
+        }
+
+        var validationStatusCode = await ValidateMasterCampaignAccessAsync(
+            userId,
+            campaignId,
+            cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(validationStatusCode.Value);
+        }
+
+        var storyBlock = await _storyBlockRepository.GetByCampaignIdAndStoryBlockIdAsync(
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        if (storyBlock is null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(
+                ApplicationStatusCode.StoryBlockNotFound);
+        }
+
+        var musicValidationStatusCode = await ValidateStoryBlockMusicRequestAsync(
+            userId,
+            storyBlockId,
+            request.MusicFiles,
+            cancellationToken);
+
+        if (musicValidationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(
+                musicValidationStatusCode.Value);
+        }
+
+        var timestamp = DateTimeOffset.UtcNow;
+        var musicFiles = request.MusicFiles
+            .Select((musicFile, index) => new StoryBlockMusicFile
+            {
+                Id = Guid.NewGuid(),
+                StoryBlockId = storyBlockId,
+                StoryBeatId = musicFile.StoryBeatId,
+                MusicFileId = musicFile.MusicFileId,
+                OrderIndex = musicFile.OrderIndex ?? index + 1,
+                Loop = musicFile.Loop ?? true,
+                ContinueAcrossStoryBlocks = musicFile.ContinueAcrossStoryBlocks ?? false,
+                CreatedAt = timestamp,
+                UpdatedAt = timestamp
+            })
+            .ToList();
+
+        var existingMusicFiles = await _storyBlockMusicFileRepository.ListTrackedByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
+        _storyBlockMusicFileRepository.RemoveRange(existingMusicFiles);
+        await _storyBlockMusicFileRepository.AddRangeAsync(
+            musicFiles,
+            cancellationToken);
+        await _storyBlockMusicFileRepository.SaveChangesAsync(cancellationToken);
+
+        var updatedMusicFiles = await _storyBlockMusicFileRepository.ListByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>(
+            ApplicationStatusCode.Success,
+            updatedMusicFiles.Select(ToResponse).ToList());
     }
 
     public async Task<ServiceResult<StoryBlockMilestoneResponse>> AddStoryBlockMilestoneAsync(
@@ -1687,6 +1845,9 @@ public sealed class CampaignStoryService : ICampaignStoryService
         var removedOrderIndex = storyBeat.OrderIndex;
         var removedSecondaryOrderIndex = storyBeat.SecondaryOrderIndex;
 
+        await _storyBlockMusicFileRepository.RemoveByStoryBeatIdAsync(
+            storyBeatId,
+            cancellationToken);
         _storyBeatRepository.Remove(storyBeat);
         await _storyBeatRepository.SaveChangesAsync(cancellationToken);
         await _storyBeatRepository.DecrementOrderAfterAsync(
@@ -1766,6 +1927,9 @@ public sealed class CampaignStoryService : ICampaignStoryService
             campaignId,
             storyBlockId,
             cancellationToken);
+        var musicFiles = await _storyBlockMusicFileRepository.ListByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
 
         return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
             ApplicationStatusCode.Success,
@@ -1773,7 +1937,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 .Select(storyBeat => ToResponse(
                     storyBeat,
                     orderedStoryBeats,
-                    indexPathRules))
+                    indexPathRules,
+                    musicFiles))
                 .ToList());
     }
 
@@ -1811,6 +1976,9 @@ public sealed class CampaignStoryService : ICampaignStoryService
             campaignId,
             storyBlockId,
             cancellationToken);
+        var musicFiles = await _storyBlockMusicFileRepository.ListByStoryBlockIdAsync(
+            storyBlockId,
+            cancellationToken);
 
         return new ServiceResult<IReadOnlyList<StoryBeatResponse>>(
             ApplicationStatusCode.Success,
@@ -1818,7 +1986,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
                 .Select(storyBeat => ToResponse(
                     storyBeat,
                     storyBeats,
-                    indexPathRules))
+                    indexPathRules,
+                    musicFiles))
                 .ToList());
     }
 
@@ -2013,6 +2182,61 @@ public sealed class CampaignStoryService : ICampaignStoryService
         return milestone is null
             ? ApplicationStatusCode.CampaignMilestoneNotFound
             : null;
+    }
+
+    private async Task<ApplicationStatusCode?> ValidateStoryBlockMusicRequestAsync(
+        Guid userId,
+        Guid storyBlockId,
+        IReadOnlyList<StoryBlockMusicFileRequest> musicFiles,
+        CancellationToken cancellationToken)
+    {
+        if (musicFiles.Any(musicFile => musicFile.MusicFileId < 1
+                || musicFile.OrderIndex is < 1
+                || musicFile.StoryBeatId == Guid.Empty))
+        {
+            return ApplicationStatusCode.InvalidStoryBlockMusic;
+        }
+
+        var duplicateAssignments = musicFiles
+            .GroupBy(musicFile => new
+            {
+                musicFile.MusicFileId,
+                musicFile.StoryBeatId
+            })
+            .Any(group => group.Count() > 1);
+
+        if (duplicateAssignments)
+        {
+            return ApplicationStatusCode.InvalidStoryBlockMusic;
+        }
+
+        var requestedMusicFileIds = musicFiles
+            .Select(musicFile => musicFile.MusicFileId)
+            .Distinct()
+            .ToList();
+        var existingMusicFileCount = await _storyBlockMusicFileRepository.CountMusicFilesByUserIdAndMusicFileIdsAsync(
+            userId,
+            requestedMusicFileIds,
+            cancellationToken);
+
+        if (existingMusicFileCount != requestedMusicFileIds.Count)
+        {
+            return ApplicationStatusCode.StoryBlockMusicFileNotFound;
+        }
+
+        var requestedStoryBeatIds = musicFiles
+            .Where(musicFile => musicFile.StoryBeatId is not null)
+            .Select(musicFile => musicFile.StoryBeatId!.Value)
+            .Distinct()
+            .ToList();
+        var existingStoryBeatCount = await _storyBlockMusicFileRepository.CountStoryBeatsByStoryBlockIdAndStoryBeatIdsAsync(
+            storyBlockId,
+            requestedStoryBeatIds,
+            cancellationToken);
+
+        return existingStoryBeatCount == requestedStoryBeatIds.Count
+            ? null
+            : ApplicationStatusCode.StoryBeatNotFound;
     }
 
     private static bool TryBuildStoryBeatInformation(
@@ -2777,14 +3001,119 @@ public sealed class CampaignStoryService : ICampaignStoryService
             cancellationToken);
     }
 
-    private static StoryBlockResponse ToResponse(StoryBlock storyBlock)
+    private async Task<IReadOnlyDictionary<Guid, IReadOnlyList<MapPin>>> GetStoryBlockMapPinsByStoryBlockIdAsync(
+        Guid campaignId,
+        IReadOnlyCollection<Guid> storyBlockIds,
+        CancellationToken cancellationToken)
+    {
+        var mapPins = await _campaignMapPinRepository.ListStoryBlockPinsByCampaignIdAsync(
+            campaignId,
+            storyBlockIds,
+            cancellationToken);
+
+        var mapPinsByStoryBlockId = new Dictionary<Guid, List<MapPin>>();
+
+        foreach (var mapPin in mapPins)
+        {
+            if (!Guid.TryParse(mapPin.TargetId, out var storyBlockId))
+            {
+                continue;
+            }
+
+            if (!mapPinsByStoryBlockId.TryGetValue(storyBlockId, out var storyBlockMapPins))
+            {
+                storyBlockMapPins = [];
+                mapPinsByStoryBlockId[storyBlockId] = storyBlockMapPins;
+            }
+
+            storyBlockMapPins.Add(mapPin);
+        }
+
+        return mapPinsByStoryBlockId.ToDictionary(
+            pair => pair.Key,
+            pair => (IReadOnlyList<MapPin>)pair.Value);
+    }
+
+    private async Task<IReadOnlyDictionary<Guid, IReadOnlyList<StoryBlockMusicFile>>>
+        GetStoryBlockMusicFilesByStoryBlockIdAsync(
+            IReadOnlyCollection<Guid> storyBlockIds,
+            CancellationToken cancellationToken)
+    {
+        var musicFiles = await _storyBlockMusicFileRepository.ListByStoryBlockIdsAsync(
+            storyBlockIds,
+            cancellationToken);
+
+        return musicFiles
+            .GroupBy(link => link.StoryBlockId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<StoryBlockMusicFile>)group
+                    .OrderBy(link => link.OrderIndex)
+                    .ThenBy(link => link.Id)
+                    .ToList());
+    }
+
+    private static StoryBlockResponse ToResponse(
+        StoryBlock storyBlock,
+        IReadOnlyList<MapPin>? mapPins = null,
+        IReadOnlyList<StoryBlockMusicFile>? musicFiles = null)
     {
         return new StoryBlockResponse
         {
             StoryBlockId = storyBlock.StoryBlockId,
             CampaignId = storyBlock.CampaignId,
             Title = storyBlock.Title,
-            OrderIndex = storyBlock.OrderIndex
+            OrderIndex = storyBlock.OrderIndex,
+            MapPins = (mapPins ?? [])
+                .Select(ToResponse)
+                .ToList(),
+            MusicFiles = (musicFiles ?? [])
+                .OrderBy(link => link.OrderIndex)
+                .ThenBy(link => link.Id)
+                .Select(ToResponse)
+                .ToList()
+        };
+    }
+
+    private static StoryBlockMusicFileResponse ToResponse(StoryBlockMusicFile link)
+    {
+        return new StoryBlockMusicFileResponse
+        {
+            Id = link.Id,
+            StoryBlockId = link.StoryBlockId,
+            StoryBeatId = link.StoryBeatId,
+            MusicFileId = link.MusicFileId,
+            OrderIndex = link.OrderIndex,
+            Loop = link.Loop,
+            ContinueAcrossStoryBlocks = link.ContinueAcrossStoryBlocks,
+            UploadedByUserId = link.MusicFile.UploadedByUserId,
+            ParentFolderId = link.MusicFile.ParentFolderId,
+            DisplayName = link.MusicFile.DisplayName,
+            OriginalFileName = link.MusicFile.OriginalFileName,
+            StoredFileName = link.MusicFile.StoredFileName,
+            StoragePath = link.MusicFile.StoragePath,
+            ContentType = link.MusicFile.ContentType,
+            FileSizeBytes = link.MusicFile.FileSizeBytes,
+            DurationMilliseconds = link.MusicFile.DurationMilliseconds,
+            CreatedAt = link.CreatedAt,
+            UpdatedAt = link.UpdatedAt
+        };
+    }
+
+    private static MapPinResponse ToResponse(MapPin pin)
+    {
+        return new MapPinResponse
+        {
+            Id = pin.Id,
+            MapId = pin.MapId,
+            XCoordinate = pin.XCoordinate,
+            YCoordinate = pin.YCoordinate,
+            Label = pin.Label,
+            Description = pin.Description,
+            TargetType = pin.TargetType,
+            TargetId = pin.TargetId,
+            CreatedAt = pin.CreatedAt,
+            UpdatedAt = pin.UpdatedAt
         };
     }
 
@@ -2867,7 +3196,8 @@ public sealed class CampaignStoryService : ICampaignStoryService
     private static StoryBeatResponse ToResponse(
         StoryBeat storyBeat,
         IReadOnlyList<StoryBeat>? storyBlockBeats = null,
-        IReadOnlyDictionary<int, StoryBeatIndexPathRuleResponse>? indexPathRulesByOrderIndex = null)
+        IReadOnlyDictionary<int, StoryBeatIndexPathRuleResponse>? indexPathRulesByOrderIndex = null,
+        IReadOnlyList<StoryBlockMusicFile>? musicFiles = null)
     {
         var indexPathRule = indexPathRulesByOrderIndex?.GetValueOrDefault(storyBeat.OrderIndex);
 
@@ -2900,7 +3230,13 @@ public sealed class CampaignStoryService : ICampaignStoryService
             Milestone = storyBeat.Milestone is null
                 ? null
                 : ToResponse(storyBeat.Milestone),
-            IndexPathRule = indexPathRule
+            IndexPathRule = indexPathRule,
+            MusicFiles = (musicFiles ?? [])
+                .Where(link => link.StoryBeatId == storyBeat.Id)
+                .OrderBy(link => link.OrderIndex)
+                .ThenBy(link => link.Id)
+                .Select(ToResponse)
+                .ToList()
         };
     }
 

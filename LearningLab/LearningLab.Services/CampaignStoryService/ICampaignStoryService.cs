@@ -36,6 +36,19 @@ public interface ICampaignStoryService
         Guid storyBlockId,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>> GetStoryBlockMusicFilesAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>>> UpdateStoryBlockMusicFilesAsync(
+        Guid userId,
+        Guid campaignId,
+        Guid storyBlockId,
+        UpdateStoryBlockMusicFilesRequest? request,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<StoryBlockMilestoneResponse>> AddStoryBlockMilestoneAsync(
         Guid userId,
         Guid campaignId,

@@ -18,6 +18,7 @@ import {
   PresentationModeStoryBeatPlayedModel,
   PresentationModeStoryBeatReferenceMarkedModel,
   PresentationModeWorkspaceModel,
+  TakePresentationDecisionOptionRequest,
 } from '../models';
 import { TokenStorageService } from './token-storage.service';
 
@@ -28,6 +29,7 @@ const presentationModeDisabledEvent = 'presentationModeDisabled';
 const presentationModeUpdatedEvent = 'presentationModeUpdated';
 const presentationModeStoryBeatPlayedEvent = 'presentationModeStoryBeatPlayed';
 const presentationModeStoryBeatReferenceMarkedEvent = 'presentationModeStoryBeatReferenceMarked';
+const presentationModeDecisionTakenEvent = 'presentationModeDecisionTaken';
 const presentationModeErrorEvent = 'presentationModeError';
 const subscribeMethod = 'SubscribeToPresentationMode';
 const unsubscribeMethod = 'UnsubscribeFromPresentationMode';
@@ -38,6 +40,7 @@ const disablePresentationModeMethod = 'DisablePresentationMode';
 const presentStoryBeatMethod = 'PresentStoryBeat';
 const finishStoryBeatMethod = 'FinishStoryBeat';
 const markRoleplayingInformationGivenMethod = 'MarkRoleplayingInformationGiven';
+const takeDecisionOptionMethod = 'TakeDecisionOption';
 
 @Injectable({
   providedIn: 'root',
@@ -53,6 +56,7 @@ export class PresentationModeSocketService {
   readonly workspace = signal<PresentationModeWorkspaceModel | null>(null);
   readonly storyBeatPlayed = signal<PresentationModeStoryBeatPlayedModel | null>(null);
   readonly storyBeatReferenceMarked = signal<PresentationModeStoryBeatReferenceMarkedModel | null>(null);
+  readonly decisionTaken = signal<PresentationModeStoryBeatReferenceMarkedModel | null>(null);
   readonly lastError = signal<PresentationModeSocketErrorModel | null>(null);
 
   async connect(campaignId: string, sessionId: number): Promise<void> {
@@ -98,6 +102,7 @@ export class PresentationModeSocketService {
     this.workspace.set(null);
     this.storyBeatPlayed.set(null);
     this.storyBeatReferenceMarked.set(null);
+    this.decisionTaken.set(null);
     this.lastError.set(null);
 
     if (!connection || connection.state === HubConnectionState.Disconnected) {
@@ -244,6 +249,27 @@ export class PresentationModeSocketService {
     return result ?? null;
   }
 
+  async takeDecisionOption(
+    campaignId: string,
+    sessionId: number,
+    request: TakePresentationDecisionOptionRequest,
+  ): Promise<PresentationModeStoryBeatReferenceMarkedModel | null> {
+    const connection = await this.getReadyConnection(campaignId, sessionId);
+    const result = await connection.invoke<PresentationModeStoryBeatReferenceMarkedModel | null>(
+      takeDecisionOptionMethod,
+      campaignId,
+      sessionId,
+      request,
+    );
+
+    if (result) {
+      this.workspace.set(result.workspace);
+      this.decisionTaken.set(result);
+    }
+
+    return result ?? null;
+  }
+
   private async getReadyConnection(campaignId: string, sessionId: number): Promise<HubConnection> {
     await this.connect(campaignId, sessionId);
 
@@ -322,6 +348,12 @@ export class PresentationModeSocketService {
         this.lastError.set(null);
       },
     );
+
+    connection.on(presentationModeDecisionTakenEvent, (result: PresentationModeStoryBeatReferenceMarkedModel) => {
+      this.workspace.set(result.workspace);
+      this.decisionTaken.set(result);
+      this.lastError.set(null);
+    });
 
     connection.on(presentationModeErrorEvent, (error: PresentationModeSocketErrorModel) => {
       this.lastError.set(error);

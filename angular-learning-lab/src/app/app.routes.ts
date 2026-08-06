@@ -62,6 +62,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'library',
+    loadComponent: () => import('./library/library')
+      .then((module) => module.Library),
+    canActivate: [authGuard]
+  },
+  {
     path: 'assets/monsters/:monsterId/presentation',
     component: MonsterPresentationSheet,
     canActivate: [authGuard, masterRoleGuard]

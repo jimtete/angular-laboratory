@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { LucideArrowDown, LucideArrowUp, LucideCheck, LucideEye, LucideGitBranch, LucideGripVertical, LucideLink, LucideLock, LucidePencil, LucidePlus, LucideTrash2, LucideX, LucideZap } from '@lucide/angular';
+import { LucideArrowDown, LucideArrowUp, LucideCheck, LucideEye, LucideGitBranch, LucideGripVertical, LucideLink, LucideLock, LucideMusic, LucidePencil, LucidePlus, LucideTrash2, LucideX, LucideZap } from '@lucide/angular';
 import { catchError, finalize, forkJoin, map, Observable, of, switchMap, timeout } from 'rxjs';
 
 import {
@@ -41,6 +41,8 @@ import {
   CreateNarrativeStoryBeatRequest,
   CreateRoleplayingStoryBeatRequest,
   CreateTransitionStoryBeatRequest,
+  LibraryApiService,
+  LibraryFileModel,
   UpdateCampaignQuestRequest,
   MonsterApiService,
   MonsterModel,
@@ -57,6 +59,8 @@ import {
   StoryBeatRoleplayingCheckType,
   StoryBeatRoleplayingInformationModel,
   StoryBeatType,
+  StoryBlockMusicFileModel,
+  StoryBlockMusicFileRequest,
   StoryBlockModel,
   toCampaignMilestoneImportance,
   UpdateCombatStoryBeatRequest,
@@ -238,6 +242,15 @@ interface StoryBeatIndexPathRuleDialogState {
   storyBeatRow: StoryBeatRowViewModel;
 }
 
+interface StoryBlockMusicDraft {
+  draftId: number;
+  musicFileId: number;
+  storyBeatId: string | null;
+  orderIndex: number;
+  loop: boolean;
+  continueAcrossStoryBlocks: boolean;
+}
+
 @Component({
   selector: 'app-campaign-content',
   imports: [
@@ -254,6 +267,7 @@ interface StoryBeatIndexPathRuleDialogState {
     LucideGripVertical,
     LucideLink,
     LucideLock,
+    LucideMusic,
     LucidePencil,
     LucidePlus,
     LucideTrash2,
@@ -268,6 +282,7 @@ export class CampaignContent implements OnInit {
   private readonly campaignApiService = inject(CampaignApiService);
   private readonly campaignEventsApiService = inject(CampaignEventsApiService);
   private readonly campaignRulesApiService = inject(CampaignRulesApiService);
+  private readonly libraryApiService = inject(LibraryApiService);
   private readonly outcomeEffectsApiService = inject(OutcomeEffectsApiService);
   private readonly monsterApiService = inject(MonsterApiService);
   private readonly modalHelper = inject(ModalHelper);
@@ -283,6 +298,15 @@ export class CampaignContent implements OnInit {
   protected readonly roleplayingNpcNameDrafts = signal<Record<string, string>>({});
   protected readonly savingRoleplayingNpcTag = signal<string | null>(null);
   protected readonly isLoadingStoryContent = signal(false);
+  protected readonly storyBlockMusicDialogBlock = signal<StoryBlockViewModel | null>(null);
+  protected readonly storyBlockMusicDrafts = signal<StoryBlockMusicDraft[]>([]);
+  protected readonly libraryMusicFiles = signal<LibraryFileModel[]>([]);
+  protected readonly selectedMusicFileIdDraft = signal<number | null>(null);
+  protected readonly selectedMusicStoryBeatIdDraft = signal<string | null>(null);
+  protected readonly musicLoopDraft = signal(true);
+  protected readonly musicContinueDraft = signal(false);
+  protected readonly isLoadingStoryBlockMusic = signal(false);
+  protected readonly isSavingStoryBlockMusic = signal(false);
   protected readonly isReorderingStoryBlocks = signal(false);
   protected readonly isReorderingStoryBeats = signal(false);
   protected readonly draggedStoryBlockId = signal<string | null>(null);
@@ -467,6 +491,18 @@ export class CampaignContent implements OnInit {
       storyBlock.storyBlockId === selectedStoryBlockId
     )) ?? null;
   });
+  protected readonly canAddStoryBlockMusic = computed(() => {
+    const musicFileId = this.selectedMusicFileIdDraft();
+
+    return musicFileId !== null &&
+      this.storyBlockMusicDrafts().every((draft) => (
+        draft.musicFileId !== musicFileId ||
+        draft.storyBeatId !== this.selectedMusicStoryBeatIdDraft()
+      ));
+  });
+  protected readonly canSaveStoryBlockMusic = computed(() => (
+    !this.isLoadingStoryBlockMusic() && !this.isSavingStoryBlockMusic()
+  ));
   protected readonly storyBeatSkillSuggestions = computed(() => {
     const query = this.getActiveSlashSkillQuery(this.storyBeatNarrativeDraft());
 
@@ -934,6 +970,167 @@ export class CampaignContent implements OnInit {
 
   protected isSelectedStoryBlock(storyBlock: StoryBlockViewModel): boolean {
     return this.selectedStoryBlockId() === storyBlock.storyBlockId;
+  }
+
+  protected openStoryBlockMusicDialog(storyBlock: StoryBlockViewModel): void {
+    const campaignId = this.getCampaignId();
+
+    if (!campaignId) {
+      return;
+    }
+
+    this.storyBlockMusicDialogBlock.set(storyBlock);
+    this.storyBlockMusicDrafts.set([]);
+    this.libraryMusicFiles.set([]);
+    this.selectedMusicFileIdDraft.set(null);
+    this.selectedMusicStoryBeatIdDraft.set(null);
+    this.musicLoopDraft.set(true);
+    this.musicContinueDraft.set(false);
+    this.isLoadingStoryBlockMusic.set(true);
+
+    forkJoin({
+      music: this.campaignApiService.fetchStoryBlockMusicFiles(campaignId, storyBlock.storyBlockId),
+      libraryFiles: this.libraryApiService.fetchAllFiles(),
+    })
+      .pipe(finalize(() => this.isLoadingStoryBlockMusic.set(false)))
+      .subscribe({
+        next: ({ music, libraryFiles }) => {
+          const linkedMusic = music.data ?? [];
+          const audioFiles = (libraryFiles.data ?? [])
+            .filter((file) => file.contentType.toLowerCase().startsWith('audio/'))
+            .sort((left, right) => this.libraryMusicFileLabel(left).localeCompare(
+              this.libraryMusicFileLabel(right),
+            ));
+
+          this.libraryMusicFiles.set(audioFiles);
+          this.storyBlockMusicDrafts.set(linkedMusic.map((link, index) => ({
+            draftId: Date.now() + index,
+            musicFileId: link.musicFileId,
+            storyBeatId: link.storyBeatId,
+            orderIndex: link.orderIndex,
+            loop: link.loop,
+            continueAcrossStoryBlocks: link.continueAcrossStoryBlocks,
+          })));
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story block music could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
+  protected closeStoryBlockMusicDialog(): void {
+    if (!this.isSavingStoryBlockMusic()) {
+      this.storyBlockMusicDialogBlock.set(null);
+    }
+  }
+
+  protected setSelectedMusicFileDraft(event: Event): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+
+    this.selectedMusicFileIdDraft.set(Number.isFinite(value) && value > 0 ? value : null);
+  }
+
+  protected setSelectedMusicStoryBeatDraft(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+
+    this.selectedMusicStoryBeatIdDraft.set(value.length > 0 ? value : null);
+  }
+
+  protected setMusicLoopDraft(event: Event): void {
+    this.musicLoopDraft.set((event.target as HTMLInputElement).checked);
+  }
+
+  protected setMusicContinueDraft(event: Event): void {
+    this.musicContinueDraft.set((event.target as HTMLInputElement).checked);
+  }
+
+  protected addStoryBlockMusicDraft(): void {
+    const musicFileId = this.selectedMusicFileIdDraft();
+
+    if (musicFileId === null || !this.canAddStoryBlockMusic()) {
+      return;
+    }
+
+    this.storyBlockMusicDrafts.update((drafts) => [
+      ...drafts,
+      {
+        draftId: Date.now(),
+        musicFileId,
+        storyBeatId: this.selectedMusicStoryBeatIdDraft(),
+        orderIndex: drafts.length + 1,
+        loop: this.musicLoopDraft(),
+        continueAcrossStoryBlocks: this.musicContinueDraft(),
+      },
+    ]);
+  }
+
+  protected removeStoryBlockMusicDraft(draftId: number): void {
+    this.storyBlockMusicDrafts.update((drafts) => (
+      drafts
+        .filter((draft) => draft.draftId !== draftId)
+        .map((draft, index) => ({
+          ...draft,
+          orderIndex: index + 1,
+        }))
+    ));
+  }
+
+  protected setStoryBlockMusicDraftTarget(draftId: number, event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+
+    this.updateStoryBlockMusicDraft(draftId, {
+      storyBeatId: value.length > 0 ? value : null,
+    });
+  }
+
+  protected setStoryBlockMusicDraftLoop(draftId: number, event: Event): void {
+    this.updateStoryBlockMusicDraft(draftId, {
+      loop: (event.target as HTMLInputElement).checked,
+    });
+  }
+
+  protected setStoryBlockMusicDraftContinue(draftId: number, event: Event): void {
+    this.updateStoryBlockMusicDraft(draftId, {
+      continueAcrossStoryBlocks: (event.target as HTMLInputElement).checked,
+    });
+  }
+
+  protected saveStoryBlockMusic(): void {
+    const campaignId = this.getCampaignId();
+    const storyBlock = this.storyBlockMusicDialogBlock();
+
+    if (!campaignId || !storyBlock || !this.canSaveStoryBlockMusic()) {
+      return;
+    }
+
+    const musicFiles: StoryBlockMusicFileRequest[] = this.storyBlockMusicDrafts()
+      .map((draft, index) => ({
+        musicFileId: draft.musicFileId,
+        storyBeatId: draft.storyBeatId,
+        orderIndex: index + 1,
+        loop: draft.loop,
+        continueAcrossStoryBlocks: draft.continueAcrossStoryBlocks,
+      }));
+
+    this.isSavingStoryBlockMusic.set(true);
+    this.campaignApiService
+      .updateStoryBlockMusicFiles(campaignId, storyBlock.storyBlockId, { musicFiles })
+      .pipe(finalize(() => this.isSavingStoryBlockMusic.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.applyStoryBlockMusic(storyBlock.storyBlockId, response.data ?? []);
+          this.storyBlockMusicDialogBlock.set(null);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Story block music could not be saved.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
   }
 
   protected startStoryBlockDrag(storyBlock: StoryBlockViewModel, event: DragEvent): void {
@@ -2763,6 +2960,35 @@ export class CampaignContent implements OnInit {
     return `${beatCount} ${beatCount === 1 ? 'story beat' : 'story beats'} planned.`;
   }
 
+  protected storyBlockMusicCount(storyBlock: StoryBlockViewModel): number {
+    return storyBlock.musicFiles?.length ?? 0;
+  }
+
+  protected storyBeatMusicCount(storyBeat: StoryBeatViewModel): number {
+    return storyBeat.musicFiles?.length ?? 0;
+  }
+
+  protected libraryMusicFileLabel(file: LibraryFileModel): string {
+    return file.displayName || file.originalFileName;
+  }
+
+  protected storyBlockMusicDraftFile(draft: StoryBlockMusicDraft): LibraryFileModel | null {
+    return this.libraryMusicFiles().find((file) => file.id === draft.musicFileId) ?? null;
+  }
+
+  protected storyBlockMusicDraftTargetLabel(
+    storyBlock: StoryBlockViewModel,
+    draft: StoryBlockMusicDraft,
+  ): string {
+    if (!draft.storyBeatId) {
+      return 'Whole block';
+    }
+
+    const beat = storyBlock.beats.find((candidate) => candidate.storyBeatId === draft.storyBeatId);
+
+    return beat ? this.storyBeatTitle(beat) : 'Missing beat';
+  }
+
   protected storyBeatRowsFor(storyBlock: StoryBlockViewModel): StoryBeatRowViewModel[] {
     const groupedBeats = new Map<number, StoryBeatViewModel[]>();
 
@@ -3982,6 +4208,40 @@ export class CampaignContent implements OnInit {
           );
         },
       });
+  }
+
+  private updateStoryBlockMusicDraft(
+    draftId: number,
+    changes: Partial<Omit<StoryBlockMusicDraft, 'draftId' | 'musicFileId' | 'orderIndex'>>,
+  ): void {
+    this.storyBlockMusicDrafts.update((drafts) => drafts.map((draft) => (
+      draft.draftId === draftId
+        ? {
+          ...draft,
+          ...changes,
+        }
+        : draft
+    )));
+  }
+
+  private applyStoryBlockMusic(
+    storyBlockId: string,
+    musicFiles: StoryBlockMusicFileModel[],
+  ): void {
+    this.storyBlocks.update((storyBlocks) => storyBlocks.map((storyBlock) => {
+      if (storyBlock.storyBlockId !== storyBlockId) {
+        return storyBlock;
+      }
+
+      return {
+        ...storyBlock,
+        musicFiles,
+        beats: storyBlock.beats.map((beat) => ({
+          ...beat,
+          musicFiles: musicFiles.filter((musicFile) => musicFile.storyBeatId === beat.storyBeatId),
+        })),
+      };
+    }));
   }
 
   private getCampaignId(): string | null {

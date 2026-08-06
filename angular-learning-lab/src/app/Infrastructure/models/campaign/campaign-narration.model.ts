@@ -92,6 +92,7 @@ export interface CampaignEventModel {
   eventType: CampaignEventTypeValue;
   type?: CampaignEventTypeValue;
   isRepeatable: boolean;
+  currentState: CampaignEventStateModel | null;
   options: CampaignEventOptionModel[];
 }
 
@@ -157,6 +158,7 @@ export interface OutcomeEffectModel {
   operation: OutcomeEffectOperationValue;
   booleanValue?: boolean | null;
   selectedOptionId?: string | null;
+  selectedOptionKey?: string | null;
   textValue?: string | null;
   numericValue?: number | null;
   value: string | number | boolean | null;
@@ -288,6 +290,9 @@ export interface TargetAvailabilityResult {
   targetType: ConditionalTargetTypeValue;
   targetId: string;
   isAvailable: boolean;
+  isAvailableByRule: boolean;
+  satisfiedRuleResults: RuleEvaluationResult[];
+  blockingRuleResults: RuleEvaluationResult[];
   ruleResults: RuleEvaluationResult[];
 }
 

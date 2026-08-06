@@ -14,12 +14,14 @@ public interface ICampaignRulesService
     Task<ServiceResult<IReadOnlyList<CampaignEventDefinitionResponse>>> GetEventDefinitionsAsync(
         Guid userId,
         Guid campaignId,
+        int? campaignSessionId = null,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<CampaignEventDefinitionResponse>> GetEventDefinitionAsync(
         Guid userId,
         Guid campaignId,
         Guid id,
+        int? campaignSessionId = null,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<CampaignEventDefinitionResponse>> CreateEventDefinitionAsync(
@@ -134,6 +136,11 @@ public interface ICampaignRulesService
         Guid sourceId,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult<IReadOnlyList<StoryOutcomeEffectResponse>>> GetCampaignOutcomeEffectsAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default);
+
     Task<ServiceResult<StoryOutcomeEffectResponse>> CreateOutcomeEffectAsync(
         Guid userId,
         Guid campaignId,
@@ -195,6 +202,7 @@ public sealed class CampaignRulesService : ICampaignRulesService
     public async Task<ServiceResult<IReadOnlyList<CampaignEventDefinitionResponse>>> GetEventDefinitionsAsync(
         Guid userId,
         Guid campaignId,
+        int? campaignSessionId = null,
         CancellationToken cancellationToken = default)
     {
         var validationStatusCode = await ValidateCampaignAccessAsync(userId, campaignId, cancellationToken);
@@ -204,6 +212,17 @@ public sealed class CampaignRulesService : ICampaignRulesService
             return new ServiceResult<IReadOnlyList<CampaignEventDefinitionResponse>>(validationStatusCode.Value);
         }
 
+        var currentStatesResult = await GetCurrentStatesByDefinitionIdAsync(
+            userId,
+            campaignId,
+            campaignSessionId,
+            cancellationToken);
+
+        if (currentStatesResult.StatusCode != ApplicationStatusCode.Success)
+        {
+            return new ServiceResult<IReadOnlyList<CampaignEventDefinitionResponse>>(currentStatesResult.StatusCode);
+        }
+
         var definitions = await _context.CampaignEventDefinitions
             .AsNoTracking()
             .Include(definition => definition.Options)
@@ -211,15 +230,24 @@ public sealed class CampaignRulesService : ICampaignRulesService
             .OrderBy(definition => definition.Key)
             .ToListAsync(cancellationToken);
 
+        var currentStatesByDefinitionId = currentStatesResult.Data!;
+
         return new ServiceResult<IReadOnlyList<CampaignEventDefinitionResponse>>(
             ApplicationStatusCode.Success,
-            definitions.Select(ToResponse).ToList());
+            definitions
+                .Select(definition =>
+                {
+                    currentStatesByDefinitionId.TryGetValue(definition.Id, out var currentState);
+                    return ToResponse(definition, currentState);
+                })
+                .ToList());
     }
 
     public async Task<ServiceResult<CampaignEventDefinitionResponse>> GetEventDefinitionAsync(
         Guid userId,
         Guid campaignId,
         Guid id,
+        int? campaignSessionId = null,
         CancellationToken cancellationToken = default)
     {
         var validationStatusCode = await ValidateCampaignAccessAsync(userId, campaignId, cancellationToken);
@@ -229,6 +257,17 @@ public sealed class CampaignRulesService : ICampaignRulesService
             return new ServiceResult<CampaignEventDefinitionResponse>(validationStatusCode.Value);
         }
 
+        var currentStatesResult = await GetCurrentStatesByDefinitionIdAsync(
+            userId,
+            campaignId,
+            campaignSessionId,
+            cancellationToken);
+
+        if (currentStatesResult.StatusCode != ApplicationStatusCode.Success)
+        {
+            return new ServiceResult<CampaignEventDefinitionResponse>(currentStatesResult.StatusCode);
+        }
+
         var definition = await _context.CampaignEventDefinitions
             .AsNoTracking()
             .Include(item => item.Options)
@@ -236,11 +275,13 @@ public sealed class CampaignRulesService : ICampaignRulesService
                 item => item.CampaignId == campaignId && item.Id == id,
                 cancellationToken);
 
+        currentStatesResult.Data!.TryGetValue(id, out var currentState);
+
         return definition is null
             ? new ServiceResult<CampaignEventDefinitionResponse>(ApplicationStatusCode.CampaignEventDefinitionNotFound)
             : new ServiceResult<CampaignEventDefinitionResponse>(
                 ApplicationStatusCode.Success,
-                ToResponse(definition));
+                ToResponse(definition, currentState));
     }
 
     public async Task<ServiceResult<CampaignEventDefinitionResponse>> CreateEventDefinitionAsync(
@@ -774,6 +815,9 @@ public sealed class CampaignRulesService : ICampaignRulesService
 
         var previousRootConditionGroupId = rule.RootConditionGroupId;
         var root = BuildGroup(request!.Root!, null, 1);
+
+        _context.ConditionGroups.Add(root);
+
         rule.TargetType = request.TargetType;
         rule.TargetId = request.TargetId;
         rule.EffectType = request.EffectType;
@@ -782,9 +826,28 @@ public sealed class CampaignRulesService : ICampaignRulesService
         rule.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-        await RemoveGroupTreeAsync(previousRootConditionGroupId, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+            await RemoveGroupTreeAsync(previousRootConditionGroupId, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _context.ChangeTracker.Clear();
+
+            var ruleExists = await _context.ConditionalRules
+                .AsNoTracking()
+                .AnyAsync(
+                    item => item.CampaignId == campaignId && item.Id == ruleId,
+                    cancellationToken);
+
+            return new ServiceResult<ConditionalRuleResponse>(
+                ruleExists
+                    ? ApplicationStatusCode.CampaignRuleReferenceConflict
+                    : ApplicationStatusCode.ConditionalRuleNotFound);
+        }
 
         return new ServiceResult<ConditionalRuleResponse>(
             ApplicationStatusCode.Success,
@@ -918,11 +981,21 @@ public sealed class CampaignRulesService : ICampaignRulesService
                 ruleResults.Add(await EvaluateRuleCoreAsync(rule, campaignSessionId, cancellationToken));
             }
 
+            var satisfiedRuleResults = ruleResults
+                .Where(result => result.IsSatisfied)
+                .ToList();
+            var blockingRuleResults = ruleResults
+                .Where(result => !result.IsSatisfied)
+                .ToList();
+
             results.Add(new TargetAvailabilityResult
             {
                 TargetType = targetType,
                 TargetId = targetId,
-                IsAvailable = ruleResults.All(result => result.IsSatisfied),
+                IsAvailable = blockingRuleResults.Count == 0,
+                IsAvailableByRule = ruleResults.Count > 0 && blockingRuleResults.Count == 0,
+                SatisfiedRuleResults = satisfiedRuleResults,
+                BlockingRuleResults = blockingRuleResults,
                 RuleResults = ruleResults
             });
         }
@@ -955,10 +1028,38 @@ public sealed class CampaignRulesService : ICampaignRulesService
         var effects = await _context.StoryOutcomeEffects
             .AsNoTracking()
             .Include(effect => effect.CampaignEventDefinition)
+            .Include(effect => effect.SelectedOption)
             .Where(effect => effect.CampaignId == campaignId
                 && effect.SourceType == sourceType
                 && effect.SourceId == sourceId)
             .OrderBy(effect => effect.SortOrder)
+            .ToListAsync(cancellationToken);
+
+        return new ServiceResult<IReadOnlyList<StoryOutcomeEffectResponse>>(
+            ApplicationStatusCode.Success,
+            effects.Select(ToResponse).ToList());
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<StoryOutcomeEffectResponse>>> GetCampaignOutcomeEffectsAsync(
+        Guid userId,
+        Guid campaignId,
+        CancellationToken cancellationToken = default)
+    {
+        var validationStatusCode = await ValidateCampaignAccessAsync(userId, campaignId, cancellationToken);
+
+        if (validationStatusCode is not null)
+        {
+            return new ServiceResult<IReadOnlyList<StoryOutcomeEffectResponse>>(validationStatusCode.Value);
+        }
+
+        var effects = await _context.StoryOutcomeEffects
+            .AsNoTracking()
+            .Include(effect => effect.CampaignEventDefinition)
+            .Include(effect => effect.SelectedOption)
+            .Where(effect => effect.CampaignId == campaignId)
+            .OrderBy(effect => effect.SourceType)
+            .ThenBy(effect => effect.SourceId)
+            .ThenBy(effect => effect.SortOrder)
             .ToListAsync(cancellationToken);
 
         return new ServiceResult<IReadOnlyList<StoryOutcomeEffectResponse>>(
@@ -1022,6 +1123,7 @@ public sealed class CampaignRulesService : ICampaignRulesService
         await _context.SaveChangesAsync(cancellationToken);
 
         effect.CampaignEventDefinition = definition;
+        effect.SelectedOption = definition.Options.FirstOrDefault(option => option.Id == effect.SelectedOptionId);
 
         return new ServiceResult<StoryOutcomeEffectResponse>(
             ApplicationStatusCode.Success,
@@ -1638,6 +1740,15 @@ public sealed class CampaignRulesService : ICampaignRulesService
 
     private async Task RemoveGroupTreeAsync(Guid rootGroupId, CancellationToken cancellationToken)
     {
+        var rootExists = await _context.ConditionGroups
+            .AsNoTracking()
+            .AnyAsync(group => group.Id == rootGroupId, cancellationToken);
+
+        if (!rootExists)
+        {
+            return;
+        }
+
         var tree = await LoadGroupTreeAsync(rootGroupId, cancellationToken);
         var groupIds = tree.Groups
             .Select(group => group.Id)
@@ -1743,6 +1854,52 @@ public sealed class CampaignRulesService : ICampaignRulesService
         return validationStatusCode is null
             ? new ServiceResult<CampaignSession>(ApplicationStatusCode.Success, run)
             : new ServiceResult<CampaignSession>(validationStatusCode.Value);
+    }
+
+    private async Task<ServiceResult<IReadOnlyDictionary<Guid, CampaignEventState>>> GetCurrentStatesByDefinitionIdAsync(
+        Guid userId,
+        Guid campaignId,
+        int? campaignSessionId,
+        CancellationToken cancellationToken)
+    {
+        if (campaignSessionId is null)
+        {
+            return new ServiceResult<IReadOnlyDictionary<Guid, CampaignEventState>>(
+                ApplicationStatusCode.Success,
+                new Dictionary<Guid, CampaignEventState>());
+        }
+
+        if (campaignSessionId.Value < 1)
+        {
+            return new ServiceResult<IReadOnlyDictionary<Guid, CampaignEventState>>(
+                ApplicationStatusCode.InvalidCampaignSession);
+        }
+
+        var sessionResult = await GetSessionForUserAsync(userId, campaignSessionId.Value, cancellationToken);
+
+        if (sessionResult.StatusCode != ApplicationStatusCode.Success)
+        {
+            return new ServiceResult<IReadOnlyDictionary<Guid, CampaignEventState>>(sessionResult.StatusCode);
+        }
+
+        if (sessionResult.Data!.CampaignId != campaignId)
+        {
+            return new ServiceResult<IReadOnlyDictionary<Guid, CampaignEventState>>(
+                ApplicationStatusCode.CampaignSessionNotFound);
+        }
+
+        var states = await _context.CampaignEventStates
+            .AsNoTracking()
+            .Include(state => state.CampaignEventDefinition)
+            .Include(state => state.SelectedOption)
+            .Where(state => state.CampaignSessionId == campaignSessionId.Value)
+            .ToDictionaryAsync(
+                state => state.CampaignEventDefinitionId,
+                cancellationToken);
+
+        return new ServiceResult<IReadOnlyDictionary<Guid, CampaignEventState>>(
+            ApplicationStatusCode.Success,
+            states);
     }
 
     private async Task<ServiceResult<CampaignEventDefinition>> GetMutableOptionDefinitionAsync(
@@ -2310,7 +2467,9 @@ public sealed class CampaignRulesService : ICampaignRulesService
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    private static CampaignEventDefinitionResponse ToResponse(CampaignEventDefinition definition)
+    private static CampaignEventDefinitionResponse ToResponse(
+        CampaignEventDefinition definition,
+        CampaignEventState? currentState = null)
     {
         return new CampaignEventDefinitionResponse
         {
@@ -2323,6 +2482,7 @@ public sealed class CampaignRulesService : ICampaignRulesService
             IsRepeatable = definition.IsRepeatable,
             CreatedAtUtc = definition.CreatedAtUtc,
             UpdatedAtUtc = definition.UpdatedAtUtc,
+            CurrentState = currentState is null ? null : ToResponse(currentState),
             Options = definition.Options
                 .OrderBy(option => option.SortOrder)
                 .Select(ToResponse)
@@ -2416,6 +2576,7 @@ public sealed class CampaignRulesService : ICampaignRulesService
             OperationType = effect.OperationType,
             BooleanValue = effect.BooleanValue,
             SelectedOptionId = effect.SelectedOptionId,
+            SelectedOptionKey = effect.SelectedOption?.Key,
             TextValue = effect.TextValue,
             NumericValue = effect.NumericValue,
             SortOrder = effect.SortOrder

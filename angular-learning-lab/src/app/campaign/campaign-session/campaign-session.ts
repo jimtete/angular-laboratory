@@ -1,6 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LucideArrowLeft, LucideCalendarDays, LucideCirclePlay, LucideMap, LucidePackage } from '@lucide/angular';
+import { LucideArrowLeft, LucideCalendarDays, LucideCirclePlay, LucideMap, LucideMusic, LucidePackage } from '@lucide/angular';
 import { finalize } from 'rxjs';
 
 import {
@@ -17,13 +17,19 @@ import {
   getCampaignMilestoneImportanceSlug,
   ImportantChoiceSessionNoteRequest,
   LevelUpOrMechanicsChangeSessionNoteRequest,
+  OutcomeEffectModel,
+  OutcomeEffectOperation,
+  OutcomeSourceType,
   PendingChangesComponent,
   PresentationModeSocketService,
+  PresentationModeStoryBeatAvailabilityModel,
   PresentationModeStoryBlockModel,
   SessionNoteChoiceModel,
   SessionNoteMechanicsChangeModel,
   SessionNoteMechanicsChangeRequest,
   SessionNoteModel,
+  SessionNoteStoryBeatReferenceOutcome,
+  SessionNoteStoryBeatReferenceOutcomeValue,
   SessionNoteStoryBeatReferenceType,
   SessionNoteStoryBeatReferenceTypeValue,
   SessionNoteType,
@@ -42,6 +48,7 @@ import {
   StoryBeatRoleplayingInformationModel,
   StoryBeatRoleplayingNpcModel,
   StoryBeatType,
+  StoryBlockMusicFileModel,
 } from '../../Infrastructure';
 import { ModalHelper } from '../../shared/helpers/modal.helper';
 
@@ -94,7 +101,7 @@ type InformationNarrativePart =
 
 @Component({
   selector: 'app-campaign-session',
-  imports: [LucideArrowLeft, LucideCalendarDays, LucideCirclePlay, LucideMap, LucidePackage],
+  imports: [LucideArrowLeft, LucideCalendarDays, LucideCirclePlay, LucideMap, LucideMusic, LucidePackage],
   templateUrl: './campaign-session.html',
   styleUrl: './campaign-session.css',
 })
@@ -146,8 +153,15 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected readonly expandedFinishedPresentationStoryBlockIds = signal<Set<string>>(new Set());
   protected readonly markingRoleplayingInformationIds = signal<Set<string>>(new Set());
   protected readonly markingDecisionOptionIds = signal<Set<string>>(new Set());
+  protected readonly currentPresentationMusic = signal<StoryBlockMusicFileModel | null>(null);
+  protected readonly isPresentationMusicPlaybackBlocked = signal(false);
   private allowNativeContextMenuNoteId: number | null = null;
   private finishStoryBeatTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly presentationMusicAudio = this.createPresentationMusicAudio();
+  private presentationMusicQueue: StoryBlockMusicFileModel[] = [];
+  private presentationMusicIndex = 0;
+  private presentationMusicKey: string | null = null;
+  private presentationMusicSource: string | null = null;
   protected readonly sessionNumber = computed(() => {
     const sessionNumber = Number(this.route.snapshot.paramMap.get('sessionNumber'));
 
@@ -210,6 +224,17 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.isPresentationModeVisible() ? this.presentationModeSocket.workspace() : null
   ));
   protected readonly presentationStoryBlocks = computed(() => this.presentationWorkspace()?.storyBlocks ?? []);
+  protected readonly storyBeatAvailabilityById = computed<Record<string, PresentationModeStoryBeatAvailabilityModel>>(() => {
+    const availabilityById: Record<string, PresentationModeStoryBeatAvailabilityModel> = {};
+
+    for (const block of this.presentationStoryBlocks()) {
+      for (const availability of block.storyBeatAvailability ?? []) {
+        availabilityById[availability.storyBeatId.toLowerCase()] = availability;
+      }
+    }
+
+    return availabilityById;
+  });
   protected readonly availablePresentationStoryBlocks = computed(() => {
     const playedStoryBeatIds = this.playedStoryBeatIds();
     const currentStoryBeatId = this.currentPresentationStoryBeatId();
@@ -296,6 +321,24 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     const storyBeat = this.currentPresentationStoryBeat();
 
     return storyBeat ? this.storyBeatQuestTaskTitles(storyBeat) : [];
+  });
+  protected readonly currentPresentationFinishOutcomeEffects = computed(() => {
+    const storyBeat = this.currentPresentationStoryBeat();
+
+    if (!storyBeat) {
+      return [];
+    }
+
+    return (this.storyBeatAvailabilityFor(storyBeat)?.pendingOutcomeEffects ?? [])
+      .flatMap((source) => {
+        if (this.toOutcomeSourceType(source.sourceType) !== OutcomeSourceType.StoryBeat ||
+          source.sourceId?.toLowerCase() !== storyBeat.storyBeatId.toLowerCase()) {
+          return [];
+        }
+
+        return source.effects ?? [];
+      })
+      .sort((first, second) => (first.sortOrder ?? 0) - (second.sortOrder ?? 0)) ?? [];
   });
   protected readonly presentationButtonLabel = computed(() => {
     if (this.isEnablingPresentationMode()) {
@@ -431,8 +474,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       return;
     }
 
-    this.upsertSession(played.session);
-    this.setSessionNotes(played.session.id, played.session.notes ?? []);
+    this.upsertSession({
+      ...played.session,
+      notes: this.orderNotes(played.session.notes ?? []),
+    });
   });
   private readonly syncMarkedStoryBeatReferenceSession = effect(() => {
     const marked = this.presentationModeSocket.storyBeatReferenceMarked();
@@ -441,8 +486,22 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       return;
     }
 
-    this.upsertSession(marked.session);
-    this.setSessionNotes(marked.session.id, marked.session.notes ?? []);
+    this.upsertSession({
+      ...marked.session,
+      notes: this.orderNotes(marked.session.notes ?? []),
+    });
+  });
+  private readonly syncDecisionTakenSession = effect(() => {
+    const decision = this.presentationModeSocket.decisionTaken();
+
+    if (!decision?.session) {
+      return;
+    }
+
+    this.upsertSession({
+      ...decision.session,
+      notes: this.orderNotes(decision.session.notes ?? []),
+    });
   });
   private readonly clearFinishedStoryBeatState = effect(() => {
     const finishingStoryBeatId = this.finishingStoryBeatId();
@@ -460,6 +519,21 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       this.clearFinishingStoryBeat(finishingStoryBeatId);
     }
   });
+  private readonly syncPresentationMusic = effect(() => {
+    if (!this.presentationWorkspace()) {
+      this.stopPresentationMusic();
+      return;
+    }
+
+    const activeStoryBlockId = this.activePresentationStoryBlockId();
+    const storyBlock = this.currentPresentationStoryBlock() ??
+      (activeStoryBlockId
+        ? this.presentationStoryBlocks()
+          .find((block) => block.storyBlock.storyBlockId === activeStoryBlockId) ?? null
+        : null);
+
+    this.updatePresentationMusic(storyBlock, this.currentPresentationStoryBeat());
+  });
 
   ngOnInit(): void {
     this.loadSession();
@@ -467,6 +541,7 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
   ngOnDestroy(): void {
     this.clearFinishingStoryBeat();
+    this.stopPresentationMusic();
     void this.campaignSessionSocket.disconnect();
     void this.presentationModeSocket.disconnect();
   }
@@ -618,7 +693,10 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     const campaignId = this.getCampaignId();
     const session = this.session();
 
-    if (!campaignId || !session || this.presentingStoryBeatId()) {
+    if (!campaignId ||
+      !session ||
+      this.presentingStoryBeatId() ||
+      this.isStoryBeatBlocked(storyBeat)) {
       return;
     }
 
@@ -646,30 +724,20 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     this.finishingStoryBeatId.set(storyBeat.storyBeatId);
     this.startFinishStoryBeatTimeout(storyBeat.storyBeatId);
 
-    this.campaignSessionSocket
-      .createStoryBeatPlayedSessionNote(campaignId, session.id, {
+    this.presentationModeSocket
+      .finishStoryBeat(campaignId, session.id, {
         storyBeatId: storyBeat.storyBeatId,
         content: null,
       })
-      .catch((error: unknown) => {
-        if (!this.isMissingHubMethodError(error)) {
-          throw error;
-        }
-
-        return this.presentationModeSocket
-          .finishStoryBeat(campaignId, session.id, {
-            storyBeatId: storyBeat.storyBeatId,
-            content: null,
-          })
-          .then((result) => result?.session ?? null);
-      })
-      .then((updatedSession) => {
-        if (!updatedSession) {
+      .then((result) => {
+        if (!result?.session) {
           throw new Error('Story beat finish did not return an updated session.');
         }
 
-        this.upsertSession(updatedSession);
-        this.setSessionNotes(updatedSession.id, updatedSession.notes ?? []);
+        this.upsertSession({
+          ...result.session,
+          notes: this.orderNotes(result.session.notes ?? []),
+        });
       })
       .catch((error: unknown) => {
         this.modalHelper.showError(
@@ -678,6 +746,14 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
         );
       })
       .finally(() => this.clearFinishingStoryBeat(storyBeat.storyBeatId));
+  }
+
+  protected resumePresentationMusic(): void {
+    if (!this.currentPresentationMusic()) {
+      return;
+    }
+
+    this.playCurrentPresentationMusic();
   }
 
   protected markRoleplayingInformationGiven(
@@ -781,6 +857,71 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
   protected hasPresentedStoryBeat(storyBeat: StoryBeatModel): boolean {
     return this.presentationWorkspace()?.presentation.storyBeatSelections
       .some((selection) => selection.selectedStoryBeatId === storyBeat.storyBeatId) ?? false;
+  }
+
+  protected storyBeatAvailabilityFor(storyBeat: StoryBeatModel): PresentationModeStoryBeatAvailabilityModel | null {
+    return this.storyBeatAvailabilityById()[storyBeat.storyBeatId.toLowerCase()] ?? null;
+  }
+
+  protected isStoryBeatBlocked(storyBeat: StoryBeatModel): boolean {
+    const availability = this.storyBeatAvailabilityFor(storyBeat);
+
+    return availability ? !availability.isAvailable : false;
+  }
+
+  protected storyBeatBlockedReason(storyBeat: StoryBeatModel): string {
+    const blockerExplanations = this.storyBeatAvailabilityFor(storyBeat)?.blockingEvents
+      .map((blocker) => blocker.explanation.trim())
+      .filter((explanation) => explanation.length > 0) ?? [];
+
+    return blockerExplanations.length > 0
+      ? blockerExplanations.join('\n')
+      : 'Blocked by unmet availability requirements.';
+  }
+
+  protected isStoryBeatAvailableByRule(storyBeat: StoryBeatModel): boolean {
+    const availability = this.storyBeatAvailabilityFor(storyBeat);
+
+    return Boolean(availability?.isAvailable && availability.isAvailableByRule);
+  }
+
+  protected storyBeatSatisfiedRuleReason(storyBeat: StoryBeatModel): string {
+    const ruleExplanations = this.storyBeatAvailabilityFor(storyBeat)?.satisfiedRules
+      .map((rule) => rule.explanation.trim())
+      .filter((explanation) => explanation.length > 0) ?? [];
+
+    return ruleExplanations.length > 0
+      ? ruleExplanations.join('\n')
+      : 'Available because its requirements were met.';
+  }
+
+  protected storyBeatAvailabilityTitle(storyBeat: StoryBeatModel): string | null {
+    if (this.isStoryBeatBlocked(storyBeat)) {
+      return this.storyBeatBlockedReason(storyBeat);
+    }
+
+    if (this.isStoryBeatAvailableByRule(storyBeat)) {
+      return this.storyBeatSatisfiedRuleReason(storyBeat);
+    }
+
+    return null;
+  }
+
+  protected finishOutcomeEffectLabel(effect: OutcomeEffectModel): string {
+    const eventKey = effect.eventKey ?? 'Campaign event';
+    const operation = this.toOutcomeEffectOperation(effect.operationType ?? effect.operation);
+
+    switch (operation) {
+      case OutcomeEffectOperation.Clear:
+        return `${eventKey} will be cleared`;
+      case OutcomeEffectOperation.Increment:
+        return `${eventKey} will increase by ${this.outcomeEffectValueLabel(effect, '1')}`;
+      case OutcomeEffectOperation.Decrement:
+        return `${eventKey} will decrease by ${this.outcomeEffectValueLabel(effect, '1')}`;
+      case OutcomeEffectOperation.Set:
+      default:
+        return `${eventKey} will change to ${this.outcomeEffectValueLabel(effect, 'value')}`;
+    }
   }
 
   protected storyBeatTypeLabel(storyBeat: StoryBeatModel): string {
@@ -1047,7 +1188,11 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     decision: StoryBeatDecisionOptionModel,
   ): boolean {
     return this.findDecisionOptionReferences(storyBeat)
-      .some(({ reference }) => reference.referenceId?.toLowerCase() === decision.id.toLowerCase());
+      .some(({ reference }) => (
+        reference.referenceId?.toLowerCase() === decision.id.toLowerCase() &&
+        this.toSessionNoteStoryBeatReferenceOutcome(reference.referenceOutcome) ===
+          SessionNoteStoryBeatReferenceOutcome.Taken
+      ));
   }
 
   protected isDecisionOptionSaving(decision: StoryBeatDecisionOptionModel): boolean {
@@ -1065,31 +1210,18 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       return;
     }
 
-    const existingReferences = this.findDecisionOptionReferences(storyBeat)
-      .filter(({ reference }) => reference.referenceId?.toLowerCase() !== decision.id.toLowerCase());
-
     this.markingDecisionOptionIds.update((ids) => new Set(ids).add(decision.id));
 
-    Promise.all(existingReferences.map(({ reference }) => (
-      this.campaignSessionSocket.updateStoryBeatReferenceSessionNote(campaignId, session.id, {
+    this.presentationModeSocket
+      .takeDecisionOption(campaignId, session.id, {
         storyBeatId: storyBeat.storyBeatId,
-        referenceType: SessionNoteStoryBeatReferenceType.DecisionOption,
-        referenceId: reference.referenceId,
-        isPlayed: false,
-        content: null,
-      })
-    )))
-      .then(() => this.campaignSessionSocket.updateStoryBeatReferenceSessionNote(campaignId, session.id, {
-        storyBeatId: storyBeat.storyBeatId,
-        referenceType: SessionNoteStoryBeatReferenceType.DecisionOption,
-        referenceId: decision.id,
-        isPlayed: true,
+        decisionOptionId: decision.id,
         content: this.buildDecisionNoteContent(storyBeat, decision.id),
-      }))
-      .then((updatedSession) => {
-        if (updatedSession) {
-          this.upsertSession(updatedSession);
-          this.setSessionNotes(updatedSession.id, updatedSession.notes ?? []);
+      })
+      .then((result) => {
+        if (result?.session) {
+          this.upsertSession(result.session);
+          this.setSessionNotes(result.session.id, result.session.notes ?? []);
         }
       })
       .catch((error: unknown) => {
@@ -1802,6 +1934,140 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
       });
   }
 
+  private createPresentationMusicAudio(): HTMLAudioElement {
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.addEventListener('ended', () => this.playNextPresentationMusic());
+
+    return audio;
+  }
+
+  private updatePresentationMusic(
+    storyBlock: PresentationModeStoryBlockModel | null,
+    storyBeat: StoryBeatModel | null,
+  ): void {
+    const musicFiles = storyBlock ? this.presentationMusicFilesFor(storyBlock, storyBeat) : [];
+
+    if (musicFiles.length === 0) {
+      this.stopPresentationMusic();
+      return;
+    }
+
+    const currentMusic = this.currentPresentationMusic();
+    const previousMusicKey = this.presentationMusicKey;
+    const continuingIndex = currentMusic?.continueAcrossStoryBlocks
+      ? musicFiles.findIndex((musicFile) => (
+        musicFile.continueAcrossStoryBlocks &&
+        musicFile.musicFileId === currentMusic.musicFileId &&
+        musicFile.storagePath === currentMusic.storagePath
+      ))
+      : -1;
+    const musicKey = this.presentationMusicKeyFor(musicFiles);
+
+    this.presentationMusicQueue = musicFiles;
+    this.presentationMusicKey = musicKey;
+
+    if (previousMusicKey === musicKey) {
+      return;
+    }
+
+    if (continuingIndex >= 0 && !this.presentationMusicAudio.ended) {
+      this.presentationMusicIndex = continuingIndex;
+      this.currentPresentationMusic.set(musicFiles[continuingIndex]);
+      this.presentationMusicAudio.loop = musicFiles[continuingIndex].loop;
+      return;
+    }
+
+    this.presentationMusicIndex = 0;
+    this.currentPresentationMusic.set(musicFiles[0]);
+    this.playCurrentPresentationMusic();
+  }
+
+  private presentationMusicFilesFor(
+    storyBlock: PresentationModeStoryBlockModel,
+    storyBeat: StoryBeatModel | null,
+  ): StoryBlockMusicFileModel[] {
+    const beatMusicFiles = (storyBeat?.musicFiles ?? [])
+      .filter((musicFile) => this.isPlayableMusicFile(musicFile));
+
+    return (beatMusicFiles.length > 0
+      ? beatMusicFiles
+      : (storyBlock.storyBlock.musicFiles ?? [])
+        .filter((musicFile) => musicFile.storyBeatId === null && this.isPlayableMusicFile(musicFile)))
+      .sort((first, second) => (
+        first.orderIndex - second.orderIndex ||
+        first.displayName.localeCompare(second.displayName) ||
+        first.id.localeCompare(second.id)
+      ));
+  }
+
+  private isPlayableMusicFile(musicFile: StoryBlockMusicFileModel): boolean {
+    return Boolean(musicFile.storagePath) &&
+      (musicFile.contentType.startsWith('audio/') || musicFile.storagePath.length > 0);
+  }
+
+  private playCurrentPresentationMusic(): void {
+    const musicFile = this.presentationMusicQueue[this.presentationMusicIndex] ?? this.currentPresentationMusic();
+
+    if (!musicFile?.storagePath) {
+      this.stopPresentationMusic();
+      return;
+    }
+
+    this.currentPresentationMusic.set(musicFile);
+    this.presentationMusicAudio.loop = musicFile.loop;
+
+    if (this.presentationMusicSource !== musicFile.storagePath) {
+      this.presentationMusicSource = musicFile.storagePath;
+      this.presentationMusicAudio.src = musicFile.storagePath;
+      this.presentationMusicAudio.currentTime = 0;
+    }
+
+    this.presentationMusicAudio.play()
+      .then(() => this.isPresentationMusicPlaybackBlocked.set(false))
+      .catch(() => this.isPresentationMusicPlaybackBlocked.set(true));
+  }
+
+  private playNextPresentationMusic(): void {
+    if (this.presentationMusicQueue.length <= 1) {
+      return;
+    }
+
+    const nextIndex = this.presentationMusicIndex + 1;
+
+    if (nextIndex >= this.presentationMusicQueue.length) {
+      return;
+    }
+
+    this.presentationMusicIndex = nextIndex;
+    this.playCurrentPresentationMusic();
+  }
+
+  private stopPresentationMusic(): void {
+    this.presentationMusicAudio.pause();
+    this.presentationMusicAudio.removeAttribute('src');
+    this.presentationMusicAudio.load();
+    this.presentationMusicQueue = [];
+    this.presentationMusicIndex = 0;
+    this.presentationMusicKey = null;
+    this.presentationMusicSource = null;
+    this.currentPresentationMusic.set(null);
+    this.isPresentationMusicPlaybackBlocked.set(false);
+  }
+
+  private presentationMusicKeyFor(musicFiles: readonly StoryBlockMusicFileModel[]): string {
+    return musicFiles
+      .map((musicFile) => [
+        musicFile.id,
+        musicFile.musicFileId,
+        musicFile.storyBeatId ?? 'block',
+        musicFile.storagePath,
+        musicFile.loop,
+        musicFile.continueAcrossStoryBlocks,
+      ].join(':'))
+      .join('|');
+  }
+
   private loadAvailableMilestones(): void {
     const campaignId = this.getCampaignId();
 
@@ -2078,6 +2344,20 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
     return SessionNoteStoryBeatReferenceType[referenceType as keyof typeof SessionNoteStoryBeatReferenceType] ?? null;
   }
 
+  private toSessionNoteStoryBeatReferenceOutcome(
+    referenceOutcome: SessionNoteStoryBeatReferenceOutcomeValue | undefined,
+  ): SessionNoteStoryBeatReferenceOutcome | null {
+    if (typeof referenceOutcome === 'number') {
+      return referenceOutcome in SessionNoteStoryBeatReferenceOutcome
+        ? referenceOutcome as SessionNoteStoryBeatReferenceOutcome
+        : null;
+    }
+
+    return SessionNoteStoryBeatReferenceOutcome[
+      referenceOutcome as keyof typeof SessionNoteStoryBeatReferenceOutcome
+    ] ?? null;
+  }
+
   private getPrimaryStoryBeatReferenceType(note: SessionNoteModel): SessionNoteStoryBeatReferenceType | null {
     const reference = note.storyBeatReferences?.[0];
 
@@ -2243,6 +2523,48 @@ export class CampaignSession implements OnInit, OnDestroy, PendingChangesCompone
 
   private storyBeatTypeValueLabel(storyBeatType: StoryBeatModel['storyBeatType']): string {
     return StoryBeatType[this.toStoryBeatType(storyBeatType)] ?? 'Story Beat';
+  }
+
+  private toOutcomeSourceType(value: OutcomeEffectModel['sourceType']): OutcomeSourceType | null {
+    if (typeof value === 'number') {
+      return value in OutcomeSourceType ? value as OutcomeSourceType : null;
+    }
+
+    return OutcomeSourceType[value as keyof typeof OutcomeSourceType] ?? null;
+  }
+
+  private toOutcomeEffectOperation(
+    value: OutcomeEffectModel['operationType'] | OutcomeEffectModel['operation'],
+  ): OutcomeEffectOperation {
+    if (typeof value === 'number') {
+      return value in OutcomeEffectOperation ? value as OutcomeEffectOperation : OutcomeEffectOperation.Set;
+    }
+
+    return OutcomeEffectOperation[value as keyof typeof OutcomeEffectOperation] ?? OutcomeEffectOperation.Set;
+  }
+
+  private outcomeEffectValueLabel(effect: OutcomeEffectModel, fallback: string): string {
+    if (typeof effect.booleanValue === 'boolean') {
+      return effect.booleanValue ? 'True' : 'False';
+    }
+
+    if (this.normalizeText(effect.selectedOptionKey).length > 0) {
+      return this.normalizeText(effect.selectedOptionKey);
+    }
+
+    if (this.normalizeText(effect.textValue).length > 0) {
+      return this.normalizeText(effect.textValue);
+    }
+
+    if (effect.numericValue !== null && effect.numericValue !== undefined) {
+      return String(effect.numericValue);
+    }
+
+    if (effect.value !== null && effect.value !== undefined && this.normalizeText(effect.value).length > 0) {
+      return this.normalizeText(effect.value);
+    }
+
+    return fallback;
   }
 
   private toRoleplayingPreviewParts(value: string, storyBeat: StoryBeatModel): RoleplayingTextPart[] {

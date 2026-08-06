@@ -1,3 +1,4 @@
+using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.DTOs.Campaign.Quests;
 using LearningLab.Data.Models.DTOs.Campaign.Rules;
 using LearningLab.Data.Models.DTOs.Campaign.Story;
@@ -34,9 +35,33 @@ public sealed class PresentationModeStoryBeatAvailabilityResponse
 
     public bool IsAvailable { get; init; } = true;
 
+    public bool IsAvailableByRule { get; init; }
+
+    public IReadOnlyList<PresentationModeSatisfiedRuleResponse> SatisfiedRules { get; init; } = [];
+
     public IReadOnlyList<PresentationModeBlockingEventResponse> BlockingEvents { get; init; } = [];
 
+    public IReadOnlyList<PresentationModePendingOutcomeEffectResponse> PendingOutcomeEffects { get; init; } = [];
+
     public TargetAvailabilityResult? Availability { get; init; }
+}
+
+public sealed class PresentationModePendingOutcomeEffectResponse
+{
+    public Guid StoryBeatId { get; init; }
+
+    public OutcomeSourceType SourceType { get; init; }
+
+    public Guid SourceId { get; init; }
+
+    public IReadOnlyList<StoryOutcomeEffectResponse> Effects { get; init; } = [];
+}
+
+public sealed class PresentationModeSatisfiedRuleResponse
+{
+    public Guid RuleId { get; init; }
+
+    public required string Explanation { get; init; }
 }
 
 public sealed class PresentationModeBlockingEventResponse

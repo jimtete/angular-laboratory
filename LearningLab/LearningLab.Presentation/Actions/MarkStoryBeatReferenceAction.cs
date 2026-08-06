@@ -2,6 +2,7 @@ using LearningLab.Data.Models;
 using LearningLab.Data.Models.Campaign.Rules;
 using LearningLab.Data.Models.Campaign.Sessions;
 using LearningLab.Data.Models.DTOs.Campaign.Presentation;
+using LearningLab.Data.Models.DTOs.Campaign.Rules;
 using LearningLab.Presentation.Models;
 using LearningLab.Services.CampaignRulesService;
 using LearningLab.Services.CampaignSessionService;
@@ -65,6 +66,8 @@ public class MarkStoryBeatReferenceAction
             _ => (OutcomeSourceType?)null
         };
 
+        IReadOnlyList<CampaignEventStateResponse> changedEventStates = [];
+
         if (sourceType is not null
             && request.ReferenceId is not null)
         {
@@ -80,6 +83,8 @@ public class MarkStoryBeatReferenceAction
                 return new ServiceResult<PresentationModeStoryBeatReferenceMarkedResponse>(
                     applyResult.StatusCode);
             }
+
+            changedEventStates = applyResult.Data?.ChangedEventStates ?? [];
         }
 
         var workspaceResult = await _getPresentationModeWorkspaceAction.ExecuteAsync(
@@ -100,7 +105,8 @@ public class MarkStoryBeatReferenceAction
             new PresentationModeStoryBeatReferenceMarkedResponse
             {
                 Workspace = workspaceResult.Data,
-                Session = sessionResult.Data
+                Session = sessionResult.Data,
+                ChangedEventStates = changedEventStates
             });
     }
 }

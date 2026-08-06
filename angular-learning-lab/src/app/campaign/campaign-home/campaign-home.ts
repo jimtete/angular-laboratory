@@ -7,6 +7,8 @@ import {
   CampaignApiService,
   CampaignCacheService,
   CampaignInformationCacheService,
+  CampaignMapCategory,
+  CampaignMapModel,
   CampaignNpcModel,
   CampaignSettingsModel,
   CampaignSessionModel,
@@ -34,11 +36,13 @@ export class CampaignHome implements OnInit {
 
   protected readonly sessions = signal<CampaignSessionModel[]>([]);
   protected readonly storyBlocks = signal<StoryBlockModel[]>([]);
+  protected readonly maps = signal<CampaignMapModel[]>([]);
   protected readonly combatNpcs = signal<MonsterModel[]>([]);
   protected readonly roleplayingNpcs = signal<CampaignNpcModel[]>([]);
   protected readonly campaignSettings = signal<CampaignSettingsModel | null>(null);
   protected readonly isLoadingSessions = signal(false);
   protected readonly isLoadingStoryBlocks = signal(false);
+  protected readonly isLoadingMaps = signal(false);
   protected readonly isLoadingNpcs = signal(false);
   protected readonly isLoadingSettings = signal(false);
   protected readonly isCreatingSession = signal(false);
@@ -57,6 +61,25 @@ export class CampaignHome implements OnInit {
     () => this.campaignInformationCache.joinedMembers().length,
   );
   protected readonly storyBlockCount = computed(() => this.storyBlocks().length);
+  protected readonly mapCount = computed(() => this.maps().length);
+  protected readonly mapTypeBreakdown = computed(() => {
+    const maps = this.maps();
+    const categories = [
+      CampaignMapCategory.World,
+      CampaignMapCategory.Regional,
+      CampaignMapCategory.City,
+      CampaignMapCategory.District,
+    ];
+
+    return categories
+      .map((category) => ({
+        label: CampaignMapCategory[category],
+        count: maps.filter((map) => this.getMapCategoryValue(map.category) === category).length,
+      }))
+      .filter((item) => item.count > 0)
+      .map((item) => `${item.label}: ${item.count}`)
+      .join(' / ') || 'No map types';
+  });
   protected readonly combatNpcCount = computed(() => this.combatNpcs().length);
   protected readonly roleplayingNpcCount = computed(() => this.roleplayingNpcs().length);
   protected readonly npcCount = computed(() => this.combatNpcCount() + this.roleplayingNpcCount());
@@ -90,6 +113,7 @@ export class CampaignHome implements OnInit {
     this.loadSettings();
     this.loadSessions();
     this.loadStoryBlocks();
+    this.loadMaps();
     this.loadNpcs();
   }
 
@@ -97,6 +121,7 @@ export class CampaignHome implements OnInit {
     this.loadSettings(true);
     this.loadSessions();
     this.loadStoryBlocks();
+    this.loadMaps();
     this.loadNpcs();
 
     return false;
@@ -106,6 +131,7 @@ export class CampaignHome implements OnInit {
     return this.isLoadingSettings() ||
       this.isLoadingSessions() ||
       this.isLoadingStoryBlocks() ||
+      this.isLoadingMaps() ||
       this.isLoadingNpcs();
   }
 
@@ -133,6 +159,16 @@ export class CampaignHome implements OnInit {
     }
 
     void this.router.navigate(['/campaigns', campaignId, 'campaign-content']);
+  }
+
+  protected goToMaps(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId) {
+      return;
+    }
+
+    void this.router.navigate(['/campaigns', campaignId, 'maps']);
   }
 
   protected createSession(): void {
@@ -227,6 +263,31 @@ export class CampaignHome implements OnInit {
       });
   }
 
+  private loadMaps(): void {
+    const campaignId = this.campaignId();
+
+    if (!campaignId || !this.isMaster() || this.isLoadingMaps()) {
+      return;
+    }
+
+    this.isLoadingMaps.set(true);
+
+    this.campaignApiService
+      .fetchCampaignMaps(campaignId)
+      .pipe(finalize(() => this.isLoadingMaps.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.maps.set(response.data ?? []);
+        },
+        error: (error: unknown) => {
+          this.modalHelper.showError(
+            this.getErrorMessage(error, 'Campaign map counts could not be loaded.'),
+            { statusCode: this.getErrorStatus(error) },
+          );
+        },
+      });
+  }
+
   private loadNpcs(): void {
     const campaignId = this.campaignId();
 
@@ -282,6 +343,26 @@ export class CampaignHome implements OnInit {
 
   private getErrorMessage(error: unknown, fallback: string): string {
     return this.isApiError(error) ? error.message : fallback;
+  }
+
+  private getMapCategoryValue(
+    category: CampaignMapModel['category'],
+  ): CampaignMapCategory | null {
+    if (typeof category === 'number' && category in CampaignMapCategory) {
+      return category as CampaignMapCategory;
+    }
+
+    if (typeof category === 'string') {
+      const numericCategory = Number(category);
+
+      if (Number.isFinite(numericCategory) && numericCategory in CampaignMapCategory) {
+        return numericCategory as CampaignMapCategory;
+      }
+
+      return CampaignMapCategory[category as keyof typeof CampaignMapCategory] ?? null;
+    }
+
+    return null;
   }
 
   private getErrorStatus(error: unknown): number | undefined {

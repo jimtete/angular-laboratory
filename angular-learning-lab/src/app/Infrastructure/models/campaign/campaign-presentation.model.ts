@@ -1,4 +1,10 @@
 import { CampaignQuestModel, StoryBeatQuestTaskModel } from './campaign-quest.model';
+import {
+  CampaignEventStateModel,
+  OutcomeEffectModel,
+  OutcomeSourceTypeValue,
+  TargetAvailabilityResult,
+} from './campaign-narration.model';
 import { CampaignSessionModel } from './campaign-session.model';
 import { StoryBeatIndexPathRuleModel, StoryBeatModel, StoryBlockModel } from './campaign-story.model';
 
@@ -41,9 +47,41 @@ export interface PresentationModeStoryBeatChoiceGroupModel {
   storyBeats: StoryBeatModel[];
 }
 
+export interface PresentationModeSatisfiedRuleModel {
+  ruleId: string;
+  explanation: string;
+}
+
+export interface PresentationModeBlockingEventModel {
+  ruleId: string;
+  eventDefinitionId: string;
+  eventKey: string;
+  clauseId: string | null;
+  isMissing: boolean;
+  explanation: string;
+}
+
+export interface PresentationModePendingOutcomeEffectModel {
+  storyBeatId: string;
+  sourceType: OutcomeSourceTypeValue;
+  sourceId: string;
+  effects: OutcomeEffectModel[];
+}
+
+export interface PresentationModeStoryBeatAvailabilityModel {
+  storyBeatId: string;
+  isAvailable: boolean;
+  isAvailableByRule: boolean;
+  satisfiedRules: PresentationModeSatisfiedRuleModel[];
+  blockingEvents: PresentationModeBlockingEventModel[];
+  pendingOutcomeEffects: PresentationModePendingOutcomeEffectModel[];
+  availability: TargetAvailabilityResult | null;
+}
+
 export interface PresentationModeStoryBlockModel {
   storyBlock: StoryBlockModel;
   storyBeats: StoryBeatModel[];
+  storyBeatAvailability: PresentationModeStoryBeatAvailabilityModel[];
   indexPathChoiceGroups: PresentationModeStoryBeatChoiceGroupModel[];
   quests: CampaignQuestModel[];
   storyBeatQuestTaskLinks: StoryBeatQuestTaskModel[];
@@ -72,6 +110,7 @@ export interface FinishPresentationStoryBeatRequest {
 export interface PresentationModeStoryBeatPlayedModel {
   workspace: PresentationModeWorkspaceModel;
   session: CampaignSessionModel;
+  changedEventStates: CampaignEventStateModel[];
 }
 
 export interface MarkPresentationRoleplayingInformationRequest {
@@ -83,6 +122,12 @@ export interface MarkPresentationRoleplayingInformationRequest {
 export interface PresentationModeStoryBeatReferenceMarkedModel {
   workspace: PresentationModeWorkspaceModel;
   session: CampaignSessionModel;
+}
+
+export interface TakePresentationDecisionOptionRequest {
+  storyBeatId: string;
+  decisionOptionId: string;
+  content: string | null;
 }
 
 export interface PresentationModeSocketErrorModel {

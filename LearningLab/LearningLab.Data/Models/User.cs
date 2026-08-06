@@ -1,5 +1,6 @@
 using LearningLab.Data.Models.Character;
 using LearningLab.Data.Models.AccessControl;
+using LearningLab.Data.Models.Assets;
 using LearningLab.Data.Models.Campaign;
 using LearningLab.Data.Models.Notifications;
 
@@ -19,4 +20,6 @@ public class User
     public List<PlayerCampaignParticipation> CampaignParticipations { get; set; } = [];
     public List<CampaignParticipationInvite> CampaignParticipationInvites { get; set; } = [];
     public List<Notification> Notifications { get; set; } = [];
+    public List<LibraryFolder> LibraryFolders { get; set; } = [];
+    public List<MusicFile> MusicFiles { get; set; } = [];
 }

@@ -83,7 +83,8 @@ public class FinishStoryBeatAction
             new PresentationModeStoryBeatPlayedResponse
             {
                 Workspace = workspaceResult.Data,
-                Session = sessionResult.Data
+                Session = sessionResult.Data,
+                ChangedEventStates = applyResult.Data?.ChangedEventStates ?? []
             });
     }
 }

@@ -5,12 +5,15 @@ import { finalize, forkJoin, map, of, switchMap } from 'rxjs';
 
 import {
   ApiError,
+  CampaignApiService,
   CampaignEventModel,
   CampaignEventOptionModel,
   CampaignEventOptionRequest,
   CampaignEventRequest,
+  CampaignEventStateModel,
   CampaignEventType,
   CampaignEventsApiService,
+  CampaignSessionModel,
 } from '../../../Infrastructure';
 import { ModalHelper } from '../../../shared/helpers/modal.helper';
 
@@ -30,10 +33,12 @@ interface CampaignEventOptionDraft {
 })
 export class CampaignEventsPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly campaignApiService = inject(CampaignApiService);
   private readonly campaignEventsApiService = inject(CampaignEventsApiService);
   private readonly modalHelper = inject(ModalHelper);
 
   protected readonly events = signal<CampaignEventModel[]>([]);
+  protected readonly currentSession = signal<CampaignSessionModel | null>(null);
   protected readonly CampaignEventType = CampaignEventType;
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
@@ -56,6 +61,11 @@ export class CampaignEventsPage implements OnInit {
       first.name.localeCompare(second.name) || first.key.localeCompare(second.key)
     ))
   ));
+  protected readonly currentSessionLabel = computed(() => {
+    const session = this.currentSession();
+
+    return session ? `Session ${session.sessionNumber}` : 'No session values';
+  });
   protected readonly canSave = computed(() => (
     this.normalizeText(this.nameDraft()).length > 0 &&
     this.normalizeText(this.keyDraft()).length > 0 &&
@@ -254,6 +264,39 @@ export class CampaignEventsPage implements OnInit {
     ))?.label ?? 'Event';
   }
 
+  protected currentValueLabel(event: CampaignEventModel): string {
+    const state = event.currentState;
+
+    if (!state) {
+      return 'Unset';
+    }
+
+    switch (this.toCampaignEventType(event.eventType ?? event.type)) {
+      case CampaignEventType.BooleanFlag:
+        return state.booleanValue === true
+          ? 'True'
+          : state.booleanValue === false ? 'False' : 'Unset';
+      case CampaignEventType.SingleChoice:
+        return this.selectedOptionLabel(event, state);
+      case CampaignEventType.NumericValue:
+        return state.numericValue !== null ? String(state.numericValue) : 'Unset';
+      case CampaignEventType.TextValue:
+        return this.normalizeText(state.textValue).length > 0 ? this.normalizeText(state.textValue) : 'Unset';
+      default:
+        return 'Unset';
+    }
+  }
+
+  protected currentValueTitle(event: CampaignEventModel): string | null {
+    const state = event.currentState;
+
+    if (!state) {
+      return null;
+    }
+
+    return `Updated ${this.formatDateTime(state.updatedAtUtc)}`;
+  }
+
   private loadEvents(): void {
     const campaignId = this.getCampaignId();
 
@@ -262,8 +305,16 @@ export class CampaignEventsPage implements OnInit {
     }
 
     this.isLoading.set(true);
-    this.campaignEventsApiService
-      .fetchCampaignEvents(campaignId)
+    this.campaignApiService
+      .fetchCampaignSessions(campaignId)
+      .pipe(
+        switchMap((sessionsResponse) => {
+          const currentSession = this.resolveCurrentSession(sessionsResponse.data ?? []);
+
+          this.currentSession.set(currentSession);
+          return this.campaignEventsApiService.fetchCampaignEvents(campaignId, currentSession?.id ?? null);
+        }),
+      )
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (response) => {
@@ -276,6 +327,15 @@ export class CampaignEventsPage implements OnInit {
           );
         },
       });
+  }
+
+  private resolveCurrentSession(sessions: CampaignSessionModel[]): CampaignSessionModel | null {
+    return [...sessions]
+      .sort((first, second) => (
+        first.sessionNumber - second.sessionNumber ||
+        first.id - second.id
+      ))
+      .at(-1) ?? null;
   }
 
   private toRequest(): CampaignEventRequest {
@@ -349,6 +409,27 @@ export class CampaignEventsPage implements OnInit {
         label: option.label,
         description: option.description ?? '',
       }));
+  }
+
+  private selectedOptionLabel(event: CampaignEventModel, state: CampaignEventStateModel): string {
+    const option = event.options.find((candidate) => (
+      candidate.id === state.selectedOptionId ||
+      candidate.key === state.selectedOptionKey
+    ));
+
+    return option?.label ?? state.selectedOptionKey ?? 'Unset';
+  }
+
+  private formatDateTime(value: string | null | undefined): string {
+    if (!value) {
+      return 'unknown time';
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+      ? value
+      : date.toLocaleString();
   }
 
   private createOptionDraft(): CampaignEventOptionDraft {

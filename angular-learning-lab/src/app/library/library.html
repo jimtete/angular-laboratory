@@ -1,0 +1,246 @@
+<section class="library-page" aria-label="Library">
+  <div class="library-shell">
+    <aside class="library-browser" aria-label="Library files">
+      <header class="library-browser-header">
+        <div>
+          <p>Library</p>
+          <h1>{{ currentFolderLabel() }}</h1>
+        </div>
+
+        <div class="library-actions">
+          <button type="button" aria-label="Refresh folder" title="Refresh folder" (click)="loadContents()">
+            <svg lucideRefreshCw aria-hidden="true"></svg>
+          </button>
+          <button type="button" aria-label="Create folder" title="Create folder" (click)="openCreateFolderDialog()">
+            <svg lucideFolderPlus aria-hidden="true"></svg>
+          </button>
+          <button type="button" aria-label="Upload file" title="Upload file" (click)="openUploadDialog()">
+            <svg lucideUpload aria-hidden="true"></svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="library-breadcrumb" aria-label="Library path">
+        <button type="button" (click)="openRoot()">Library</button>
+        @for (folder of folderStack(); track folder.id; let index = $index) {
+          <span aria-hidden="true">/</span>
+          <button type="button" (click)="openBreadcrumb(index)">{{ folder.name }}</button>
+        }
+      </nav>
+
+      <div class="library-list">
+        @if (isLoadingContents()) {
+          <p class="library-status">Loading folder...</p>
+        } @else {
+          @for (folder of folders(); track folder.id) {
+            <div class="library-entry-row">
+              <button
+                type="button"
+                class="library-entry library-folder-entry"
+                (click)="openFolder(folder)"
+              >
+                <svg lucideFolder aria-hidden="true"></svg>
+                <span>
+                  <strong>{{ folder.name }}</strong>
+                  <small>Folder</small>
+                </span>
+              </button>
+              <button
+                type="button"
+                class="library-entry-action library-entry-danger"
+                [attr.aria-label]="'Delete ' + folder.name"
+                title="Delete folder"
+                (click)="confirmDeleteFolder(folder, $event)"
+              >
+                <svg lucideTrash2 aria-hidden="true"></svg>
+              </button>
+            </div>
+          }
+
+          @for (file of files(); track file.id) {
+            <div class="library-entry-row">
+              <button
+                type="button"
+                class="library-entry"
+                [class.library-entry-selected]="selectedFile()?.id === file.id"
+                (click)="selectFile(file)"
+              >
+                @if (isImageFile(file)) {
+                  <svg lucideImage aria-hidden="true"></svg>
+                } @else if (isAudioFile(file)) {
+                  <svg lucideMusic aria-hidden="true"></svg>
+                } @else if (isDocumentFile(file)) {
+                  <svg lucideFileText aria-hidden="true"></svg>
+                } @else {
+                  <svg lucideFile aria-hidden="true"></svg>
+                }
+                <span>
+                  <strong>{{ file.displayName || file.originalFileName }}</strong>
+                  <small>{{ getFileKindLabel(file) }} &middot; {{ getFileSizeLabel(file.fileSizeBytes) }}</small>
+                </span>
+              </button>
+              <button
+                type="button"
+                class="library-entry-action library-entry-danger"
+                [attr.aria-label]="'Delete ' + (file.displayName || file.originalFileName)"
+                title="Delete file"
+                (click)="confirmDeleteFile(file, $event)"
+              >
+                <svg lucideTrash2 aria-hidden="true"></svg>
+              </button>
+            </div>
+          } @empty {
+            @if (folders().length === 0) {
+              <p class="library-status">This folder is empty.</p>
+            }
+          }
+        }
+      </div>
+    </aside>
+
+    <main class="library-details" aria-label="Library details">
+      @if (selectedFile(); as file) {
+        <header class="library-details-header">
+          @if (isImageFile(file)) {
+            <svg lucideImage aria-hidden="true"></svg>
+          } @else if (isAudioFile(file)) {
+            <svg lucideMusic aria-hidden="true"></svg>
+          } @else if (isDocumentFile(file)) {
+            <svg lucideFileText aria-hidden="true"></svg>
+          } @else {
+            <svg lucideFile aria-hidden="true"></svg>
+          }
+          <div>
+            <p>{{ getFileKindLabel(file) }}</p>
+            <h2>{{ file.displayName || file.originalFileName }}</h2>
+          </div>
+          <button
+            type="button"
+            class="library-details-delete"
+            aria-label="Delete selected file"
+            title="Delete file"
+            (click)="confirmDeleteFile(file)"
+          >
+            <svg lucideTrash2 aria-hidden="true"></svg>
+          </button>
+        </header>
+
+        @if (isImageFile(file)) {
+          <figure class="library-preview">
+            <img [src]="file.storagePath" [alt]="file.displayName || file.originalFileName" />
+          </figure>
+        } @else if (isAudioFile(file)) {
+          <div class="library-preview library-audio-preview">
+            <audio controls [src]="file.storagePath"></audio>
+          </div>
+        }
+
+        <dl class="library-metadata">
+          <div>
+            <dt>Original File</dt>
+            <dd>{{ file.originalFileName }}</dd>
+          </div>
+          <div>
+            <dt>Content Type</dt>
+            <dd>{{ file.contentType }}</dd>
+          </div>
+          <div>
+            <dt>Size</dt>
+            <dd>{{ getFileSizeLabel(file.fileSizeBytes) }}</dd>
+          </div>
+          <div>
+            <dt>Duration</dt>
+            <dd>{{ getDurationLabel(file.durationMilliseconds) }}</dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd>{{ formatDate(file.createdAt) }}</dd>
+          </div>
+          <div>
+            <dt>Updated</dt>
+            <dd>{{ formatDate(file.updatedAt) }}</dd>
+          </div>
+        </dl>
+      } @else {
+        <section class="library-empty-details">
+          <p>{{ currentFolderLabel() }}</p>
+          <h2>{{ folders().length }} folders, {{ files().length }} files</h2>
+          <dl class="library-metadata">
+            <div>
+              <dt>Current Folder</dt>
+              <dd>{{ currentFolderLabel() }}</dd>
+            </div>
+            <div>
+              <dt>Total Size</dt>
+              <dd>{{ getFileSizeLabel(totalFileSize()) }}</dd>
+            </div>
+          </dl>
+        </section>
+      }
+    </main>
+  </div>
+
+  @if (isCreateFolderDialogOpen()) {
+    <section class="library-dialog-backdrop" role="presentation">
+      <form class="library-dialog" aria-label="Create folder" (submit)="$event.preventDefault(); createFolder()">
+        <button type="button" class="library-dialog-close" aria-label="Close" (click)="closeCreateFolderDialog()">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+        <label>
+          <span>Folder Name</span>
+          <input type="text" [value]="folderNameDraft()" (input)="setFolderNameDraft($event)" autofocus />
+        </label>
+        <button type="submit" [disabled]="!canCreateFolder()">
+          {{ isCreatingFolder() ? 'Creating...' : 'Create Folder' }}
+        </button>
+      </form>
+    </section>
+  }
+
+  @if (isUploadDialogOpen()) {
+    <section class="library-dialog-backdrop" role="presentation">
+      <form class="library-dialog" aria-label="Upload file" (submit)="$event.preventDefault(); uploadFile()">
+        <button type="button" class="library-dialog-close" aria-label="Close" (click)="closeUploadDialog()">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+        <label>
+          <span>File</span>
+          <input type="file" (change)="setUploadFile($event)" />
+        </label>
+        <label>
+          <span>Display Name</span>
+          <input type="text" [value]="displayNameDraft()" (input)="setDisplayNameDraft($event)" />
+        </label>
+        <label>
+          <span>Duration Milliseconds</span>
+          <input type="number" min="1" [value]="durationMillisecondsDraft() ?? ''" (input)="setDurationMillisecondsDraft($event)" />
+        </label>
+        <button type="submit" [disabled]="!canUploadFile()">
+          {{ isUploadingFile() ? 'Uploading...' : 'Upload File' }}
+        </button>
+      </form>
+    </section>
+  }
+
+  @if (deleteConfirmation(); as confirmation) {
+    <section class="library-dialog-backdrop" role="presentation">
+      <section
+        class="library-dialog library-confirmation"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="deleteConfirmationTitle(confirmation)"
+      >
+        <h2>{{ deleteConfirmationTitle(confirmation) }}</h2>
+        <p>{{ deleteConfirmationMessage(confirmation) }}</p>
+        <div class="library-confirmation-actions">
+          <button type="button" class="library-confirmation-cancel" [disabled]="isDeleting()" (click)="cancelDelete()">
+            Cancel
+          </button>
+          <button type="button" class="library-confirmation-delete" [disabled]="isDeleting()" (click)="deleteConfirmed()">
+            {{ isDeleting() ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </section>
+    </section>
+  }
+</section>

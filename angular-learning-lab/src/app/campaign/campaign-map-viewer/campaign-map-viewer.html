@@ -101,8 +101,10 @@
                     type="button"
                     class="campaign-map-rendered-pin"
                     [class.campaign-map-rendered-pin-placeholder]="isPlaceholderPin(pin)"
+                    [class.campaign-map-rendered-pin-players-position]="isPlayersPositionPin(pin)"
                     [class.campaign-map-rendered-pin-map-link]="isMapLinkPin(pin)"
                     [class.campaign-map-rendered-pin-store]="isStorePin(pin)"
+                    [class.campaign-map-rendered-pin-story-block]="isStoryBlockPin(pin)"
                     [class.campaign-map-rendered-pin-selected]="isSelectedPin(pin) || isMovingPin(pin)"
                     [class.campaign-map-rendered-pin-connection-start]="isConnectionStartPin(pin)"
                     [style.left]="getPinLeft(pin)"
@@ -528,6 +530,27 @@
                   [selected]="isStoreTargetSelected(store.storeId)"
                 >
                   {{ storeDisplayName(store) }}
+                </option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (shouldShowStoryBlockTargetField()) {
+          <label class="campaign-map-pin-field">
+            <span>Target Story Block</span>
+            <select
+              name="targetStoryBlockId"
+              [class.campaign-map-pin-field-invalid]="placeholderPinValidationErrors().targetStoryBlockId"
+            >
+              <option value="">Select a story block</option>
+              @for (storyBlock of storyBlocks(); track storyBlock.storyBlockId) {
+                <option
+                  [value]="storyBlock.storyBlockId"
+                  [selected]="isStoryBlockTargetSelected(storyBlock.storyBlockId)"
+                >
+                  {{ storyBlock.orderIndex }}. {{ storyBlock.title || 'Untitled Story Block' }}
+                  - used in {{ getStoryBlockMapPinUsageCount(storyBlock) }} map point(s)
                 </option>
               }
             </select>

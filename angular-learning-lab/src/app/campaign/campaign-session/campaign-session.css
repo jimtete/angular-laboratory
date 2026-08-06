@@ -626,6 +626,9 @@
   cursor: pointer;
 }
 
+.campaign-session-presentation-beat-blocked,
+.campaign-session-presentation-choice-blocked{border-color:#b91c1c!important;background:#fee2e2!important;color:#7f1d1d!important;cursor:not-allowed!important;opacity:.72}
+
 @media (max-width: 700px) {
   .campaign-session-header {
     align-items: flex-start;

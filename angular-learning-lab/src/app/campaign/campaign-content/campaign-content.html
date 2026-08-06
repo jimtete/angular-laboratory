@@ -118,6 +118,21 @@
                   <span class="story-block-beat-count">
                     {{ storyBlock.beats.length }} {{ storyBlock.beats.length === 1 ? 'beat' : 'beats' }}
                   </span>
+                  @if (storyBlockMusicCount(storyBlock) > 0) {
+                    <span class="story-block-beat-count">
+                      {{ storyBlockMusicCount(storyBlock) }} {{ storyBlockMusicCount(storyBlock) === 1 ? 'track' : 'tracks' }}
+                    </span>
+                  }
+                </button>
+
+                <button
+                  type="button"
+                  class="story-block-edit-button"
+                  [attr.aria-label]="'Manage music for ' + storyBlockTitle(storyBlock)"
+                  title="Manage music"
+                  (click)="openStoryBlockMusicDialog(storyBlock)"
+                >
+                  <svg lucideMusic aria-hidden="true"></svg>
                 </button>
 
                 <button
@@ -169,6 +184,15 @@
               <p>Story Beats</p>
               <h2 id="story-beat-column-title">{{ storyBlockTitle(storyBlock) }}</h2>
             </div>
+            <button
+              type="button"
+              class="campaign-milestone-create"
+              [attr.aria-label]="'Manage music for ' + storyBlockTitle(storyBlock)"
+              title="Manage music"
+              (click)="openStoryBlockMusicDialog(storyBlock)"
+            >
+              <svg lucideMusic aria-hidden="true"></svg>
+            </button>
           </header>
 
           <div class="story-beat-groups" [attr.aria-label]="storyBlockTitle(storyBlock) + ' story beats'">
@@ -230,6 +254,12 @@
                         }
                       </div>
                       <h4>{{ storyBeatTitle(storyBeat) }}</h4>
+                        @if (storyBeatMusicCount(storyBeat) > 0) {
+                          <span class="story-beat-event-effects-indicator">
+                            <svg lucideMusic aria-hidden="true"></svg>
+                            {{ storyBeatMusicCount(storyBeat) }}
+                          </span>
+                      }
                     </header>
 
                     <div class="story-beat-card-body">
@@ -1532,6 +1562,142 @@
             (click)="closeStoryBeatQuestTasksDialog()"
           >
             Close
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (storyBlockMusicDialogBlock(); as storyBlock) {
+    <div
+      class="campaign-milestone-dialog-backdrop"
+      role="presentation"
+      (click)="closeStoryBlockMusicDialog()"
+    >
+      <section
+        class="story-beat-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Music for ' + storyBlockTitle(storyBlock)"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="story-beat-dialog-header">
+          <div>
+            <p>Music</p>
+            <h2>{{ storyBlockTitle(storyBlock) }}</h2>
+          </div>
+          <button type="button" aria-label="Close" [disabled]="isSavingStoryBlockMusic()" (click)="closeStoryBlockMusicDialog()">
+            <svg lucideX aria-hidden="true"></svg>
+          </button>
+        </header>
+
+        @if (isLoadingStoryBlockMusic()) {
+          <p class="story-beat-dialog-status">Loading music...</p>
+        } @else {
+          <div class="story-beat-decision-choice-grid">
+            <label class="campaign-milestone-field">
+              <span>Track</span>
+              <select [value]="selectedMusicFileIdDraft() ?? ''" (change)="setSelectedMusicFileDraft($event)">
+                <option value="">Choose music file</option>
+                @for (file of libraryMusicFiles(); track file.id) {
+                  <option [value]="file.id">{{ libraryMusicFileLabel(file) }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="campaign-milestone-field">
+              <span>Target</span>
+              <select [value]="selectedMusicStoryBeatIdDraft() ?? ''" (change)="setSelectedMusicStoryBeatDraft($event)">
+                <option value="">Whole block</option>
+                @for (beat of storyBlock.beats; track beat.storyBeatId) {
+                  <option [value]="beat.storyBeatId">{{ storyBeatTitle(beat) }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="story-block-music-checkbox">
+              <input type="checkbox" [checked]="musicLoopDraft()" (change)="setMusicLoopDraft($event)" />
+              <span>Loop</span>
+            </label>
+
+            <label class="story-block-music-checkbox">
+              <input type="checkbox" [checked]="musicContinueDraft()" (change)="setMusicContinueDraft($event)" />
+              <span>Continue</span>
+            </label>
+
+            <button
+              type="button"
+              class="campaign-milestone-create"
+              [disabled]="!canAddStoryBlockMusic()"
+              (click)="addStoryBlockMusicDraft()"
+            >
+              Add
+            </button>
+          </div>
+
+          @if (libraryMusicFiles().length === 0) {
+            <p class="story-beat-dialog-status">No audio files in the library.</p>
+          }
+
+          <div class="story-beat-decision-choice-grid" aria-label="Assigned music">
+            @for (draft of storyBlockMusicDrafts(); track draft.draftId) {
+              <article class="story-beat-decision-choice">
+                <div>
+                  <strong>{{ storyBlockMusicDraftFile(draft)?.displayName || storyBlockMusicDraftFile(draft)?.originalFileName || 'Missing track' }}</strong>
+                  <span>{{ storyBlockMusicDraftTargetLabel(storyBlock, draft) }}</span>
+                </div>
+
+                <label class="campaign-milestone-field">
+                  <span>Target</span>
+                  <select [value]="draft.storyBeatId ?? ''" (change)="setStoryBlockMusicDraftTarget(draft.draftId, $event)">
+                    <option value="">Whole block</option>
+                    @for (beat of storyBlock.beats; track beat.storyBeatId) {
+                      <option [value]="beat.storyBeatId">{{ storyBeatTitle(beat) }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="story-block-music-checkbox">
+                  <input type="checkbox" [checked]="draft.loop" (change)="setStoryBlockMusicDraftLoop(draft.draftId, $event)" />
+                  <span>Loop</span>
+                </label>
+
+                <label class="story-block-music-checkbox">
+                  <input type="checkbox" [checked]="draft.continueAcrossStoryBlocks" (change)="setStoryBlockMusicDraftContinue(draft.draftId, $event)" />
+                  <span>Continue</span>
+                </label>
+
+                <button
+                  type="button"
+                  class="campaign-milestone-delete-confirm"
+                  aria-label="Remove music"
+                  (click)="removeStoryBlockMusicDraft(draft.draftId)"
+                >
+                  <svg lucideTrash2 aria-hidden="true"></svg>
+                </button>
+              </article>
+            } @empty {
+              <p class="story-beat-dialog-status">No music assigned to this story block.</p>
+            }
+          </div>
+        }
+
+        <div class="campaign-milestone-dialog-actions">
+          <button
+            type="button"
+            class="campaign-milestone-close"
+            [disabled]="isSavingStoryBlockMusic()"
+            (click)="closeStoryBlockMusicDialog()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="campaign-milestone-create"
+            [disabled]="!canSaveStoryBlockMusic()"
+            (click)="saveStoryBlockMusic()"
+          >
+            {{ isSavingStoryBlockMusic() ? 'Saving...' : 'Save Music' }}
           </button>
         </div>
       </section>

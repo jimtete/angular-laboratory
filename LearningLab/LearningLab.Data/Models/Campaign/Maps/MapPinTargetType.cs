@@ -6,5 +6,8 @@ public enum MapPinTargetType
     StoryBlock = 1,
     Map = 2,
     Store = 3,
-    PlayerPosition = 4
+    PlayersPosition = 4,
+
+    [Obsolete("Use PlayersPosition.")]
+    PlayerPosition = PlayersPosition
 }

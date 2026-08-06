@@ -16,9 +16,13 @@ import { ApiClient } from './api-client.service';
 export class CampaignEventsApiService {
   private readonly apiClient = inject(ApiClient);
 
-  fetchCampaignEvents(campaignId: string): Observable<ApiResponse<CampaignEventModel[]>> {
+  fetchCampaignEvents(
+    campaignId: string,
+    campaignSessionId?: number | null,
+  ): Observable<ApiResponse<CampaignEventModel[]>> {
     return this.apiClient.get<ApiResponse<CampaignEventModel[]>>(
       `/api/campaigns/${campaignId}/event-definitions`,
+      campaignSessionId ? { params: { campaignSessionId } } : undefined,
     );
   }
 

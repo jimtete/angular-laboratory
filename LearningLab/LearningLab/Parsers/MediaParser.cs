@@ -25,6 +25,13 @@ public static class MediaParser
         return await ReadFormFileBytesAsync(mapFile, cancellationToken);
     }
 
+    public static async Task<byte[]> ReadUploadedFileBytesAsync(
+        IFormFile? file,
+        CancellationToken cancellationToken)
+    {
+        return await ReadFormFileBytesAsync(file, cancellationToken);
+    }
+
     private static async Task<byte[]> ReadFormFileBytesAsync(
         IFormFile? formFile,
         CancellationToken cancellationToken)

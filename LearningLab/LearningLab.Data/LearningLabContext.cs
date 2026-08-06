@@ -37,12 +37,15 @@ public class LearningLabContext : DbContext
     public DbSet<SessionNoteStoryBeatReference> SessionNoteStoryBeatReferences { get; set; }
     public DbSet<CampaignMilestone> CampaignMilestones { get; set; }
     public DbSet<Asset> Assets { get; set; }
+    public DbSet<LibraryFolder> LibraryFolders { get; set; }
+    public DbSet<MusicFile> MusicFiles { get; set; }
     public DbSet<Map> Maps { get; set; }
     public DbSet<MapCampaign> MapCampaigns { get; set; }
     public DbSet<MapPin> MapPins { get; set; }
     public DbSet<MapPinConnection> MapPinConnections { get; set; }
     public DbSet<StoryBlock> StoryBlocks { get; set; }
     public DbSet<StoryBeat> StoryBeats { get; set; }
+    public DbSet<StoryBlockMusicFile> StoryBlockMusicFiles { get; set; }
     public DbSet<StoryBeatIndexPathRule> StoryBeatIndexPathRules { get; set; }
     public DbSet<StoryBlockMilestone> StoryBlockMilestones { get; set; }
     public DbSet<CampaignPresentation> CampaignPresentations { get; set; }
@@ -130,6 +133,16 @@ public class LearningLabContext : DbContext
                 .WithOne(notification => notification.User)
                 .HasForeignKey(notification => notification.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(user => user.LibraryFolders)
+                .WithOne(folder => folder.CreatedByUser)
+                .HasForeignKey(folder => folder.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(user => user.MusicFiles)
+                .WithOne(musicFile => musicFile.UploadedByUser)
+                .HasForeignKey(musicFile => musicFile.UploadedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -370,6 +383,11 @@ public class LearningLabContext : DbContext
             entity.HasMany(block => block.Beats)
                 .WithOne(beat => beat.StoryBlock)
                 .HasForeignKey(beat => beat.StoryBlockId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(block => block.MusicFiles)
+                .WithOne(musicFile => musicFile.StoryBlock)
+                .HasForeignKey(musicFile => musicFile.StoryBlockId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(block => block.Milestones)
@@ -641,6 +659,89 @@ public class LearningLabContext : DbContext
             entity.HasIndex(beat => beat.CampaignMilestoneId)
                 .IsUnique()
                 .HasFilter("[campaign_milestone_id] IS NOT NULL");
+        });
+
+        modelBuilder.Entity<StoryBlockMusicFile>(entity =>
+        {
+            entity.ToTable("StoryBlockMusicFiles");
+
+            entity.HasKey(link => link.Id);
+
+            entity.Property(link => link.Id)
+                .HasColumnName("story_block_music_file_id");
+
+            entity.Property(link => link.StoryBlockId)
+                .HasColumnName("story_block_id")
+                .IsRequired();
+
+            entity.Property(link => link.StoryBeatId)
+                .HasColumnName("story_beat_id");
+
+            entity.Property(link => link.MusicFileId)
+                .HasColumnName("music_file_id")
+                .IsRequired();
+
+            entity.Property(link => link.OrderIndex)
+                .HasColumnName("order_index")
+                .IsRequired();
+
+            entity.Property(link => link.Loop)
+                .HasColumnName("loop")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(link => link.ContinueAcrossStoryBlocks)
+                .HasColumnName("continue_across_story_blocks")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            entity.Property(link => link.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(link => link.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasOne(link => link.StoryBlock)
+                .WithMany(block => block.MusicFiles)
+                .HasForeignKey(link => link.StoryBlockId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(link => link.StoryBeat)
+                .WithMany(beat => beat.MusicFiles)
+                .HasForeignKey(link => link.StoryBeatId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(link => link.MusicFile)
+                .WithMany(musicFile => musicFile.StoryBlockLinks)
+                .HasForeignKey(link => link.MusicFileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(link => link.StoryBlockId);
+
+            entity.HasIndex(link => link.StoryBeatId);
+
+            entity.HasIndex(link => link.MusicFileId);
+
+            entity.HasIndex(link => new
+            {
+                link.StoryBlockId,
+                link.MusicFileId
+            })
+            .IsUnique()
+            .HasFilter("[story_beat_id] IS NULL");
+
+            entity.HasIndex(link => new
+            {
+                link.StoryBlockId,
+                link.StoryBeatId,
+                link.MusicFileId
+            })
+            .IsUnique()
+            .HasFilter("[story_beat_id] IS NOT NULL");
         });
 
         modelBuilder.Entity<CampaignEventDefinition>(entity =>
@@ -2124,6 +2225,125 @@ public class LearningLabContext : DbContext
             .IsUnique();
         });
 
+        modelBuilder.Entity<MusicFile>(entity =>
+        {
+            entity.ToTable("MusicFiles");
+
+            entity.HasKey(musicFile => musicFile.Id);
+
+            entity.Property(musicFile => musicFile.Id)
+                .HasColumnName("music_file_id");
+
+            entity.Property(musicFile => musicFile.UploadedByUserId)
+                .HasColumnName("uploaded_by_user_id")
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.ParentFolderId)
+                .HasColumnName("parent_folder_id");
+
+            entity.Property(musicFile => musicFile.DisplayName)
+                .HasColumnName("display_name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.OriginalFileName)
+                .HasColumnName("original_file_name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.StoredFileName)
+                .HasColumnName("stored_file_name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.StoragePath)
+                .HasColumnName("storage_path")
+                .HasMaxLength(1024)
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.ContentType)
+                .HasColumnName("content_type")
+                .HasMaxLength(128)
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.FileSizeBytes)
+                .HasColumnName("file_size_bytes")
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.DurationMilliseconds)
+                .HasColumnName("duration_milliseconds");
+
+            entity.Property(musicFile => musicFile.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(musicFile => musicFile.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasIndex(musicFile => musicFile.UploadedByUserId);
+
+            entity.HasIndex(musicFile => musicFile.ParentFolderId);
+
+            entity.HasIndex(musicFile => musicFile.StoragePath)
+                .IsUnique();
+
+            entity.HasOne(musicFile => musicFile.ParentFolder)
+                .WithMany(folder => folder.Files)
+                .HasForeignKey(musicFile => musicFile.ParentFolderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<LibraryFolder>(entity =>
+        {
+            entity.ToTable("LibraryFolders");
+
+            entity.HasKey(folder => folder.Id);
+
+            entity.Property(folder => folder.Id)
+                .HasColumnName("library_folder_id");
+
+            entity.Property(folder => folder.CreatedByUserId)
+                .HasColumnName("created_by_user_id")
+                .IsRequired();
+
+            entity.Property(folder => folder.ParentFolderId)
+                .HasColumnName("parent_folder_id");
+
+            entity.Property(folder => folder.Name)
+                .HasColumnName("name")
+                .HasMaxLength(256)
+                .IsRequired();
+
+            entity.Property(folder => folder.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.Property(folder => folder.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')")
+                .IsRequired();
+
+            entity.HasIndex(folder => folder.ParentFolderId);
+
+            entity.HasIndex(folder => new
+            {
+                folder.CreatedByUserId,
+                folder.ParentFolderId,
+                folder.Name
+            })
+            .IsUnique()
+            .HasFilter(null);
+
+            entity.HasOne(folder => folder.ParentFolder)
+                .WithMany(folder => folder.Children)
+                .HasForeignKey(folder => folder.ParentFolderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<Map>(entity =>
         {
             entity.ToTable("Maps");
@@ -2264,7 +2484,9 @@ public class LearningLabContext : DbContext
             entity.Property(pin => pin.TargetType)
                 .HasColumnName("target_type")
                 .HasMaxLength(64)
-                .HasConversion<string>()
+                .HasConversion(
+                    targetType => MapPinTargetTypeToProvider(targetType),
+                    targetType => MapPinTargetTypeFromProvider(targetType))
                 .IsRequired();
 
             entity.Property(pin => pin.TargetId)
@@ -2769,5 +2991,22 @@ public class LearningLabContext : DbContext
             entity.Property(character => character.MotoricsRating)
                 .HasColumnName("motorics_rating");
         });
+    }
+
+    private static string MapPinTargetTypeToProvider(MapPinTargetType targetType)
+    {
+        return targetType is MapPinTargetType.PlayersPosition
+            ? nameof(MapPinTargetType.PlayersPosition)
+            : targetType.ToString();
+    }
+
+    private static MapPinTargetType MapPinTargetTypeFromProvider(string targetType)
+    {
+        return string.Equals(
+            targetType,
+            "PlayerPosition",
+            StringComparison.Ordinal)
+            ? MapPinTargetType.PlayersPosition
+            : Enum.Parse<MapPinTargetType>(targetType);
     }
 }

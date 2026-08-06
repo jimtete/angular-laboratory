@@ -32,4 +32,6 @@ public sealed class StoryBeatResponse
     public CampaignMilestoneResponse? Milestone { get; init; }
 
     public StoryBeatIndexPathRuleResponse? IndexPathRule { get; init; }
+
+    public IReadOnlyList<StoryBlockMusicFileResponse> MusicFiles { get; init; } = [];
 }

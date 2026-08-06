@@ -46,6 +46,7 @@ import {
   CampaignNpcModel,
   StoryBeatModel,
   StoryBeatQuestTaskModel,
+  StoryBlockMusicFileModel,
   StoryBlockModel,
   ReorderStoryBlocksRequest,
   ReorderStoryBeatsRequest,
@@ -58,6 +59,7 @@ import {
   UpdateNarrativeStoryBeatRequest,
   UpdateTransitionStoryBeatRequest,
   UpdateRoleplayingStoryBeatRequest,
+  UpdateStoryBlockMusicFilesRequest,
   UpdateStoryBlockTitleRequest,
   UpsertStoryBeatIndexPathRuleRequest,
   UpdateCampaignMemberNicknameRequest,
@@ -458,6 +460,29 @@ export class CampaignApiService {
   ): Observable<ApiResponse<StoryBlockModel[]>> {
     return this.apiClient.put<ApiResponse<StoryBlockModel[]>, ReorderStoryBlocksRequest>(
       `/api/campaigns/${campaignId}/content/story-blocks/order`,
+      request,
+    );
+  }
+
+  fetchStoryBlockMusicFiles(
+    campaignId: string,
+    storyBlockId: string,
+  ): Observable<ApiResponse<StoryBlockMusicFileModel[]>> {
+    return this.apiClient.get<ApiResponse<StoryBlockMusicFileModel[]>>(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/music-files`,
+    );
+  }
+
+  updateStoryBlockMusicFiles(
+    campaignId: string,
+    storyBlockId: string,
+    request: UpdateStoryBlockMusicFilesRequest,
+  ): Observable<ApiResponse<StoryBlockMusicFileModel[]>> {
+    return this.apiClient.put<
+      ApiResponse<StoryBlockMusicFileModel[]>,
+      UpdateStoryBlockMusicFilesRequest
+    >(
+      `/api/campaigns/${campaignId}/content/story-blocks/${storyBlockId}/music-files`,
       request,
     );
   }

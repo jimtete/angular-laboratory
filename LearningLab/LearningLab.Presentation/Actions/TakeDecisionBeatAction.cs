@@ -86,7 +86,8 @@ public sealed class TakeDecisionBeatAction
             new PresentationModeStoryBeatReferenceMarkedResponse
             {
                 Workspace = workspaceResult.Data,
-                Session = sessionResult.Data
+                Session = sessionResult.Data,
+                ChangedEventStates = applyResult.Data?.ChangedEventStates ?? []
             });
     }
 }

@@ -3,6 +3,7 @@ using LearningLab.Data.Models.AccessControl;
 using LearningLab.Data.Models.DTOs;
 using LearningLab.Data.Models.DTOs.Campaign.Sessions;
 using LearningLab.Data.Models.DTOs.Campaign.Story;
+using LearningLab.Infrastructure.StaticAssets;
 using LearningLab.Services.CampaignStoryService;
 using LearningLab.Services.Helpers;
 using Microsoft.AspNetCore.Authorization;
@@ -47,7 +48,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status201Created,
                 Message = "Story block created successfully.",
-                Data = result.Data
+                Data = result.Data is null ? null : WithPublicStoragePaths(result.Data)
             }),
             _ => MapStoryBlockResponse(
                 result,
@@ -101,6 +102,56 @@ public sealed class CampaignStoryController : ControllerBase
         return MapStoryBlockResponse(
             result,
             "Story block title updated successfully.");
+    }
+
+    [HttpGet("{storyBlockId:guid}/music-files")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>>> FetchStoryBlockMusicFiles(
+        Guid campaignId,
+        Guid storyBlockId,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<StoryBlockMusicFileResponse>>();
+        }
+
+        var result = await _campaignStoryService.GetStoryBlockMusicFilesAsync(
+            userId.Value,
+            campaignId,
+            storyBlockId,
+            cancellationToken);
+
+        return MapStoryBlockMusicFileListResponse(
+            result,
+            "Story block music files fetched successfully.");
+    }
+
+    [HttpPut("{storyBlockId:guid}/music-files")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>>> UpdateStoryBlockMusicFiles(
+        Guid campaignId,
+        Guid storyBlockId,
+        UpdateStoryBlockMusicFilesRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = SessionHelper.GetUserId(User);
+
+        if (userId is null)
+        {
+            return InvalidUserClaimResponse<IReadOnlyList<StoryBlockMusicFileResponse>>();
+        }
+
+        var result = await _campaignStoryService.UpdateStoryBlockMusicFilesAsync(
+            userId.Value,
+            campaignId,
+            storyBlockId,
+            request,
+            cancellationToken);
+
+        return MapStoryBlockMusicFileListResponse(
+            result,
+            "Story block music files updated successfully.");
     }
 
     [HttpPut("order")]
@@ -218,7 +269,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status201Created,
                 Message = "Story beat created successfully.",
-                Data = result.Data
+                Data = result.Data is null ? null : WithPublicStoragePaths(result.Data)
             }),
             _ => MapStoryBeatResponse(
                 result,
@@ -253,7 +304,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status201Created,
                 Message = "Story beat created successfully.",
-                Data = result.Data
+                Data = result.Data is null ? null : WithPublicStoragePaths(result.Data)
             }),
             _ => MapStoryBeatResponse(
                 result,
@@ -288,7 +339,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status201Created,
                 Message = "Story beat created successfully.",
-                Data = result.Data
+                Data = result.Data is null ? null : WithPublicStoragePaths(result.Data)
             }),
             _ => MapStoryBeatResponse(
                 result,
@@ -836,6 +887,70 @@ public sealed class CampaignStoryController : ControllerBase
             "Campaign NPC updated successfully.");
     }
 
+    private StoryBlockResponse WithPublicStoragePaths(StoryBlockResponse storyBlock)
+    {
+        return new StoryBlockResponse
+        {
+            StoryBlockId = storyBlock.StoryBlockId,
+            CampaignId = storyBlock.CampaignId,
+            Title = storyBlock.Title,
+            OrderIndex = storyBlock.OrderIndex,
+            MapPins = storyBlock.MapPins,
+            MusicFiles = storyBlock.MusicFiles
+                .Select(WithPublicStoragePath)
+                .ToList()
+        };
+    }
+
+    private StoryBeatResponse WithPublicStoragePaths(StoryBeatResponse storyBeat)
+    {
+        return new StoryBeatResponse
+        {
+            StoryBeatId = storyBeat.StoryBeatId,
+            StoryBlockId = storyBeat.StoryBlockId,
+            OrderIndex = storyBeat.OrderIndex,
+            SecondaryOrderIndex = storyBeat.SecondaryOrderIndex,
+            Title = storyBeat.Title,
+            StoryBeatType = storyBeat.StoryBeatType,
+            Information = storyBeat.Information,
+            Narrative = storyBeat.Narrative,
+            Roleplaying = storyBeat.Roleplaying,
+            Decision = storyBeat.Decision,
+            Combat = storyBeat.Combat,
+            Transition = storyBeat.Transition,
+            Milestone = storyBeat.Milestone,
+            IndexPathRule = storyBeat.IndexPathRule,
+            MusicFiles = storyBeat.MusicFiles
+                .Select(WithPublicStoragePath)
+                .ToList()
+        };
+    }
+
+    private StoryBlockMusicFileResponse WithPublicStoragePath(StoryBlockMusicFileResponse musicFile)
+    {
+        return new StoryBlockMusicFileResponse
+        {
+            Id = musicFile.Id,
+            StoryBlockId = musicFile.StoryBlockId,
+            StoryBeatId = musicFile.StoryBeatId,
+            MusicFileId = musicFile.MusicFileId,
+            OrderIndex = musicFile.OrderIndex,
+            Loop = musicFile.Loop,
+            ContinueAcrossStoryBlocks = musicFile.ContinueAcrossStoryBlocks,
+            UploadedByUserId = musicFile.UploadedByUserId,
+            ParentFolderId = musicFile.ParentFolderId,
+            DisplayName = musicFile.DisplayName,
+            OriginalFileName = musicFile.OriginalFileName,
+            StoredFileName = musicFile.StoredFileName,
+            StoragePath = Request.ToPublicStaticAssetUrl(musicFile.StoragePath) ?? musicFile.StoragePath,
+            ContentType = musicFile.ContentType,
+            FileSizeBytes = musicFile.FileSizeBytes,
+            DurationMilliseconds = musicFile.DurationMilliseconds,
+            CreatedAt = musicFile.CreatedAt,
+            UpdatedAt = musicFile.UpdatedAt
+        };
+    }
+
     private ActionResult<ApiResponse<IReadOnlyList<StoryBlockResponse>>> MapStoryBlockListResponse(
         ServiceResult<IReadOnlyList<StoryBlockResponse>> result,
         string successMessage)
@@ -846,7 +961,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = successMessage,
-                Data = result.Data
+                Data = result.Data?.Select(WithPublicStoragePaths).ToList()
             }),
             ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<IReadOnlyList<StoryBlockResponse>>
             {
@@ -889,7 +1004,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = successMessage,
-                Data = result.Data
+                Data = result.Data is null ? null : WithPublicStoragePaths(result.Data)
             }),
             ApplicationStatusCode.InvalidStoryBlock => BadRequest(new ApiResponse<StoryBlockResponse>
             {
@@ -926,6 +1041,77 @@ public sealed class CampaignStoryController : ControllerBase
             _ => StatusCode(
                 StatusCodes.Status500InternalServerError,
                 new ApiResponse<StoryBlockResponse>
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Message = "An unexpected error occurred.",
+                    Data = null
+                })
+        };
+    }
+
+    private ActionResult<ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>> MapStoryBlockMusicFileListResponse(
+        ServiceResult<IReadOnlyList<StoryBlockMusicFileResponse>> result,
+        string successMessage)
+    {
+        return result.StatusCode switch
+        {
+            ApplicationStatusCode.Success => Ok(new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = successMessage,
+                Data = result.Data?.Select(WithPublicStoragePath).ToList()
+            }),
+            ApplicationStatusCode.InvalidStoryBlockMusic => BadRequest(
+                new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Story block music file request is invalid.",
+                    Data = null
+                }),
+            ApplicationStatusCode.UserNotFound => NotFound(new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "User was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.CampaignNotFound => NotFound(new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Campaign was not found.",
+                Data = null
+            }),
+            ApplicationStatusCode.StoryBlockNotFound => NotFound(
+                new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Story block was not found.",
+                    Data = null
+                }),
+            ApplicationStatusCode.StoryBeatNotFound => NotFound(
+                new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "Story beat was not found in this story block.",
+                    Data = null
+                }),
+            ApplicationStatusCode.StoryBlockMusicFileNotFound => NotFound(
+                new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Message = "One or more music files were not found in this user's library.",
+                    Data = null
+                }),
+            ApplicationStatusCode.CampaignMasterRoleRequired => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Message = "Only users with the Master role can manage campaign story content.",
+                    Data = null
+                }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApiResponse<IReadOnlyList<StoryBlockMusicFileResponse>>
                 {
                     StatusCode = StatusCodes.Status500InternalServerError,
                     Message = "An unexpected error occurred.",
@@ -1103,7 +1289,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = successMessage,
-                Data = result.Data
+                Data = result.Data?.Select(WithPublicStoragePaths).ToList()
             }),
             ApplicationStatusCode.InvalidStoryBeat => BadRequest(new ApiResponse<IReadOnlyList<StoryBeatResponse>>
             {
@@ -1272,7 +1458,7 @@ public sealed class CampaignStoryController : ControllerBase
             {
                 StatusCode = StatusCodes.Status200OK,
                 Message = successMessage,
-                Data = result.Data
+                Data = result.Data is null ? null : WithPublicStoragePaths(result.Data)
             }),
             ApplicationStatusCode.InvalidStoryBeat => BadRequest(new ApiResponse<StoryBeatResponse>
             {

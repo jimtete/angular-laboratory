@@ -29,6 +29,12 @@ public static class StaticAssetApplicationBuilderExtensions
             options.RequestPath = LearningLabStaticAssetDefaults.RequestPath;
         });
 
+        services.Configure<FileAssetStorageOptions>(options =>
+        {
+            options.RootPath = assetsRoot;
+            options.RequestPath = LearningLabStaticAssetDefaults.RequestPath;
+        });
+
         return services;
     }
 

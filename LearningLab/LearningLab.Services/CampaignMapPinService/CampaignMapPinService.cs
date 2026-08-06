@@ -742,7 +742,7 @@ public sealed class CampaignMapPinService : ICampaignMapPinService
     private static bool TargetTypeRequiresNoTargetId(MapPinTargetType targetType)
     {
         return targetType is MapPinTargetType.Placeholder
-            or MapPinTargetType.PlayerPosition;
+            or MapPinTargetType.PlayersPosition;
     }
 
     private static bool HasRole(User user, string roleName)
@@ -905,7 +905,7 @@ public sealed class CampaignMapPinService : ICampaignMapPinService
         return pin.TargetType switch
         {
             MapPinTargetType.Placeholder => null,
-            MapPinTargetType.PlayerPosition => null,
+            MapPinTargetType.PlayersPosition => null,
             MapPinTargetType.StoryBlock => Guid.TryParse(pin.TargetId, out var storyBlockId)
                 && targetStoryBlocksById.TryGetValue(storyBlockId, out var storyBlock)
                     ? new MapPinTargetDataResponse
@@ -987,9 +987,9 @@ public sealed class CampaignMapPinService : ICampaignMapPinService
             },
             new MapPinTargetTypeResponse
             {
-                Id = (int)MapPinTargetType.PlayerPosition,
-                Type = MapPinTargetType.PlayerPosition,
-                Name = "Player Position",
+                Id = (int)MapPinTargetType.PlayersPosition,
+                Type = MapPinTargetType.PlayersPosition,
+                Name = "Players Position",
                 RequiresTargetId = false
             }
         ];

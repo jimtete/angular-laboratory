@@ -14,6 +14,7 @@ public class StoryBlock
     public int OrderIndex { get; set; }
 
     public ICollection<StoryBeat> Beats { get; set; } = [];
+    public ICollection<StoryBlockMusicFile> MusicFiles { get; set; } = [];
     public ICollection<StoryBlockMilestone> Milestones { get; set; } = [];
     public ICollection<StoryBeatIndexPathRule> IndexPathRules { get; set; } = [];
     public ICollection<CampaignPresentation> ActivePresentations { get; set; } = [];

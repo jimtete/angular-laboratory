@@ -14,8 +14,16 @@ export enum SessionNoteStoryBeatReferenceType {
   DecisionOption = 4,
 }
 
+export enum SessionNoteStoryBeatReferenceOutcome {
+  Presented = 0,
+  Taken = 1,
+}
+
 export type SessionNoteStoryBeatReferenceTypeValue =
   SessionNoteStoryBeatReferenceType | keyof typeof SessionNoteStoryBeatReferenceType | string | number;
+
+export type SessionNoteStoryBeatReferenceOutcomeValue =
+  SessionNoteStoryBeatReferenceOutcome | keyof typeof SessionNoteStoryBeatReferenceOutcome | string | number;
 
 export interface SessionNoteChoiceModel {
   id: number;
@@ -93,6 +101,7 @@ export interface SessionNoteStoryBeatReferenceModel {
   storyBeatId: string;
   referenceType: SessionNoteStoryBeatReferenceTypeValue;
   referenceId: string | null;
+  referenceOutcome: SessionNoteStoryBeatReferenceOutcomeValue;
   npcTag: string | null;
   contentSnapshot: string;
   createdAt: string;

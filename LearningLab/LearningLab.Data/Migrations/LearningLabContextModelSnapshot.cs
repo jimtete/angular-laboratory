@@ -175,6 +175,130 @@ namespace LearningLab.Data.Migrations
                     b.ToTable("Assets", (string)null);
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.LibraryFolder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("library_folder_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("ParentFolderId")
+                        .HasColumnType("int")
+                        .HasColumnName("parent_folder_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentFolderId");
+
+                    b.HasIndex("CreatedByUserId", "ParentFolderId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("LibraryFolders", (string)null);
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.MusicFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("music_file_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("display_name");
+
+                    b.Property<int?>("DurationMilliseconds")
+                        .HasColumnType("int")
+                        .HasColumnName("duration_milliseconds");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("file_size_bytes");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("original_file_name");
+
+                    b.Property<int?>("ParentFolderId")
+                        .HasColumnType("int")
+                        .HasColumnName("parent_folder_id");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)")
+                        .HasColumnName("storage_path");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasColumnName("stored_file_name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<Guid>("UploadedByUserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("uploaded_by_user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentFolderId");
+
+                    b.HasIndex("StoragePath")
+                        .IsUnique();
+
+                    b.HasIndex("UploadedByUserId");
+
+                    b.ToTable("MusicFiles", (string)null);
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
                 {
                     b.Property<Guid>("CampaignId")
@@ -1962,6 +2086,72 @@ namespace LearningLab.Data.Migrations
                     b.ToTable("StoryBlockMilestones", (string)null);
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlockMusicFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_music_file_id");
+
+                    b.Property<bool>("ContinueAcrossStoryBlocks")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("continue_across_story_blocks");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.Property<bool>("Loop")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("loop");
+
+                    b.Property<int>("MusicFileId")
+                        .HasColumnType("int")
+                        .HasColumnName("music_file_id");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("order_index");
+
+                    b.Property<Guid?>("StoryBeatId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_beat_id");
+
+                    b.Property<Guid>("StoryBlockId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("story_block_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MusicFileId");
+
+                    b.HasIndex("StoryBeatId");
+
+                    b.HasIndex("StoryBlockId");
+
+                    b.HasIndex("StoryBlockId", "MusicFileId")
+                        .IsUnique()
+                        .HasFilter("[story_beat_id] IS NULL");
+
+                    b.HasIndex("StoryBlockId", "StoryBeatId", "MusicFileId")
+                        .IsUnique()
+                        .HasFilter("[story_beat_id] IS NOT NULL");
+
+                    b.ToTable("StoryBlockMusicFiles", (string)null);
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -2428,6 +2618,42 @@ namespace LearningLab.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ParentAsset");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.LibraryFolder", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.User", "CreatedByUser")
+                        .WithMany("LibraryFolders")
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Assets.LibraryFolder", "ParentFolder")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentFolderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("ParentFolder");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.MusicFile", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Assets.LibraryFolder", "ParentFolder")
+                        .WithMany("Files")
+                        .HasForeignKey("ParentFolderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LearningLab.Data.Models.User", "UploadedByUser")
+                        .WithMany("MusicFiles")
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentFolder");
+
+                    b.Navigation("UploadedByUser");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
@@ -3446,6 +3672,32 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("StoryBlock");
                 });
 
+            modelBuilder.Entity("LearningLab.Data.Models.Campaign.Story.StoryBlockMusicFile", b =>
+                {
+                    b.HasOne("LearningLab.Data.Models.Assets.MusicFile", "MusicFile")
+                        .WithMany("StoryBlockLinks")
+                        .HasForeignKey("MusicFileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBeat", "StoryBeat")
+                        .WithMany("MusicFiles")
+                        .HasForeignKey("StoryBeatId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("LearningLab.Data.Models.Campaign.Story.StoryBlock", "StoryBlock")
+                        .WithMany("MusicFiles")
+                        .HasForeignKey("StoryBlockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MusicFile");
+
+                    b.Navigation("StoryBeat");
+
+                    b.Navigation("StoryBlock");
+                });
+
             modelBuilder.Entity("LearningLab.Data.Models.Character.CharacterSheet", b =>
                 {
                     b.HasOne("LearningLab.Data.Models.User", "User")
@@ -3568,6 +3820,18 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Maps");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.LibraryFolder", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Files");
+                });
+
+            modelBuilder.Entity("LearningLab.Data.Models.Assets.MusicFile", b =>
+                {
+                    b.Navigation("StoryBlockLinks");
                 });
 
             modelBuilder.Entity("LearningLab.Data.Models.Campaign.Campaign", b =>
@@ -3694,6 +3958,8 @@ namespace LearningLab.Data.Migrations
                 {
                     b.Navigation("CurrentPresentations");
 
+                    b.Navigation("MusicFiles");
+
                     b.Navigation("PresentationEntries");
 
                     b.Navigation("QuestTaskLinks");
@@ -3710,6 +3976,8 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("IndexPathRules");
 
                     b.Navigation("Milestones");
+
+                    b.Navigation("MusicFiles");
 
                     b.Navigation("PresentationEntries");
 
@@ -3741,6 +4009,10 @@ namespace LearningLab.Data.Migrations
                     b.Navigation("CampaignParticipations");
 
                     b.Navigation("CharacterSheet");
+
+                    b.Navigation("LibraryFolders");
+
+                    b.Navigation("MusicFiles");
 
                     b.Navigation("Notifications");
 

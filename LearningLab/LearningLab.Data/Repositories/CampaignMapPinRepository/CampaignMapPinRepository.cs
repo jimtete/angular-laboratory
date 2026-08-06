@@ -52,6 +52,32 @@ public sealed class CampaignMapPinRepository : ICampaignMapPinRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<MapPin>> ListStoryBlockPinsByCampaignIdAsync(
+        Guid campaignId,
+        IReadOnlyCollection<Guid> storyBlockIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (storyBlockIds.Count == 0)
+        {
+            return [];
+        }
+
+        var targetIds = storyBlockIds
+            .Select(storyBlockId => storyBlockId.ToString())
+            .ToList();
+
+        return await _context.MapPins
+            .AsNoTracking()
+            .Where(pin => pin.TargetType == MapPinTargetType.StoryBlock
+                && pin.TargetId != null
+                && targetIds.Contains(pin.TargetId)
+                && pin.Map.Campaigns.Any(mapCampaign => mapCampaign.CampaignId == campaignId))
+            .OrderBy(pin => pin.MapId)
+            .ThenBy(pin => pin.Label)
+            .ThenBy(pin => pin.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<MapPin?> GetMutableByMapIdAndPinIdAsync(
         int mapId,
         int pinId,

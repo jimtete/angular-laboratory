@@ -70,7 +70,6 @@
   min-height: 0;
   display: grid;
   align-items: start;
-  padding: 0;
   border: 4px double #b98b62;
   background: rgba(255, 253, 244, 0.82);
 }
@@ -80,14 +79,12 @@
   min-width: 0;
   display: grid;
   gap: 0.85rem;
-  box-sizing: border-box;
 }
 
 .campaign-map-viewer-scroll {
   position: relative;
   width: 100%;
   height: clamp(24rem, calc(100dvh - 23rem), 44rem);
-  min-height: 0;
   overflow: hidden;
   touch-action: none;
 }
@@ -118,11 +115,11 @@
 }
 
 .campaign-map-connection-line {
-  stroke: #111827;
+  stroke: #fff;
   stroke-width: 3;
   stroke-dasharray: 10 8;
   stroke-linecap: round;
-  opacity: 0.82;
+  mix-blend-mode: difference;
   vector-effect: non-scaling-stroke;
 }
 
@@ -166,8 +163,7 @@
   width: 2.75rem;
   height: 2.75rem;
   display: grid;
-  justify-items: center;
-  align-items: center;
+  place-items: center;
   padding: 0;
   border: 1px solid rgba(43, 26, 16, 0.45);
   border-radius: 50%;
@@ -246,12 +242,16 @@
   background: #facc15;
 }
 
+.campaign-map-pin-tool-players-position .campaign-map-pin-marker {
+  background: #bbf7d0;
+}
+
 .campaign-map-pin-tool-map-link .campaign-map-pin-marker {
   background: #38bdf8;
 }
 
 .campaign-map-pin-tool-story-block .campaign-map-pin-marker {
-  background: #a78bfa;
+  background: #d97706;
 }
 
 .campaign-map-pin-tooltip {
@@ -284,7 +284,6 @@
   position: absolute;
   z-index: 2;
   display: grid;
-  justify-items: center;
   width: 2rem;
   height: 2.45rem;
   padding: 0;
@@ -323,6 +322,14 @@
 
 .campaign-map-rendered-pin-store::before {
   background: #facc15;
+}
+
+.campaign-map-rendered-pin-story-block::before {
+  background: #d97706;
+}
+
+.campaign-map-rendered-pin-players-position::before {
+  background: #bbf7d0;
 }
 
 .campaign-map-rendered-pin-selected::before {
@@ -367,11 +374,9 @@
   position: absolute;
   left: 50%;
   bottom: calc(100% + 0.55rem);
-  width: max-content;
   max-width: 18rem;
   padding: 0.55rem 0.7rem;
   border: 1px solid rgba(124, 45, 18, 0.5);
-  border-radius: 2px;
   background: #fffaf0;
   color: #24143f;
   font: 800 0.9rem/1.25 'Inter Tight', 'Segoe UI', sans-serif;
@@ -555,7 +560,6 @@
   border-radius: 6px;
   background: #fffaf0;
   color: #7c2d12;
-  font-weight: 900;
   cursor: pointer;
 }
 

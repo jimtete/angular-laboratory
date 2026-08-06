@@ -19,6 +19,11 @@ public interface ICampaignMapPinRepository
         int mapId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<MapPin>> ListStoryBlockPinsByCampaignIdAsync(
+        Guid campaignId,
+        IReadOnlyCollection<Guid> storyBlockIds,
+        CancellationToken cancellationToken = default);
+
     Task<MapPin?> GetMutableByMapIdAndPinIdAsync(
         int mapId,
         int pinId,

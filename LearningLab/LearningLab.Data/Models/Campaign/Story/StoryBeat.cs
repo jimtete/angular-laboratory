@@ -31,4 +31,5 @@ public class StoryBeat
     public ICollection<CampaignPresentationEntry> PresentationEntries { get; set; } = [];
     public ICollection<CampaignPresentationStoryBeatSelection> SelectedInPresentations { get; set; } = [];
     public ICollection<StoryBeatQuestTask> QuestTaskLinks { get; set; } = [];
+    public ICollection<StoryBlockMusicFile> MusicFiles { get; set; } = [];
 }

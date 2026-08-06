@@ -176,6 +176,20 @@
           <span class="campaign-session-presentation-live">
             {{ workspace.presentation.currentStoryBeatId ? 'Beat selected' : 'Ready' }}
           </span>
+
+          @if (currentPresentationMusic(); as musicFile) {
+            <button
+              type="button"
+              class="campaign-session-presentation-button"
+              [attr.title]="musicFile.displayName || musicFile.originalFileName"
+              (click)="resumePresentationMusic()"
+            >
+              <svg lucideMusic aria-hidden="true"></svg>
+              <span>
+                {{ isPresentationMusicPlaybackBlocked() ? 'Start Music' : (musicFile.displayName || musicFile.originalFileName) }}
+              </span>
+            </button>
+          }
         </header>
 
         <div class="campaign-session-presentation-board">
@@ -222,7 +236,10 @@
                       [class.campaign-session-presentation-beat-current]="isCurrentPresentationStoryBeat(storyBeat)"
                       [class.campaign-session-presentation-beat-presented]="hasPresentedStoryBeat(storyBeat)"
                       [class.campaign-session-presentation-beat-index-choice]="isPresentationIndexChoice(storyBeat)"
-                      [disabled]="presentingStoryBeatId() !== null"
+                      [class.campaign-session-presentation-beat-blocked]="isStoryBeatBlocked(storyBeat)"
+                      [class.campaign-session-presentation-beat-available-by-rule]="isStoryBeatAvailableByRule(storyBeat)"
+                      [disabled]="presentingStoryBeatId() !== null || isStoryBeatBlocked(storyBeat)"
+                      [attr.title]="storyBeatAvailabilityTitle(storyBeat)"
                       (click)="presentStoryBeat(storyBeat)"
                     >
                       <span class="campaign-session-presentation-beat-index">
@@ -235,6 +252,18 @@
                         @if (isPresentationIndexChoice(storyBeat)) {
                           <small class="campaign-session-presentation-beat-choice-label">
                             {{ presentationIndexChoiceLabel(storyBeat) }}
+                          </small>
+                        }
+                        @if (isStoryBeatBlocked(storyBeat)) {
+                          <small class="campaign-session-presentation-beat-blocked-label">
+                            Blocked
+                          </small>
+                        } @else if (isStoryBeatAvailableByRule(storyBeat)) {
+                          <small
+                            class="campaign-session-presentation-beat-available-label"
+                            [attr.title]="storyBeatSatisfiedRuleReason(storyBeat)"
+                          >
+                            Requirements Met
                           </small>
                         }
                         @if (hasPresentationIndexPathRule(storyBeat)) {
@@ -290,6 +319,19 @@
               </div>
             </header>
 
+            @if (currentPresentationFinishOutcomeEffects(); as finishEffects) {
+              @if (finishEffects.length > 0) {
+                <section class="campaign-session-presentation-event-preview" aria-label="Pending event changes">
+                  <h4>Finishing this beat will update events</h4>
+                  <ul>
+                    @for (effect of finishEffects; track effect.id) {
+                      <li>{{ finishOutcomeEffectLabel(effect) }}</li>
+                    }
+                  </ul>
+                </section>
+              }
+            }
+
             @if (hasPresentationIndexPathRule(currentStoryBeat)) {
               <div
                 [class]="'campaign-session-presentation-index-path-guidance ' + presentationIndexPathRuleClass(currentStoryBeat)"
@@ -315,7 +357,10 @@
                         class="campaign-session-presentation-choice"
                         [class.campaign-session-presentation-choice-current]="isCurrentPresentationStoryBeat(choice)"
                         [class.campaign-session-presentation-choice-played]="hasStoryBeatPlayedNote(choice)"
-                        [disabled]="presentingStoryBeatId() !== null || isCurrentPresentationStoryBeat(choice)"
+                        [class.campaign-session-presentation-choice-blocked]="isStoryBeatBlocked(choice)"
+                        [class.campaign-session-presentation-choice-available-by-rule]="isStoryBeatAvailableByRule(choice)"
+                        [disabled]="presentingStoryBeatId() !== null || isCurrentPresentationStoryBeat(choice) || isStoryBeatBlocked(choice)"
+                        [attr.title]="storyBeatAvailabilityTitle(choice)"
                         [attr.aria-label]="'Present story beat choice ' + (choice.title || 'Untitled Story Beat')"
                         (click)="presentStoryBeat(choice)"
                       >
@@ -336,7 +381,7 @@
                         </span>
 
                         <span class="campaign-session-presentation-choice-state">
-                          {{ isCurrentPresentationStoryBeat(choice) ? 'Current' : hasStoryBeatPlayedNote(choice) ? 'Played' : 'Choose' }}
+                          {{ isCurrentPresentationStoryBeat(choice) ? 'Current' : isStoryBeatBlocked(choice) ? 'Blocked' : isStoryBeatAvailableByRule(choice) ? 'Available' : hasStoryBeatPlayedNote(choice) ? 'Played' : 'Choose' }}
                         </span>
                       </button>
                     }

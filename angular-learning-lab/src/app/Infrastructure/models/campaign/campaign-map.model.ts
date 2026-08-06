@@ -35,7 +35,8 @@ export enum MapPinTargetType {
   StoryBlock = 1,
   Map = 2,
   Store = 3,
-  PlayerPosition = 4,
+  PlayersPosition = 4,
+  PlayerPosition = PlayersPosition,
 }
 
 export interface MapPinModel {

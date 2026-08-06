@@ -24,6 +24,17 @@
       <p>Story Blocks</p>
     </button>
 
+    <button
+      type="button"
+      class="campaign-home-maps"
+      aria-label="Open campaign maps"
+      (click)="goToMaps()"
+    >
+      <strong>{{ isLoadingMaps() ? '...' : mapCount() }}</strong>
+      <p>Maps</p>
+      <span>({{ mapTypeBreakdown() }})</span>
+    </button>
+
     <section class="campaign-home-npcs" aria-label="Campaign NPCs">
       <strong>{{ isLoadingNpcs() ? '...' : npcCount() }}</strong>
       <p>NPCs</p>

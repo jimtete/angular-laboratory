@@ -3,6 +3,7 @@
     <div>
       <p>Campaign Events</p>
       <h2>Story State</h2>
+      <small>{{ currentSessionLabel() }}</small>
     </div>
     <span>{{ events().length }}</span>
   </header>
@@ -18,6 +19,14 @@
               <strong>{{ event.name }}</strong>
               <code>{{ event.key }}</code>
               <span>{{ typeLabel(event) }}</span>
+              <div
+                class="campaign-event-current-value"
+                [class.campaign-event-current-value-unset]="!event.currentState"
+                [attr.title]="currentValueTitle(event)"
+              >
+                <small>Current</small>
+                <b>{{ currentValueLabel(event) }}</b>
+              </div>
               @if (toCampaignEventType(event.eventType ?? event.type) === CampaignEventType.SingleChoice && event.options.length > 0) {
                 <div class="campaign-event-option-summary" aria-label="Single choice options">
                   @for (option of event.options; track option.id) {

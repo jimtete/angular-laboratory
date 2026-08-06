@@ -22,6 +22,7 @@ public sealed class CampaignEventDefinitionResponse
     public bool IsRepeatable { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; }
     public DateTimeOffset UpdatedAtUtc { get; init; }
+    public CampaignEventStateResponse? CurrentState { get; init; }
     public IReadOnlyList<CampaignEventOptionResponse> Options { get; init; } = [];
 }
 
@@ -180,6 +181,9 @@ public sealed class TargetAvailabilityResult
     public ConditionalTargetType TargetType { get; init; }
     public Guid TargetId { get; init; }
     public bool IsAvailable { get; init; }
+    public bool IsAvailableByRule { get; init; }
+    public IReadOnlyList<RuleEvaluationResult> SatisfiedRuleResults { get; init; } = [];
+    public IReadOnlyList<RuleEvaluationResult> BlockingRuleResults { get; init; } = [];
     public IReadOnlyList<RuleEvaluationResult> RuleResults { get; init; } = [];
 }
 
@@ -207,6 +211,7 @@ public sealed class StoryOutcomeEffectResponse
     public OutcomeOperationType OperationType { get; init; }
     public bool? BooleanValue { get; init; }
     public Guid? SelectedOptionId { get; init; }
+    public string? SelectedOptionKey { get; init; }
     public string? TextValue { get; init; }
     public decimal? NumericValue { get; init; }
     public int SortOrder { get; init; }
